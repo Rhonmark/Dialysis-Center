@@ -64,6 +64,20 @@ class ForgotPage(tk.Frame):
             anchor="n"  
         )
 
+        # Admin Button
+        admin_button = Button(
+            left_container, 
+            text="Admin", 
+        )
+        admin_button.place(relx=0.24, rely=0.73, anchor="n", width=250, height=55) 
+
+        # Staff Button
+        staff_button = Button(
+            left_container,
+            text="Staff", 
+        )
+        staff_button.place(relx=0.59, rely=0.73, anchor="n", width=250, height=55) 
+
         # Right container
         right_container = tk.Frame(self, bg="#1A374D")  
         right_container.grid(row=0, column=1, sticky="nsew")

@@ -144,4 +144,8 @@ class LoginPage(tk.Frame):
         register_page.pack(fill="both", expand=True) 
 
     def on_forgot_password_click(self, event):
-        print("Forgot Password clicked")
+        from pages.ForgotPage import ForgotPage 
+        self.pack_forget()  
+        register_page = ForgotPage(self.master)  
+        register_page.pack(fill="both", expand=True) 
+
