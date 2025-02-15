@@ -1,12 +1,13 @@
 import tkinter as tk
+import hashlib
 from components.textfields import TextField
 from components.buttons import Button
 from PIL import Image, ImageTk
-
+from backend.input_validator import login_validation, get_password_from_db
 
 class LoginPage(tk.Frame):
     def __init__(self, parent):
-        super().__init__(parent)
+        super().__init__(parent)    
 
         self.columnconfigure(0, weight=2, uniform="group")  
         self.columnconfigure(1, weight=1, uniform="group") 
@@ -103,16 +104,16 @@ class LoginPage(tk.Frame):
         username_label.place(relx=0.23, rely=0.35, anchor="n")
 
         # Username Field
-        username_field = TextField(right_container, placeholder="Username must be at least 8 characters", font=("Arial", 12), width=25)
-        username_field.place(relx=0.5, rely=0.39, anchor="n", width=300, height=50)  
+        self.username_field = TextField(right_container, placeholder="Username must be at least 8 characters", font=("Arial", 12), width=25)
+        self.username_field.place(relx=0.5, rely=0.39, anchor="n", width=300, height=50)  
 
         #Password Label
         password_label = tk.Label(right_container, text="Password", font=("Arial", 12), fg="white", bg="#1A374D")
         password_label.place(relx=0.23, rely=0.48, anchor="n") 
 
         # Password Field
-        password_field = TextField(right_container, placeholder="Password must be at least 6 characters", font=("Arial", 12), width=25)
-        password_field.place(relx=0.5, rely=0.52, anchor="n", width=300, height=50) 
+        self.password_field = TextField(right_container, placeholder="Password must be at least 6 characters", font=("Arial", 12), width=25)
+        self.password_field.place(relx=0.5, rely=0.52, anchor="n", width=300, height=50) 
 
         # Forgot Password
         forgot_password_label = tk.Label(
@@ -135,7 +136,26 @@ class LoginPage(tk.Frame):
         signup_button.place(relx=0.5, rely=0.8, anchor="n", width=230, height=50)
 
     def on_login_click(self):
-        print("Login button clicked")
+        username = self.username_field.get().strip()
+        password = self.password_field.get().strip()
+        hash_password = hashlib.sha256(password.encode()).hexdigest()
+
+        validation_result = login_validation(username, password)
+
+        if validation_result:
+            print(validation_result)
+            return
+        
+        stored_user_password = get_password_from_db(username)
+
+        if stored_user_password is None:
+            print("User not found...")
+            return
+
+        if hash_password == stored_user_password:
+            print("Login Successful")
+        else:
+            print("Invalid Password")
 
     def on_signup_click(self):
         from pages.RegisterPage import RegisterPage 
@@ -148,4 +168,28 @@ class LoginPage(tk.Frame):
         self.pack_forget()  
         register_page = ForgotPage(self.master)  
         register_page.pack(fill="both", expand=True) 
+
+    # def login_user_input(self):
+    #     username = self.username_field.get().strip()
+    #     password = self.password_field.get().strip()
+    #     hash_password = hashlib.sha256(password.encode()).hexdigest()
+
+    #     validation_result = login_validation(username, password)
+
+    #     if validation_result:
+    #         print(validation_result)
+    #         return
+        
+    #     stored_user_password = get_password_from_db(username)
+
+    #     if stored_user_password is None:
+    #         print("User not found...")
+    #         return
+
+    #     if hash_password == stored_user_password:
+    #         print("Login Successful")
+    #     else:
+    #         print("Invalid Password")
+            
+
 

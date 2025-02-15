@@ -1,7 +1,11 @@
 import tkinter as tk
+import hashlib
 from components.textfields import TextField
 from components.buttons import Button
 from PIL import Image, ImageTk
+from backend.connector import db_connection as db
+from backend.input_validator import register_validation, register_to_db
+
 
 class RegisterPage(tk.Frame):
     def __init__(self, parent):
@@ -102,24 +106,24 @@ class RegisterPage(tk.Frame):
         username_label.place(relx=0.23, rely=0.27, anchor="n")
 
         # Username Field
-        username_field = TextField(right_container, placeholder="Username must be at least 8 characters", font=("Arial", 12), width=25)
-        username_field.place(relx=0.5, rely=0.31, anchor="n", width=300, height=50)  
+        self.username_field = TextField(right_container, placeholder="Username must be at least 8 characters", font=("Arial", 12), width=25)
+        self.username_field.place(relx=0.5, rely=0.31, anchor="n", width=300, height=50)  
 
         #Password Label
         password_label = tk.Label(right_container, text="Password", font=("Arial", 12), fg="white", bg="#1A374D")
         password_label.place(relx=0.23, rely=0.40, anchor="n") 
 
         # Password Field
-        password_field = TextField(right_container, placeholder="Password must be at least 6 characters", font=("Arial", 12), width=25)
-        password_field.place(relx=0.5, rely=0.44, anchor="n", width=300, height=50) 
+        self.password_field = TextField(right_container, placeholder="Password must be at least 6 characters", font=("Arial", 12), width=25)
+        self.password_field.place(relx=0.5, rely=0.44, anchor="n", width=300, height=50) 
 
         #SecretQuestion Label
         secret_question_label = tk.Label(right_container, text="Secret Question", font=("Arial", 12), fg="white", bg="#1A374D")
         secret_question_label.place(relx=0.28, rely=0.53, anchor="n") 
 
         # Secret Question Field
-        secret_question_field = TextField(right_container, placeholder="What is your mother’s maiden name?", font=("Arial", 12), width=25)
-        secret_question_field.place(relx=0.5, rely=0.57, anchor="n", width=300, height=50) 
+        self.secret_question_field = TextField(right_container, placeholder="What is your mother’s maiden name?", font=("Arial", 12), width=25)
+        self.secret_question_field.place(relx=0.5, rely=0.57, anchor="n", width=300, height=50) 
 
          # Add Login Button
         login_button = Button(right_container, text="Login", command=self.on_login_click)
@@ -136,4 +140,16 @@ class RegisterPage(tk.Frame):
         register_page.pack(fill="both", expand=True) 
         
     def on_signup_click(self):
-        print("Signup button clicked")
+        username = self.username_field.get().strip()
+        password = self.password_field.get().strip()
+        secret_answer = self.secret_question_field.get().strip()
+
+        hashed_password = hashlib.sha256(password.encode()).hexdigest()
+
+        validation_result = register_validation(username, password, secret_answer)
+
+        if validation_result:
+            print(validation_result)
+            return
+
+        register_to_db(username, hashed_password, secret_answer)
