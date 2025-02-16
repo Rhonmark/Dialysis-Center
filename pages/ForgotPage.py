@@ -86,13 +86,21 @@ class ForgotPage(tk.Frame):
         title = tk.Label(right_container, text="FORGOT\nPASSWORD", font=("Arial", 30, "bold"), fg="#68EDC6", bg="#1A374D", justify= "center")
         title.place(relx=0.5, rely=0, anchor="n", y=50)
 
+         #Username Label
+        self.username_label = tk.Label(right_container, text="Username", font=("Arial", 12), fg="white", bg="#1A374D")
+        self.username_label.place(relx=0.23, rely=0.33, anchor="n")
+
+        # Username Field
+        self.username_field = TextField(right_container, placeholder="Username must be at least 8 characters", font=("Arial", 12), width=25)
+        self.username_field.place(relx=0.5, rely=0.37, anchor="n", width=300, height=50)  
+        
         # Secret Question label
-        secret_question_label = tk.Label(right_container, text="Secret Question", font=("Arial", 12), fg="white", bg="#1A374D")
-        secret_question_label.place(relx=0.49, rely=0.41, anchor="n") 
+        self.secret_question_label = tk.Label(right_container, text="Secret Question", font=("Arial", 12), fg="white", bg="#1A374D")
+        self.secret_question_label.place(relx=0.28, rely=0.48, anchor="n") 
 
         # Secret Question Answer Field
-        secret_question_field = TextField(right_container, placeholder="Enter secret question answer", font=("Arial", 12), width=25)
-        secret_question_field.place(relx=0.5, rely=0.45, anchor="n", width=300, height=50) 
+        self.secret_question_field = TextField(right_container, placeholder="Enter secret question answer", font=("Arial", 12), width=25)
+        self.secret_question_field.place(relx=0.5, rely=0.52, anchor="n", width=300, height=50) 
 
         # Enter Button
         enter_button = Button(right_container, text="Enter", command=self.on_enter_click)
@@ -102,8 +110,28 @@ class ForgotPage(tk.Frame):
         cancel_button = Button(right_container, text="Cancel", command=self.on_cancel_click)
         cancel_button.place(relx=0.5, rely=0.8, anchor="n", width=230, height=50)
 
+         # New Password Fields (Initially Hidden)
+        self.new_password_label = tk.Label(right_container, text="New Password", font=("Arial", 12), fg="white", bg="#1A374D")
+        self.new_password_field = TextField(right_container, placeholder="Enter new password", font=("Arial", 12), width=25)
+        
+        self.confirm_password_label = tk.Label(right_container, text="Confirm Password", font=("Arial", 12), fg="white", bg="#1A374D")
+        self.confirm_password_field = TextField(right_container, placeholder="Confirm new password", font=("Arial", 12), width=25)
+
     def on_enter_click(self):
         print("Enter button clicked")
+
+        # Hide username and secret question fields
+        self.username_label.place_forget()
+        self.username_field.place_forget()
+        self.secret_question_label.place_forget()
+        self.secret_question_field.place_forget()
+
+        # Show new password fields in the same position
+        self.new_password_label.place(relx=0.27, rely=0.33, anchor="n")
+        self.new_password_field.place(relx=0.5, rely=0.37, anchor="n", width=300, height=50)
+
+        self.confirm_password_label.place(relx=0.30, rely=0.48, anchor="n")
+        self.confirm_password_field.place(relx=0.5, rely=0.52, anchor="n", width=300, height=50)
 
     def on_cancel_click(self):
         from pages.LoginPage import LoginPage 
