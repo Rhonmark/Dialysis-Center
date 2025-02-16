@@ -1,5 +1,7 @@
+import random
 import tkinter as tk
 import hashlib
+from tkinter import ttk
 from components.textfields import TextField
 from components.buttons import Button
 from PIL import Image, ImageTk
@@ -103,27 +105,43 @@ class RegisterPage(tk.Frame):
 
         #Username Label
         username_label = tk.Label(right_container, text="Username", font=("Arial", 12), fg="white", bg="#1A374D")
-        username_label.place(relx=0.23, rely=0.27, anchor="n")
+        username_label.place(relx=0.23, rely=0.24, anchor="n")
 
         # Username Field
         self.username_field = TextField(right_container, placeholder="Username must be at least 8 characters", font=("Arial", 12), width=25)
-        self.username_field.place(relx=0.5, rely=0.31, anchor="n", width=300, height=50)  
+        self.username_field.place(relx=0.5, rely=0.28, anchor="n", width=300, height=50)  
 
         #Password Label
         password_label = tk.Label(right_container, text="Password", font=("Arial", 12), fg="white", bg="#1A374D")
-        password_label.place(relx=0.23, rely=0.40, anchor="n") 
+        password_label.place(relx=0.23, rely=0.37, anchor="n") 
 
         # Password Field
         self.password_field = TextField(right_container, placeholder="Password must be at least 6 characters", font=("Arial", 12), width=25)
-        self.password_field.place(relx=0.5, rely=0.44, anchor="n", width=300, height=50) 
+        self.password_field.place(relx=0.5, rely=0.41, anchor="n", width=300, height=50) 
 
         #SecretQuestion Label
         secret_question_label = tk.Label(right_container, text="Secret Question", font=("Arial", 12), fg="white", bg="#1A374D")
-        secret_question_label.place(relx=0.28, rely=0.53, anchor="n") 
+        secret_question_label.place(relx=0.28, rely=0.5, anchor="n") 
+
+        # Secret Question Dropdown
+        self.secret_questions = [
+            "What is your mother's maiden name?",
+            "What is your Father's maiden name?",
+            "What was the name of your first pet?",
+            "What is the name of your first school?",
+            "What is your favorite book?"
+        ]
+
+        # Randomly select a question
+        self.selected_question = tk.StringVar(value=random.choice(self.secret_questions))
+
+        # Dropdown menu (Combobox)
+        self.secret_question_dropdown = ttk.Combobox(right_container, textvariable=self.selected_question, values=self.secret_questions, state="readonly", font=("Arial", 12))
+        self.secret_question_dropdown.place(relx=0.5, rely=0.53, anchor="n", width=300, height=30)
 
         # Secret Question Field
-        self.secret_question_field = TextField(right_container, placeholder="What is your mother’s maiden name?", font=("Arial", 12), width=25)
-        self.secret_question_field.place(relx=0.5, rely=0.57, anchor="n", width=300, height=50) 
+        self.secret_question_field = TextField(right_container, placeholder="Enter secret question answer", font=("Arial", 12), width=25)
+        self.secret_question_field.place(relx=0.5, rely=0.59, anchor="n", width=300, height=50) 
 
          # Add Login Button
         login_button = Button(right_container, text="Login", command=self.on_login_click)
