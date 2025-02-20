@@ -4,6 +4,7 @@ from tkinter import ttk
 from components.textfields import TextField
 from components.buttons import Button
 from PIL import Image, ImageTk
+from backend.input_validator import get_answer_from_db, db_connection, get_username_from_db, forgot_validator
 
 class ForgotPage(tk.Frame):
     def __init__(self, parent):
@@ -121,15 +122,33 @@ class ForgotPage(tk.Frame):
         cancel_button.place(relx=0.5, rely=0.8, anchor="n", width=230, height=50)
 
     def on_enter_click(self):
+
+        username = self.username_field.get().strip()
+        secret_answer = self.secret_question_field.get().strip()
+        password = self.new_password_field.get().strip()
+        confirm_password = self.confirm_password_field.get().strip()
+
+        retrieved_username = get_username_from_db(username)
+        retrieved_answer = get_answer_from_db(username)
+
         if self.step == 1:
-            # Hide username, show secret question
+            
+            if retrieved_username is None or username in ['Username must be at least 8 characters']:
+                return
+            
             self.username_label.place_forget()
             self.username_field.place_forget()
             self.secret_question_label.place(relx=0.28, rely=0.36, anchor="n")
             self.secret_question_field.place(relx=0.5, rely=0.40, anchor="n", width=300, height=50)
+
             self.step += 1
+
         elif self.step == 2:
-            # Hide secret question, show password fields
+            
+            if retrieved_answer != secret_answer:
+                print("Answer is incorrect...")
+                return
+
             self.secret_question_label.place_forget()
             self.secret_question_field.place_forget()
             self.new_password_label.place(relx=0.27, rely=0.33, anchor="n")
@@ -138,9 +157,11 @@ class ForgotPage(tk.Frame):
             self.confirm_password_field.place(relx=0.5, rely=0.52, anchor="n", width=300, height=50)
             self.step += 1
 
+            forgot_validator(password, confirm_password)
+
+
     def on_cancel_click(self):
         from pages.LoginPage import LoginPage 
         self.pack_forget()  
         login_page = LoginPage(self.master)  
         login_page.pack(fill="both", expand=True)
-

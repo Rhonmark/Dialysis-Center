@@ -6,7 +6,7 @@ from components.textfields import TextField
 from components.buttons import Button
 from PIL import Image, ImageTk
 from backend.connector import db_connection as db
-from backend.input_validator import register_validation, register_to_db
+from backend.input_validator import register_validation, register_to_db, null_validator
 
 
 class RegisterPage(tk.Frame):
@@ -162,12 +162,15 @@ class RegisterPage(tk.Frame):
         password = self.password_field.get().strip()
         secret_answer = self.secret_question_field.get().strip()
 
+        if null_validator(username, password, secret_answer):
+            return
+        
         hashed_password = hashlib.sha256(password.encode()).hexdigest()
-
         validation_result = register_validation(username, password, secret_answer)
+
 
         if validation_result:
             print(validation_result)
-            return
-
+            return      
+    
         register_to_db(username, hashed_password, secret_answer)

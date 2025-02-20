@@ -169,27 +169,5 @@ class LoginPage(tk.Frame):
         register_page = ForgotPage(self.master)  
         register_page.pack(fill="both", expand=True) 
 
-    # def login_user_input(self):
-    #     username = self.username_field.get().strip()
-    #     password = self.password_field.get().strip()
-    #     hash_password = hashlib.sha256(password.encode()).hexdigest()
-
-    #     validation_result = login_validation(username, password)
-
-    #     if validation_result:
-    #         print(validation_result)
-    #         return
-        
-    #     stored_user_password = get_password_from_db(username)
-
-    #     if stored_user_password is None:
-    #         print("User not found...")
-    #         return
-
-    #     if hash_password == stored_user_password:
-    #         print("Login Successful")
-    #     else:
-    #         print("Invalid Password")
-            
 
 
