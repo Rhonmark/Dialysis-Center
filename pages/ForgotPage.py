@@ -5,14 +5,20 @@ from components.textfields import TextField
 from components.buttons import Button
 from PIL import Image, ImageTk
 from backend.input_validator import get_answer_from_db, db_connection, get_username_from_db, forgot_validator
+from components.buttons import Button, apply_selected_state
 
 class ForgotPage(tk.Frame):
-    def __init__(self, parent):
+    def __init__(self, parent, shared_state):
         super().__init__(parent)
 
         self.columnconfigure(0, weight=2, uniform="group")  
         self.columnconfigure(1, weight=1, uniform="group") 
         self.rowconfigure(0, weight=1)
+        self.shared_state = shared_state  
+
+        # Access the selected role
+        selected_role = self.shared_state.get("selected_role", "None")
+        print(selected_role)
 
         # Left container 
         left_container = tk.Frame(self)
@@ -67,19 +73,25 @@ class ForgotPage(tk.Frame):
             anchor="n"  
         )
 
-        # Admin Button
-        admin_button = Button(
+        # Admin Button 
+        self.admin_button = Button(
             left_container, 
             text="Admin", 
-        )
-        admin_button.place(relx=0.24, rely=0.73, anchor="n", width=250, height=55) 
+            selectable=True,
+            shared_state=self.shared_state
+            )
+        self.admin_button.place(relx=0.24, rely=0.73, anchor="n", width=250, height=55)
 
-        # Staff Button
-        staff_button = Button(
-            left_container,
+        # Staff Button 
+        self.staff_button = Button(
+            left_container, 
             text="Staff", 
-        )
-        staff_button.place(relx=0.59, rely=0.73, anchor="n", width=250, height=55) 
+            selectable=True,
+            shared_state=self.shared_state
+            )
+        self.staff_button.place(relx=0.59, rely=0.73, anchor="n", width=250, height=55)
+
+        apply_selected_state(shared_state, left_container)
 
         # Right container
         right_container = tk.Frame(self, bg="#1A374D")  
@@ -159,9 +171,20 @@ class ForgotPage(tk.Frame):
 
             forgot_validator(password, confirm_password)
 
+        elif self.step == 3:
+
+            from pages.LoginPage import LoginPage
+            print("Redirecting to Login Page...")  
+
+            self.step = 1 # not sure kung need paba ireset yung steps para sure na pagbalik sa forgot pass page e nasa step 1 ulit yung sequence
+            
+            self.pack_forget()  
+            login_page = LoginPage(self.master, self.shared_state)  
+            login_page.pack(fill="both", expand=True)
+
 
     def on_cancel_click(self):
         from pages.LoginPage import LoginPage 
         self.pack_forget()  
-        login_page = LoginPage(self.master)  
+        login_page = LoginPage(self.master, self.shared_state)  
         login_page.pack(fill="both", expand=True)

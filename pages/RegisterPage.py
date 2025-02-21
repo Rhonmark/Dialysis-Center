@@ -7,15 +7,20 @@ from components.buttons import Button
 from PIL import Image, ImageTk
 from backend.connector import db_connection as db
 from backend.input_validator import register_validation, register_to_db, null_validator
-
+from components.buttons import Button, apply_selected_state
 
 class RegisterPage(tk.Frame):
-    def __init__(self, parent):
+    def __init__(self, parent, shared_state):
         super().__init__(parent)
 
         self.columnconfigure(0, weight=2, uniform="group")  
         self.columnconfigure(1, weight=1, uniform="group") 
         self.rowconfigure(0, weight=1)
+        self.shared_state = shared_state  
+
+        # Access the selected role
+        selected_role = self.shared_state.get("selected_role", "None")
+        print(selected_role)
 
         # Left container 
         left_container = tk.Frame(self)
@@ -71,18 +76,24 @@ class RegisterPage(tk.Frame):
         )
 
         # Admin Button
-        admin_button = Button(
+        self.admin_button = Button(
             left_container, 
             text="Admin", 
+            selectable=True,
+            shared_state=self.shared_state
         )
-        admin_button.place(relx=0.24, rely=0.73, anchor="n", width=250, height=55) 
+        self.admin_button.place(relx=0.24, rely=0.73, anchor="n", width=250, height=55) 
 
         # Staff Button
-        staff_button = Button(
+        self.staff_button = Button(
             left_container,
             text="Staff", 
+            selectable=True,
+            shared_state=self.shared_state
         )
-        staff_button.place(relx=0.59, rely=0.73, anchor="n", width=250, height=55) 
+        self.staff_button.place(relx=0.59, rely=0.73, anchor="n", width=250, height=55) 
+
+        apply_selected_state(shared_state, left_container)
 
         # Right container
         right_container = tk.Frame(self, bg="#1A374D")  
@@ -111,7 +122,7 @@ class RegisterPage(tk.Frame):
         self.username_field = TextField(right_container, placeholder="Username must be at least 8 characters", font=("Arial", 12), width=25)
         self.username_field.place(relx=0.5, rely=0.28, anchor="n", width=300, height=50)  
 
-        #Password Label
+        # Password Label
         password_label = tk.Label(right_container, text="Password", font=("Arial", 12), fg="white", bg="#1A374D")
         password_label.place(relx=0.23, rely=0.37, anchor="n") 
 
@@ -119,7 +130,7 @@ class RegisterPage(tk.Frame):
         self.password_field = TextField(right_container, placeholder="Password must be at least 6 characters", font=("Arial", 12), width=25)
         self.password_field.place(relx=0.5, rely=0.41, anchor="n", width=300, height=50) 
 
-        #SecretQuestion Label
+        # SecretQuestion Label
         secret_question_label = tk.Label(right_container, text="Secret Question", font=("Arial", 12), fg="white", bg="#1A374D")
         secret_question_label.place(relx=0.28, rely=0.5, anchor="n") 
 
@@ -154,7 +165,7 @@ class RegisterPage(tk.Frame):
     def on_login_click(self):
         from pages.LoginPage import LoginPage 
         self.pack_forget()  
-        register_page = LoginPage(self.master)  
+        register_page = LoginPage(self.master, self.shared_state)  
         register_page.pack(fill="both", expand=True) 
         
     def on_signup_click(self):

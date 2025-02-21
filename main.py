@@ -15,9 +15,11 @@ def main():
     position_top = (screen_height // 2) - (window_height // 2)
     position_right = (screen_width // 2) - (window_width // 2)
 
+    shared_state = {"selected_role": None}
+
     root.geometry(f"{window_width}x{window_height}+{position_right}+{position_top}")
 
-    test_page = ForgotPage(root)
+    test_page = ForgotPage(root, shared_state)
     test_page.pack(fill="both", expand=True)
 
     root.mainloop()
