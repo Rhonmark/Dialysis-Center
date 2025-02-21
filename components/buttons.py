@@ -35,14 +35,17 @@ class Button(tk.Button):
 
     def on_click(self, event):
         if self.selectable and self.shared_state is not None:
-            self.is_selected = True
-            self.configure(bg=self.selected_color)
-            self.shared_state["selected_role"] = self.cget("text")  
+            if self.is_selected:  
+                self.deselect()
+                self.shared_state["selected_role"] = None  
+            else:
+                self.is_selected = True
+                self.configure(bg=self.selected_color)
+                self.shared_state["selected_role"] = self.cget("text")
 
-            for widget in self.master.winfo_children():
-                if isinstance(widget, Button) and widget != self and widget.selectable:
-                    widget.deselect()
-
+                for widget in self.master.winfo_children():
+                    if isinstance(widget, Button) and widget != self and widget.selectable:
+                        widget.deselect()
     def deselect(self):
         if self.selectable:
             self.is_selected = False
