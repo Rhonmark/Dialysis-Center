@@ -80,7 +80,8 @@ class RegisterPage(tk.Frame):
             left_container, 
             text="Admin", 
             selectable=True,
-            shared_state=self.shared_state
+            shared_state=self.shared_state,
+            command=lambda: self.shared_state.update({"selected_role": "Admin"})
         )
         self.admin_button.place(relx=0.24, rely=0.73, anchor="n", width=250, height=55) 
 
@@ -89,7 +90,8 @@ class RegisterPage(tk.Frame):
             left_container,
             text="Staff", 
             selectable=True,
-            shared_state=self.shared_state
+            shared_state=self.shared_state,
+            command=lambda: self.shared_state.update({"selected_role": "Staff"})
         )
         self.staff_button.place(relx=0.59, rely=0.73, anchor="n", width=250, height=55) 
 
@@ -172,16 +174,25 @@ class RegisterPage(tk.Frame):
         username = self.username_field.get().strip()
         password = self.password_field.get().strip()
         secret_answer = self.secret_question_field.get().strip()
+        role = self.shared_state.get("selected_role", 'None')
 
-        if null_validator(username, password, secret_answer):
-            return
+        try: 
+            if not role:
+                print("Choose between Admin or Staff...")
+                return
+            
+            if null_validator(username, password, secret_answer):
+                return
+            
+            hashed_password = hashlib.sha256(password.encode()).hexdigest()
+            validation_result = register_validation(username, password, secret_answer)
+
+
+            if validation_result:
+                print(validation_result)
+                return      
         
-        hashed_password = hashlib.sha256(password.encode()).hexdigest()
-        validation_result = register_validation(username, password, secret_answer)
-
-
-        if validation_result:
-            print(validation_result)
-            return      
-    
-        register_to_db(username, hashed_password, secret_answer)
+            register_to_db(role, username, hashed_password, secret_answer)
+        
+        except Exception as ve:
+            print(f'Register Page has a problem: ', ve)

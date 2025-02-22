@@ -19,7 +19,7 @@ def main():
 
     root.geometry(f"{window_width}x{window_height}+{position_right}+{position_top}")
 
-    test_page = ForgotPage(root, shared_state)
+    test_page = RegisterPage(root, shared_state)
     test_page.pack(fill="both", expand=True)
 
     root.mainloop()

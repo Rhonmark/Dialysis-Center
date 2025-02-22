@@ -77,7 +77,8 @@ class LoginPage(tk.Frame):
             left_container, 
             text="Admin", 
             selectable=True,
-            shared_state=self.shared_state
+            shared_state=self.shared_state,
+            command=lambda: self.shared_state.update({"selected_role": "Admin"})
         )
         self.admin_button.place(relx=0.24, rely=0.73, anchor="n", width=250, height=55) 
 
@@ -86,7 +87,8 @@ class LoginPage(tk.Frame):
             left_container,
             text="Staff", 
             selectable= True,
-            shared_state=self.shared_state
+            shared_state=self.shared_state,
+            command=lambda: self.shared_state.update({"selected_role": "Staff"})
         )
         self.staff_button.place(relx=0.59, rely=0.73, anchor="n", width=250, height=55) 
 
@@ -151,23 +153,31 @@ class LoginPage(tk.Frame):
         username = self.username_field.get().strip()
         password = self.password_field.get().strip()
         hash_password = hashlib.sha256(password.encode()).hexdigest()
+        selected_role = self.shared_state.get("selected_role", None)  
 
-        validation_result = login_validation(username, password)
+        try:
+            if not selected_role:
+                print("Choose between Admin or Staff...")
+                return
 
-        if validation_result:
-            print(validation_result)
-            return
-        
-        stored_user_password = get_password_from_db(username)
+            validation_result = login_validation(username, password)
 
-        if stored_user_password is None:
-            print("User not found...")
-            return
+            if validation_result:
+                print(validation_result)
+                return
+            
+            stored_user_credentials = get_password_from_db(username)
 
-        if hash_password == stored_user_password:
-            print("Login Successful")
-        else:
-            print("Invalid Password")
+            if stored_user_credentials is None:
+                print("User not found...")
+                return
+
+            if hash_password == stored_user_credentials:
+                print("Login Successful")
+            else:
+                print("Invalid Password")
+        except Exception as e:
+            print(f'Login Page has a problem: ', e)
 
     def on_signup_click(self):
         from pages.RegisterPage import RegisterPage 
@@ -180,6 +190,3 @@ class LoginPage(tk.Frame):
         self.pack_forget()  
         register_page = ForgotPage(self.master, self.shared_state)  
         register_page.pack(fill="both", expand=True) 
-
-
-

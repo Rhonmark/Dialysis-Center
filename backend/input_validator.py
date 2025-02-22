@@ -32,14 +32,14 @@ def register_validation(username, password, secret_answer):
     return("Secret Answer must be filled!")
   return None
 
-def register_to_db(username, password, secret_answer):
+def register_to_db(role, username, password, secret_answer):
   connect = db()
   cursor = connect.cursor()
   query = """
-      INSERT INTO users (username, password, secret_answer)
-      VALUES (%s, %s, %s)
+      INSERT INTO users (role, username, password, secret_answer)
+      VALUES (%s, %s, %s, %s)
   """
-  values = (username, password, secret_answer)
+  values = (role, username, password, secret_answer)
 
   cursor.execute(query, values)
   connect.commit()
@@ -48,11 +48,11 @@ def register_to_db(username, password, secret_answer):
 
 def get_password_from_db(username):
   connect, cursor = db_connection()
-  query = "SELECT password FROM users WHERE username = %s"
+  query = "SELECT password, role FROM users WHERE username = %s"
   cursor.execute(query, [username])
   result = cursor.fetchone()
 
-  return result[0] if result else None
+  return result if result else None
 
 def get_answer_from_db(username):
   connect, cursor = db_connection()
