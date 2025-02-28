@@ -8,6 +8,7 @@ from PIL import Image, ImageTk
 from backend.connector import db_connection as db
 from backend.input_validator import register_validation, register_to_db, null_validator
 from components.buttons import Button, apply_selected_state
+from pages.LoginPage import LoginPage
 
 class RegisterPage(tk.Frame):
     def __init__(self, parent, shared_state):
@@ -122,19 +123,19 @@ class RegisterPage(tk.Frame):
 
         # Username Field
         self.username_field = TextField(right_container, placeholder="Username must be at least 8 characters", font=("Arial", 12), width=25)
-        self.username_field.place(relx=0.5, rely=0.28, anchor="n", width=300, height=50)  
+        self.username_field.place(relx=0.5, rely=0.28, anchor="n", width=300, height=50) 
 
         # Password Label
         password_label = tk.Label(right_container, text="Password", font=("Arial", 12), fg="white", bg="#1A374D")
-        password_label.place(relx=0.23, rely=0.37, anchor="n") 
+        password_label.place(relx=0.23, rely=0.38, anchor="n") 
 
         # Password Field
         self.password_field = TextField(right_container, placeholder="Password must be at least 6 characters", font=("Arial", 12), width=25)
-        self.password_field.place(relx=0.5, rely=0.41, anchor="n", width=300, height=50) 
+        self.password_field.place(relx=0.5, rely=0.42, anchor="n", width=300, height=50) 
 
         # SecretQuestion Label
         secret_question_label = tk.Label(right_container, text="Secret Question", font=("Arial", 12), fg="white", bg="#1A374D")
-        secret_question_label.place(relx=0.28, rely=0.5, anchor="n") 
+        secret_question_label.place(relx=0.28, rely=0.52, anchor="n") 
 
         # Secret Question Dropdown
         self.secret_questions = [
@@ -150,26 +151,31 @@ class RegisterPage(tk.Frame):
 
         # Dropdown menu (Combobox)
         self.secret_question_dropdown = ttk.Combobox(right_container, textvariable=self.selected_question, values=self.secret_questions, state="readonly", font=("Arial", 12))
-        self.secret_question_dropdown.place(relx=0.5, rely=0.53, anchor="n", width=300, height=30)
+        self.secret_question_dropdown.place(relx=0.5, rely=0.56, anchor="n", width=300, height=30)
 
         # Secret Question Field
         self.secret_question_field = TextField(right_container, placeholder="Enter secret question answer", font=("Arial", 12), width=25)
-        self.secret_question_field.place(relx=0.5, rely=0.59, anchor="n", width=300, height=50) 
+        self.secret_question_field.place(relx=0.5, rely=0.62, anchor="n", width=300, height=50) 
+
+        # Error Label
+        self.error_secret_question_label = tk.Label(self, text="", font=("Arial", 12), fg="red", bg="#1A374D")
+        self.error_secret_question_label.place(relx=0.84, rely=0.71, anchor="n")
 
          # Add Login Button
         login_button = Button(right_container, text="Login", command=self.on_login_click)
-        login_button.place(relx=0.5, rely=0.71, anchor="n", width=230, height=50)
+        login_button.place(relx=0.5, rely=0.77, anchor="n", width=230, height=50)
 
         # Add Signup Button
         signup_button = Button(right_container, text="Register", command=self.on_signup_click)
-        signup_button.place(relx=0.5, rely=0.8, anchor="n", width=230, height=50)
+        signup_button.place(relx=0.5, rely=0.86, anchor="n", width=230, height=50)
+
+    def display_error(self, message):
+        self.error_secret_question_label.config(text=message)
 
     def on_login_click(self):
-        from pages.LoginPage import LoginPage 
-        self.pack_forget()  
-        register_page = LoginPage(self.master, self.shared_state)  
-        register_page.pack(fill="both", expand=True) 
-        
+        self.shared_state["navigate"]("LoginPage")  
+        self.pack_forget()
+
     def on_signup_click(self):
         username = self.username_field.get().strip()
         password = self.password_field.get().strip()
@@ -178,21 +184,22 @@ class RegisterPage(tk.Frame):
 
         try: 
             if not role:
-                print("Choose between Admin or Staff...")
+                self.display_error("Choose between Admin or Staff!")
                 return
             
             if null_validator(username, password, secret_answer):
+                self.display_error("All fields are required!")
                 return
-            
-            hashed_password = hashlib.sha256(password.encode()).hexdigest()
+
             validation_result = register_validation(username, password, secret_answer)
-
-
             if validation_result:
-                print(validation_result)
-                return      
-        
+                self.display_error(validation_result)
+                return
+
+            hashed_password = hashlib.sha256(password.encode()).hexdigest()
             register_to_db(role, username, hashed_password, secret_answer)
+            self.display_error("")
+            print("Registered Successfully")
         
         except Exception as ve:
             print(f'Register Page has a problem: ', ve)

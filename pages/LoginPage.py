@@ -28,40 +28,27 @@ class LoginPage(tk.Frame):
 
         # bg
         try:
-            image_path = "assets/bg.png"  
-            image = Image.open(image_path).convert("RGBA") 
-            image = image.resize((900, 720))
+            image = Image.open("assets/bg.png").convert("RGBA").resize((900, 720))
             self.bg_image = ImageTk.PhotoImage(image)
-
             self.canvas.create_image(0, 0, anchor="nw", image=self.bg_image)
-        except Exception as e:
+        except Exception:
             self.canvas.create_text(450, 355, text="Error loading image", fill="red", font=("Arial", 16))
 
         # logo
         try:
-            logo_path = "assets/logo.png" 
-            logo_image = Image.open(logo_path).convert("RGBA")  
-            logo_image = logo_image.resize((130, 130))  
+            logo_image = Image.open("assets/logo.png").convert("RGBA").resize((130, 130))
             self.logo_icon = ImageTk.PhotoImage(logo_image)
-
             self.canvas.create_image(150, 71, anchor="n", image=self.logo_icon)
-        except Exception as e:
+        except Exception:
             self.canvas.create_text(450, 100, text="Error loading logo", fill="red", font=("Arial", 12))
 
         self.canvas.create_text(
-            340, 230,  
-            text="Welcome to,\nFirst Priority Dialysis Center",
-            font=("Arial", 29, "bold"),
-            fill="black", 
-            anchor="n"  
+            340, 230, text="Welcome to,\nFirst Priority Dialysis Center",
+            font=("Arial", 29, "bold"), fill="black", anchor="n"
         )
-
         self.canvas.create_text(
-            290, 330, 
-            text="Where needs are always met.",
-            font=("Arial", 25),
-            fill="black", 
-            anchor="n"  
+            290, 330, text="Where needs are always met.",
+            font=("Arial", 25), fill="black", anchor="n"
         )
 
         self.canvas.create_text(
@@ -73,24 +60,12 @@ class LoginPage(tk.Frame):
         )
 
         # Admin Button
-        self.admin_button = Button(
-            left_container, 
-            text="Admin", 
-            selectable=True,
-            shared_state=self.shared_state,
-            command=lambda: self.shared_state.update({"selected_role": "Admin"})
-        )
-        self.admin_button.place(relx=0.24, rely=0.73, anchor="n", width=250, height=55) 
+        self.admin_button = Button(left_container, text="Admin", selectable=True, shared_state=self.shared_state, command=lambda: self.shared_state.update({"selected_role": "Admin"}))
+        self.admin_button.place(relx=0.24, rely=0.73, anchor="n", width=250, height=55)
 
         # Staff Button
-        self.staff_button = Button(
-            left_container,
-            text="Staff", 
-            selectable= True,
-            shared_state=self.shared_state,
-            command=lambda: self.shared_state.update({"selected_role": "Staff"})
-        )
-        self.staff_button.place(relx=0.59, rely=0.73, anchor="n", width=250, height=55) 
+        self.staff_button = Button(left_container, text="Staff", selectable=True, shared_state=self.shared_state, command=lambda: self.shared_state.update({"selected_role": "Staff"}))
+        self.staff_button.place(relx=0.59, rely=0.73, anchor="n", width=250, height=55)
 
         apply_selected_state(shared_state, left_container)
 
@@ -102,32 +77,17 @@ class LoginPage(tk.Frame):
         title = tk.Label(right_container, text="LOGIN", font=("Arial", 36, "bold"), fg="#68EDC6", bg="#1A374D")
         title.place(relx=0.5, rely=0, anchor="n", y=50)
 
-        # Subtitle label 
-        subtitle = tk.Label(
-            right_container,
-            text="Log in to your account to continue.",
-            font=("Arial", 11),
-            fg="white",
-            bg="#1A374D",
-            wraplength=250  
-        )
-        subtitle.place(relx=0.5, rely=0.15, anchor="n")
-
         # Username Label
         username_label = tk.Label(right_container, text="Username", font=("Arial", 12), fg="white", bg="#1A374D")
         username_label.place(relx=0.23, rely=0.35, anchor="n")
-
-        # Username Field
         self.username_field = TextField(right_container, placeholder="Username must be at least 8 characters", font=("Arial", 12), width=25)
-        self.username_field.place(relx=0.5, rely=0.39, anchor="n", width=300, height=50)  
+        self.username_field.place(relx=0.5, rely=0.39, anchor="n", width=300, height=50)
 
         # Password Label
         password_label = tk.Label(right_container, text="Password", font=("Arial", 12), fg="white", bg="#1A374D")
         password_label.place(relx=0.23, rely=0.48, anchor="n") 
-
-        # Password Field
         self.password_field = TextField(right_container, placeholder="Password must be at least 6 characters", font=("Arial", 12), width=25)
-        self.password_field.place(relx=0.5, rely=0.52, anchor="n", width=300, height=50) 
+        self.password_field.place(relx=0.5, rely=0.52, anchor="n", width=300, height=50)
 
         # Forgot Password
         forgot_password_label = tk.Label(
@@ -141,13 +101,20 @@ class LoginPage(tk.Frame):
         forgot_password_label.place(relx=0.7, rely=0.591, anchor="n") 
         forgot_password_label.bind("<Button-1>", self.on_forgot_password_click)
 
-        # Add Login Button
+        # Error Label
+        self.error_label = tk.Label(right_container, text="", font=("Arial", 12), fg="red", bg="#1A374D")
+        self.error_label.place(relx=0.5, rely=0.65, anchor="n")
+
+        # Login Button
         login_button = Button(right_container, text="Login", command=self.on_login_click)
         login_button.place(relx=0.5, rely=0.71, anchor="n", width=230, height=50)
 
-        # Add Signup Button
+        # Signup Button
         signup_button = Button(right_container, text="Register", command=self.on_signup_click)
         signup_button.place(relx=0.5, rely=0.8, anchor="n", width=230, height=50)
+
+    def display_error(self, message):
+        self.error_label.config(text=message)
 
     def on_login_click(self):
         username = self.username_field.get().strip()
@@ -157,36 +124,31 @@ class LoginPage(tk.Frame):
 
         try:
             if not selected_role:
-                print("Choose between Admin or Staff...")
+                self.display_error("Choose between Admin or Staff!")
                 return
 
             validation_result = login_validation(username, password)
-
             if validation_result:
-                print(validation_result)
+                self.display_error(validation_result)
                 return
             
             stored_user_credentials = get_password_from_db(username)
-
             if stored_user_credentials is None:
-                print("User not found...")
+                self.display_error("User not found...")
                 return
 
             if hash_password == stored_user_credentials:
+                self.display_error("")
                 print("Login Successful")
             else:
-                print("Invalid Password")
+                self.display_error("Invalid Password")
         except Exception as e:
             print(f'Login Page has a problem: ', e)
 
     def on_signup_click(self):
-        from pages.RegisterPage import RegisterPage 
+        self.shared_state["navigate"]("RegisterPage")  
         self.pack_forget()  
-        register_page = RegisterPage(self.master, self.shared_state)  
-        register_page.pack(fill="both", expand=True) 
 
     def on_forgot_password_click(self, event):
-        from pages.ForgotPage import ForgotPage 
+        self.shared_state["navigate"]("ForgotPage") 
         self.pack_forget()  
-        register_page = ForgotPage(self.master, self.shared_state)  
-        register_page.pack(fill="both", expand=True) 
