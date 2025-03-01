@@ -9,21 +9,29 @@ def user_input_validation(username, password):
         return "Username must be at least 8 characters"
     if len(password) < 6:
         return "Password must be at least 6 characters"
-    return None
+    return 
 
 def login_validation(username, password):
     validation_result = user_input_validation(username, password)
     if validation_result:
         return validation_result
-    return None
+    if username in ['Username must be at least 8 characters']:
+        return "Username must be filled"
+    if password in ['Password must be at least 6 characters']:
+        return "Password must be filled"
+    return 
 
 def register_validation(username, password, secret_answer):
     validation_result = user_input_validation(username, password)
     if validation_result:
         return validation_result
-    if not secret_answer:
-        return "Secret Answer must be filled!"
-    return None
+    if username in ['Username must be at least 8 characters']:
+        return "Username must be filled"
+    if password in ['Password must be at least 6 characters']:
+        return "Password must be filled"
+    if secret_answer in ['Enter secret question answer']:
+        return "Secret Answer must be filled"
+    return
 
 def forgot_validator(password, confirm_password):
     if len(password) < 6 or len(confirm_password) < 6:

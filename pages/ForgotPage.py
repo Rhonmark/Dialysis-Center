@@ -157,6 +157,7 @@ class ForgotPage(tk.Frame):
         retrieved_username = get_username_from_db(username)
         retrieved_question = get_secret_question(username)
         retrieved_answer = get_answer_from_db(username)
+        hashed_answer = hashlib.sha256(secret_answer.encode()).hexdigest()
 
 
         if self.step == 1:
@@ -172,7 +173,7 @@ class ForgotPage(tk.Frame):
             self.step += 1
             
         elif self.step == 2:
-            if retrieved_answer != secret_answer:
+            if retrieved_answer != hashed_answer:
                 self.error_label.config(text="Incorrect answer!")
                 return
             self.error_label.config(text="")

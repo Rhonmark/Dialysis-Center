@@ -4,7 +4,7 @@ from components.textfields import TextField
 from components.buttons import Button
 from PIL import Image, ImageTk
 from backend.input_validator import login_validation
-from backend.crud import get_password_from_db, get_role
+from backend.crud import get_password_from_db, get_role, get_usernames
 from components.buttons import Button, apply_selected_state
 
 class LoginPage(tk.Frame):
@@ -120,34 +120,34 @@ class LoginPage(tk.Frame):
     def on_login_click(self):
         username = self.username_field.get().strip()
         password = self.password_field.get().strip()
-        hash_password = hashlib.sha256(password.encode()).hexdigest()
+        user_role = get_role(username)
         selected_role = self.shared_state.get("selected_role", None)  
         stored_user_password = get_password_from_db(username)
-        user_role = get_role(username)
+        existing_username = get_usernames(username)
 
         try:
             if not selected_role:
                 self.display_error("Choose between Admin or Staff!")
                 return
-
+            
             validation_result = login_validation(username, password)
             if validation_result:
                 self.display_error(validation_result)
                 return
             
-            if stored_user_password is None:
-                self.display_error("User not found...")
+            if not existing_username:
+                self.display_error("Username not found")
+                return
+            
+            if user_role != selected_role:
+                self.display_error("Check your roles (Admin or Staff)")
                 return
 
+            hash_password = hashlib.sha256(password.encode()).hexdigest()
             if hash_password == stored_user_password:
-                self.display_error("")
+                self.display_error("You have successfully logged in")
             else:
                 self.display_error("Invalid Password")
-
-            if user_role == selected_role:
-                self.display_error("You have successfully logged in...")
-            else:
-                self.display_error("Check your roles (Admin or Staff)")
 
         except Exception as e:
             print(f'Login Page has a problem: ', e)

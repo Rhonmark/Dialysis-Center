@@ -8,7 +8,7 @@ from PIL import Image, ImageTk
 from backend.input_validator import register_validation, null_validator
 from components.buttons import Button, apply_selected_state
 from pages.LoginPage import LoginPage
-from backend.crud import register_to_db
+from backend.crud import register_to_db, get_usernames
 
 class RegisterPage(tk.Frame):
     def __init__(self, parent, shared_state):
@@ -180,27 +180,39 @@ class RegisterPage(tk.Frame):
         username = self.username_field.get().strip()
         password = self.password_field.get().strip()
         secret_answer = self.secret_question_field.get().strip()
-        role = self.shared_state.get("selected_role", 'None')
-        secret_question = self.selected_question.get().strip()
 
         try: 
+            role = self.shared_state.get("selected_role", 'None')
             if not role:
                 self.display_error("Choose between Admin or Staff!")
+                return
+            
+            validation_result = register_validation(username, password, secret_answer)
+            if validation_result:
+                self.display_error(validation_result)
                 return
             
             if null_validator(username, password, secret_answer):
                 self.display_error("All fields are required!")
                 return
 
-            validation_result = register_validation(username, password, secret_answer)
-            if validation_result:
-                self.display_error(validation_result)
+            existing_username = get_usernames(username)
+            if existing_username:
+                self.display_error(existing_username)
                 return
-
-            hashed_password = hashlib.sha256(password.encode()).hexdigest()
-            register_to_db(role, username, hashed_password, secret_question, secret_answer)
+            
+    
+            secret_question = self.selected_question.get().strip()
+            hashed_password = hashlib.sha256(password.encode()).hexdigest() 
+            hashed_answer = hashlib.sha256(secret_answer.encode()).hexdigest()
+            create_user = register_to_db(role, username, hashed_password, secret_question, hashed_answer)
+            if create_user:
+                self.display_error(create_user)
+                return
+            
             self.display_error("")
-            print("Registered Successfully")
+
         
         except Exception as ve:
-            print(f'Register Page has a problem: ', ve)
+            print('Register Page has a problem: ', ve)
+
