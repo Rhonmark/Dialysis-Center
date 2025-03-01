@@ -4,8 +4,10 @@ from tkinter import ttk
 from components.textfields import TextField
 from components.buttons import Button
 from PIL import Image, ImageTk
-from backend.input_validator import get_answer_from_db, db_connection, get_username_from_db, forgot_validator
+from backend.input_validator import forgot_validator
+from backend.crud import get_answer_from_db, get_username_from_db, set_new_password, get_secret_question
 from components.buttons import Button, apply_selected_state
+import hashlib
 
 class ForgotPage(tk.Frame):
     def __init__(self, parent, shared_state):
@@ -151,14 +153,18 @@ class ForgotPage(tk.Frame):
         password = self.new_password_field.get().strip()
         confirm_password = self.confirm_password_field.get().strip()
 
+        hashed_password = hashlib.sha256(password.encode()).hexdigest()
         retrieved_username = get_username_from_db(username)
+        retrieved_question = get_secret_question(username)
         retrieved_answer = get_answer_from_db(username)
+
 
         if self.step == 1:
             if not retrieved_username or username in ['Username must be at least 8 characters']:
                 self.error_label.config(text="Invalid username!")
                 return
             self.error_label.config(text="")
+            self.secret_question_label.config(text=f"Secret Question: {retrieved_question}")
             self.username_label.place_forget()
             self.username_field.place_forget()
             self.secret_question_label.place(relx=0.28, rely=0.36, anchor="n")
@@ -179,9 +185,12 @@ class ForgotPage(tk.Frame):
             self.step += 1
 
         elif self.step == 3:
-            if not forgot_validator(password, confirm_password):
+            if forgot_validator(password, confirm_password):
                 self.error_label.config(text="Passwords do not match!")
                 return
+
+            set_new_password(hashed_password, username)
+
             self.shared_state["navigate"]("LoginPage") 
             self.error_label.config(text="")
             self.step = 1

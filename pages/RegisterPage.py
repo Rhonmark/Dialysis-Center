@@ -5,10 +5,10 @@ from tkinter import ttk
 from components.textfields import TextField
 from components.buttons import Button
 from PIL import Image, ImageTk
-from backend.connector import db_connection as db
-from backend.input_validator import register_validation, register_to_db, null_validator
+from backend.input_validator import register_validation, null_validator
 from components.buttons import Button, apply_selected_state
 from pages.LoginPage import LoginPage
+from backend.crud import register_to_db
 
 class RegisterPage(tk.Frame):
     def __init__(self, parent, shared_state):
@@ -181,6 +181,7 @@ class RegisterPage(tk.Frame):
         password = self.password_field.get().strip()
         secret_answer = self.secret_question_field.get().strip()
         role = self.shared_state.get("selected_role", 'None')
+        secret_question = self.selected_question.get().strip()
 
         try: 
             if not role:
@@ -197,7 +198,7 @@ class RegisterPage(tk.Frame):
                 return
 
             hashed_password = hashlib.sha256(password.encode()).hexdigest()
-            register_to_db(role, username, hashed_password, secret_answer)
+            register_to_db(role, username, hashed_password, secret_question, secret_answer)
             self.display_error("")
             print("Registered Successfully")
         

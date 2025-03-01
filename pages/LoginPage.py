@@ -3,7 +3,8 @@ import hashlib
 from components.textfields import TextField
 from components.buttons import Button
 from PIL import Image, ImageTk
-from backend.input_validator import login_validation, get_password_from_db
+from backend.input_validator import login_validation
+from backend.crud import get_password_from_db, get_role
 from components.buttons import Button, apply_selected_state
 
 class LoginPage(tk.Frame):
@@ -121,6 +122,8 @@ class LoginPage(tk.Frame):
         password = self.password_field.get().strip()
         hash_password = hashlib.sha256(password.encode()).hexdigest()
         selected_role = self.shared_state.get("selected_role", None)  
+        stored_user_password = get_password_from_db(username)
+        user_role = get_role(username)
 
         try:
             if not selected_role:
@@ -132,16 +135,20 @@ class LoginPage(tk.Frame):
                 self.display_error(validation_result)
                 return
             
-            stored_user_credentials = get_password_from_db(username)
-            if stored_user_credentials is None:
+            if stored_user_password is None:
                 self.display_error("User not found...")
                 return
 
-            if hash_password == stored_user_credentials:
+            if hash_password == stored_user_password:
                 self.display_error("")
-                print("Login Successful")
             else:
                 self.display_error("Invalid Password")
+
+            if user_role == selected_role:
+                self.display_error("You have successfully logged in...")
+            else:
+                self.display_error("Check your roles (Admin or Staff)")
+
         except Exception as e:
             print(f'Login Page has a problem: ', e)
 
