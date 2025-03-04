@@ -54,6 +54,7 @@ def main():
     root.resizable(False, False)  
 
     position_window(1280, 720)
+
     navigate_to("LoginPage")
     root.mainloop()
 

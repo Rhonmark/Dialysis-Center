@@ -78,6 +78,17 @@ class LoginPage(tk.Frame):
         title = tk.Label(right_container, text="LOGIN", font=("Arial", 36, "bold"), fg="#68EDC6", bg="#1A374D")
         title.place(relx=0.5, rely=0, anchor="n", y=50)
 
+        # Subtitle label 
+        subtitle = tk.Label(
+            right_container,
+            text="Make sure to create an\naccount first",
+            font=("Arial", 11),
+            fg="white",
+            bg="#1A374D",
+            wraplength=250  
+        )
+        subtitle.place(relx=0.5, rely=0.15, anchor="n")
+
         # Username Label
         username_label = tk.Label(right_container, text="Username", font=("Arial", 12), fg="white", bg="#1A374D")
         username_label.place(relx=0.23, rely=0.35, anchor="n")
@@ -87,8 +98,23 @@ class LoginPage(tk.Frame):
         # Password Label
         password_label = tk.Label(right_container, text="Password", font=("Arial", 12), fg="white", bg="#1A374D")
         password_label.place(relx=0.23, rely=0.48, anchor="n") 
+
+        # Password Field
+        self.password_visible = False 
         self.password_field = TextField(right_container, placeholder="Password must be at least 6 characters", font=("Arial", 12), width=25)
         self.password_field.place(relx=0.5, rely=0.52, anchor="n", width=300, height=50)
+
+        # Load eye icons
+        self.eye_open_icon = ImageTk.PhotoImage(Image.open("assets/eye_open.png").resize((20, 20)))
+        self.eye_closed_icon = ImageTk.PhotoImage(Image.open("assets/eye_closed.png").resize((20, 20)))
+
+        # Eye icon label (Initially Hidden)
+        self.eye_label = tk.Label(right_container, image=self.eye_closed_icon, cursor="hand2", borderwidth=0, highlightthickness=0)
+        self.eye_label.place_forget() 
+
+        # Bind events for toggling
+        self.eye_label.bind("<Button-1>", self.toggle_password_visibility)
+        self.password_field.bind("<KeyRelease>", self.check_password_input)
 
         # Forgot Password
         forgot_password_label = tk.Label(
@@ -114,6 +140,32 @@ class LoginPage(tk.Frame):
         signup_button = Button(right_container, text="Register", command=self.on_signup_click)
         signup_button.place(relx=0.5, rely=0.8, anchor="n", width=230, height=50)
 
+    def check_password_input(self, event=None):
+        """Shows or hides the eye icon based on user input, ensuring it starts closed."""
+        current_text = self.password_field.get().strip()
+
+        if current_text:  
+            self.eye_label.place(relx=0.8, rely=0.54, anchor="n")  
+            self.password_visible = False  
+            self.password_field.config(show="*")  
+            self.eye_label.config(image=self.eye_closed_icon) 
+        else:
+            self.eye_label.place_forget()  
+
+    def toggle_password_visibility(self, event=None):
+        """Toggles password visibility while maintaining correct icon states."""
+        if not self.password_field.get().strip():  
+            return  
+
+        self.password_visible = not self.password_visible  
+
+        if self.password_visible:
+            self.password_field.config(show="")  
+            self.eye_label.config(image=self.eye_open_icon)  
+        else:
+            self.password_field.config(show="*") 
+            self.eye_label.config(image=self.eye_closed_icon)  
+        
     def display_error(self, message):
         self.error_label.config(text=message)
 
@@ -146,6 +198,7 @@ class LoginPage(tk.Frame):
             hash_password = hashlib.sha256(password.encode()).hexdigest()
             if hash_password == stored_user_password:
                 self.display_error("You have successfully logged in")
+                self.after(2000, lambda: self.shared_state["navigate"]("HomePage"))
             else:
                 self.display_error("Invalid Password")
 

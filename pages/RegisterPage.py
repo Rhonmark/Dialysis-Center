@@ -130,8 +130,21 @@ class RegisterPage(tk.Frame):
         password_label.place(relx=0.23, rely=0.38, anchor="n") 
 
         # Password Field
+        self.password_visible = False 
         self.password_field = TextField(right_container, placeholder="Password must be at least 6 characters", font=("Arial", 12), width=25)
         self.password_field.place(relx=0.5, rely=0.42, anchor="n", width=300, height=50) 
+
+        # Load eye icons
+        self.eye_open_icon = ImageTk.PhotoImage(Image.open("assets/eye_open.png").resize((20, 20)))
+        self.eye_closed_icon = ImageTk.PhotoImage(Image.open("assets/eye_closed.png").resize((20, 20)))
+
+        # Eye icon label (Initially Hidden)
+        self.eye_label = tk.Label(right_container, image=self.eye_closed_icon, cursor="hand2", borderwidth=0, highlightthickness=0)
+        self.eye_label.place_forget()  
+
+        # Bind events for toggling
+        self.eye_label.bind("<Button-1>", self.toggle_password_visibility)
+        self.password_field.bind("<KeyRelease>", self.check_password_input)
 
         # SecretQuestion Label
         secret_question_label = tk.Label(right_container, text="Secret Question", font=("Arial", 12), fg="white", bg="#1A374D")
@@ -169,6 +182,33 @@ class RegisterPage(tk.Frame):
         signup_button = Button(right_container, text="Register", command=self.on_signup_click)
         signup_button.place(relx=0.5, rely=0.86, anchor="n", width=230, height=50)
 
+    def check_password_input(self, event=None):
+        """Shows or hides the eye icon based on user input, ensuring it starts closed."""
+        current_text = self.password_field.get().strip()
+
+        if current_text: 
+            self.eye_label.place(relx=0.8, rely=0.44, anchor="n") 
+            self.password_visible = False 
+            self.password_field.config(show="*")  
+            self.eye_label.config(image=self.eye_closed_icon)  
+        else:
+            self.eye_label.place_forget()  
+
+
+    def toggle_password_visibility(self, event=None):
+        """Toggles password visibility while maintaining correct icon states."""
+        if not self.password_field.get().strip(): 
+            return  
+
+        self.password_visible = not self.password_visible  
+
+        if self.password_visible:
+            self.password_field.config(show="")  
+            self.eye_label.config(image=self.eye_open_icon)  
+        else:
+            self.password_field.config(show="*")  
+            self.eye_label.config(image=self.eye_closed_icon)  
+
     def display_error(self, message):
         self.error_secret_question_label.config(text=message)
 
@@ -201,7 +241,6 @@ class RegisterPage(tk.Frame):
                 self.display_error(existing_username)
                 return
             
-    
             secret_question = self.selected_question.get().strip()
             hashed_password = hashlib.sha256(password.encode()).hexdigest() 
             hashed_answer = hashlib.sha256(secret_answer.encode()).hexdigest()
@@ -211,8 +250,9 @@ class RegisterPage(tk.Frame):
                 return
             
             self.display_error("")
+            self.shared_state["navigate"]("LoginPage")  
+            self.pack_forget()
 
-        
         except Exception as ve:
             print('Register Page has a problem: ', ve)
 
