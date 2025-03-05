@@ -24,12 +24,12 @@ class HomePage(tk.Frame):
 
         # Cache pages so they are not recreated every time
         self.pages = {
-            "Home": HomePageContent(self.main_frame),
-            "Patient": PatientPage(self.main_frame),
-            "Supply": SupplyPage(self.main_frame),
-            "Report": ReportPage(self.main_frame),
-            "About": AboutPage(self.main_frame),
-            "Settings": SettingsPage(self.main_frame),
+            "Home": HomePageContent(self.main_frame, self.shared_state),
+            "Patient": PatientPage(self.main_frame, self.shared_state),
+            "Supply": SupplyPage(self.main_frame, self.shared_state),
+            "Report": ReportPage(self.main_frame, self.shared_state),
+            "About": AboutPage(self.main_frame, self.shared_state),
+            "Settings": SettingsPage(self.main_frame, self.shared_state),
         }
 
         for page in self.pages.values():
@@ -151,13 +151,13 @@ class Sidebar(tk.Frame):
         self.master.show_page(page_name)
 
 class HomePageContent(tk.Frame):
-    def __init__(self, parent):
+    def __init__(self, parent, shared_state):
         super().__init__(parent, bg="#E8FBFC")
         label = tk.Label(self, text="Welcome to the Home Page", font=("Arial", 24), bg="#E8FBFC")
         label.pack(pady=100)
 
 class PatientPage(tk.Frame):
-    def __init__(self, parent):
+    def __init__(self, parent, shared_state):
         super().__init__(parent, bg="#E8FBFC")
 
         self.columnconfigure(0, weight=1)
@@ -225,7 +225,7 @@ class PatientPage(tk.Frame):
             self.tree.insert("", "end", values=row)
 
     def open_add_window(self):
-        PatientInfoWindow(self, self.add_patient)
+        PatientInfoWindow(self)
 
         # meron akong file (AddPatientWindow.py) example sya para sa pag add nung info into table
         # AddPatientWindow(self, self.add_patient)
@@ -238,32 +238,34 @@ class PatientPage(tk.Frame):
         self.tree.insert("", "end", values=patient_data)
 
 class SupplyPage(tk.Frame):
-    def __init__(self, parent):
+    def __init__(self, parent, shared_state):
         super().__init__(parent, bg="#E8FBFC")
         label = tk.Label(self, text="Supply Page", font=("Arial", 24), bg="#E8FBFC")
         label.pack(pady=100)
 
+        self.shared_state = shared_state 
+
 class ReportPage(tk.Frame):
-    def __init__(self, parent):
+    def __init__(self, parent, shared_state):
         super().__init__(parent, bg="#E8FBFC")
         label = tk.Label(self, text="Report Page", font=("Arial", 24), bg="#E8FBFC")
         label.pack(pady=100)
 
-    def __init__(self, parent):
-        super().__init__(parent, bg="#E8FBFC")
-        label = tk.Label(self, text="Maintenance Page", font=("Arial", 24), bg="#E8FBFC")
-        label.pack(pady=100)
+        self.shared_state = shared_state 
 
 class AboutPage(tk.Frame):
-    def __init__(self, parent):
+    def __init__(self, parent, shared_state):
         super().__init__(parent, bg="#E8FBFC")
         label = tk.Label(self, text="About Page", font=("Arial", 24), bg="#E8FBFC")
         label.pack(pady=100)
 
+        self.shared_state = shared_state 
+
 class SettingsPage(tk.Frame):
-    def __init__(self, parent):
+    def __init__(self, parent, shared_state):
         super().__init__(parent, bg="#E8FBFC")
-        
+        self.shared_state = shared_state  
+
         label = tk.Label(self, text="Settings Page", font=("Arial", 24), bg="#E8FBFC")
         label.pack(pady=100)
 
@@ -271,4 +273,5 @@ class SettingsPage(tk.Frame):
         logout_button.pack(pady=20)
 
     def logout(self):
-        print("Logout")
+        self.shared_state["navigate"]("LoginPage")  
+        print("Logout....")

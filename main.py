@@ -3,6 +3,7 @@ import tkinter as tk
 def main():
     root = tk.Tk()
     root.title("Dialysis Center")
+    root.attributes('-fullscreen', True)
     
     shared_state = {"selected_role": None, "current_frame": None}
 
@@ -15,6 +16,7 @@ def main():
 
         if page_name == "LoginPage":
             from pages.LoginPage import LoginPage
+            root.attributes('-fullscreen', False) 
             root.geometry("1280x720")
             position_window(1280, 720)
             new_page = LoginPage(root, shared_state)
@@ -31,6 +33,8 @@ def main():
         elif page_name == "HomePage":
             from pages.HomePage import HomePage
             root.geometry("1920x1080")
+            root.attributes('-fullscreen', True) 
+            root.bind("Escape, lambda e:")
             position_window(1920, 1080)
             new_page = HomePage(root, shared_state)
         else:
@@ -52,10 +56,11 @@ def main():
     root.geometry("1280x720")
     root.attributes("-toolwindow", False) 
     root.resizable(False, False)  
+    
 
     position_window(1280, 720)
 
-    navigate_to("LoginPage")
+    navigate_to("HomePage")
     root.mainloop()
 
 if __name__ == "__main__":
