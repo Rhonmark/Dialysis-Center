@@ -1,4 +1,5 @@
 from .connector import db_connection as db
+#running as relative import since no ui yet
 
 def db_connection():
     connect = db()
@@ -121,3 +122,104 @@ def get_usernames(username):
   finally:
      connect.close()
      cursor.close()
+
+def create_patient_info(last_name, first_name, middle_name, status, access_type, birthdate, age, address, image_source):
+  try:
+   connect, cursor = db_connection()
+   query = """"
+          INSERT INTO patient_info(last_name, first_name, middle_name, status, access_type, birthdate, age, address, image_source)
+          VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)
+   """
+   values = (last_name, first_name, middle_name, status, access_type, birthdate, age, address, image_source)
+   cursor.execute(query, values)
+   connect.commit()
+   return "Patient information successfully registered"
+  except Exception as e:
+    print("Patient info creation error: ", e)
+  finally:
+    connect.close()
+    cursor.close()
+
+def create_contact_person(last_name, first_name, middle_name, contact_number, relationship, address):
+  try:
+    connect, cursor = db_connection()
+    query = """"
+            INSERT INTO patient_contact(last_name, first_name, middle_name, contact_number, relationship, address)
+            VALUES(%s, %s, %s, %s, %s, %s)
+    """ 
+    values = (last_name, first_name, middle_name, contact_number, relationship, address)
+    cursor.execute(query, values)
+    connect.commit()
+    return "Contact person successfully registered"
+  except Exception as e:
+    print("Contact person information creation error: ", e)
+  finally:
+    connect.close()
+    cursor.close()
+
+def create_patient_history(family_history, medical_history, present_illness_history, past_illness_history, first_diagnosis, 
+                           first_dialysis, mode, access_type, first_hemodialysis, clinical_impression):
+  try:
+    connect, cursor = db_connection()
+    query = """"
+            INSERT INTO patient_history(family_history, medical_history, present_illness_history, past_illness_history, first_diagnosis, 
+                            first_dialysis, mode, access_type, first_hemodialysis, clinical_impression)
+            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s ,%s)
+    """
+    values = (family_history, medical_history, present_illness_history, past_illness_history, first_diagnosis, 
+                            first_dialysis, mode, access_type, first_hemodialysis, clinical_impression)
+    cursor.execute(query, values)
+    connect.commit()
+  except Exception as e:
+    print("Patient history creation error: ", e)
+  finally:
+    connect.close()
+    cursor.close()
+
+def create_medication_taken(drugs_taken):
+  try:
+    connect, cursor = db_connection()
+    query = "INSERT INTO medications VALUES (%s)"
+    values = (drugs_taken,)
+    cursor.execute(query, values)
+    connect.commit()
+  except Exception as e:
+    print("Medication creation error: ", e)
+  finally:
+    connect.close()
+    cursor.close()
+
+def add_patient(patient_name, date_registered, medical_condition, age, gender):
+  connect, cursor = db_connection()
+  query = """
+
+  """
+
+def for_wait():
+  #SQL QUERY FOR LOGIN
+    # INSERT INTO sessions (employee_id) 
+    # VALUES ((SELECT employee_id FROM users WHERE username = 'tristan25'));
+  
+  #SQL QUERY FOR LOGOUT
+    # DELETE FROM sessions
+    # WHERE employee_id = (SELECT employee_id FROM users WHERE username = 'tristan25');
+  pass
+
+def create_session(username):
+  connect, cursor = db_connection()
+  query = """
+          INSERT INTO sessions(employee_id) 
+          VALUES ((SELECT employee_id FROM users WHERE username = %s))
+  """
+  values = (username,)
+  cursor.execute(query, values)
+  connect.commit()
+  cursor.execute("SELECT employee_id FROM users WHERE username = %s", values)
+  id_fetch = cursor.fetchone()
+
+  cursor.execute("SELECT login_time FROM sessions WHERE employee_id = %s", id_fetch)
+  result = cursor.fetchone()
+  print(result[0])
+
+username = 'tristan25'
+create_session(username)

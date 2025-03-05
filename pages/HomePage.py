@@ -3,6 +3,8 @@ import tkinter as tk
 from tkinter import ttk
 from components.Inputs import PatientInfoWindow
 from pages.AddPatientWindow import AddPatientWindow
+from backend.connector import db_connection as db
+from components.state import shared_states 
 
 class HomePage(tk.Frame):
     def __init__(self, parent, shared_state):
@@ -272,6 +274,30 @@ class SettingsPage(tk.Frame):
         logout_button = tk.Button(self, text="Logout", font=("Arial", 16, "bold"), command=self.logout)
         logout_button.pack(pady=20)
 
+    def db_connection(self):
+        connect = db()
+        cursor = connect.cursor()
+        return connect, cursor
+
     def logout(self):
-        self.shared_state["navigate"]("LoginPage")  
-        print("Logout....")
+        try:
+            connect, cursor = self.db_connection()  
+            username = shared_states.get('logged_username', None)
+            print(username)
+            # query = """
+            #     SELECT 
+            # """   
+
+            cursor.execute("""
+                UPDATE sessions
+                SET logout_time = NOW()
+                WHERE employee_id = ((SELECT employee_id FROM users WHERE username = %s))
+            """, (username,))
+            connect.commit()
+            self.shared_state["navigate"]("LoginPage")  
+            print("Logout")
+        except Exception as e:
+            print("Error with logout: ", e)
+        finally:
+            connect.close()
+            cursor.close()

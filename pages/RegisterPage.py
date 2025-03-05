@@ -9,6 +9,8 @@ from backend.input_validator import register_validation, null_validator
 from components.buttons import Button, apply_selected_state
 from pages.LoginPage import LoginPage
 from backend.crud import register_to_db, get_usernames
+from backend.connector import db_connection as db
+
 
 class RegisterPage(tk.Frame):
     def __init__(self, parent, shared_state):
@@ -216,11 +218,16 @@ class RegisterPage(tk.Frame):
         self.shared_state["navigate"]("LoginPage")  
         self.pack_forget()
 
+    def db_connection():
+        connect = db()
+        cursor = connect.cursor()
+        return connect, cursor
+
     def on_signup_click(self):
         username = self.username_field.get().strip()
         password = self.password_field.get().strip()
         secret_answer = self.secret_question_field.get().strip()
-
+        
         try: 
             role = self.shared_state.get("selected_role", 'None')
             if not role:

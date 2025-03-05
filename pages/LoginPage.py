@@ -6,6 +6,8 @@ from PIL import Image, ImageTk
 from backend.input_validator import login_validation
 from backend.crud import get_password_from_db, get_role, get_usernames
 from components.buttons import Button, apply_selected_state
+from backend.connector import db_connection as db
+from components.state import shared_states
 
 class LoginPage(tk.Frame):
     def __init__(self, parent, shared_state):
@@ -169,15 +171,23 @@ class LoginPage(tk.Frame):
     def display_error(self, message):
         self.error_label.config(text=message)
 
+    def db_connection(self):
+        connect = db()
+        cursor = connect.cursor()
+        return connect, cursor
+
     def on_login_click(self):
         username = self.username_field.get().strip()
+        shared_states['logged_username'] = username    
         password = self.password_field.get().strip()
         user_role = get_role(username)
         selected_role = self.shared_state.get("selected_role", None)  
         stored_user_password = get_password_from_db(username)
         existing_username = get_usernames(username)
-
+        
         try:
+            connect, cursor = self.db_connection()
+            
             if not selected_role:
                 self.display_error("Choose between Admin or Staff!")
                 return
@@ -197,13 +207,25 @@ class LoginPage(tk.Frame):
 
             hash_password = hashlib.sha256(password.encode()).hexdigest()
             if hash_password == stored_user_password:
+                
+                cursor.execute("""
+                    INSERT INTO sessions(employee_id)
+                    VALUES ((SELECT employee_id FROM users WHERE username = %s))
+                """, (username,)) 
+                connect.commit()
+
                 self.display_error("You have successfully logged in")
+                print("This is your username state: ", shared_states)
                 self.after(2000, lambda: self.shared_state["navigate"]("HomePage"))
             else:
                 self.display_error("Invalid Password")
 
         except Exception as e:
             print(f'Login Page has a problem: ', e)
+
+        finally:
+            connect.close()
+            cursor.close()
 
     def on_signup_click(self):
         self.shared_state["navigate"]("RegisterPage")  
