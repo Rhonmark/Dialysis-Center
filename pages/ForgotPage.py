@@ -187,18 +187,23 @@ class ForgotPage(tk.Frame):
 
             elif self.step == 3:
                 
-                if len(password) < 6 or len(confirm_password) < 6:
-                    self.error_label.config(text="Password must be at least 6 characters")
-                    return
-                if password in ["Enter new password", ""]:
-                    self.error_label.config(text="Input cannot be missing...")
-                    return
-                if confirm_password in ["Enter new password", ""]:
-                    self.error_label.config(text="Input cannot be missing...")
-                    return
-                if password != confirm_password:
-                    self.error_label.config(text="Password must be match")
-                    return
+                forgot_result = forgot_validator(password, confirm_password)
+                if forgot_result:
+                    self.error_label.config(text=forgot_result)
+                    return  
+
+                # if len(password) < 6 or len(confirm_password) < 6:
+                #     self.error_label.config(text="Password must be at least 6 characters")
+                #     return
+                # if password in ["Enter new password", ""]:
+                #     self.error_label.config(text="Input cannot be missing...")
+                #     return
+                # if confirm_password in ["Enter new password", ""]:
+                #     self.error_label.config(text="Input cannot be missing...")
+                #     return
+                # if password != confirm_password:
+                #     self.error_label.config(text="Password must be match")
+                #     return
 
                 set_new_password(hashed_password, username)
 
