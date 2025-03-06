@@ -13,6 +13,8 @@ def db_connection():
         database=os.getenv("DB_NAME")
     )
 
+# print(db_connection())
+
 # def test():
 #    print(os.getenv("DB_PORT"))
 

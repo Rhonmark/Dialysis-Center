@@ -254,11 +254,12 @@ class RegisterPage(tk.Frame):
             create_user = register_to_db(role, username, hashed_password, secret_question, hashed_answer)
             if create_user:
                 self.display_error(create_user)
+
+                self.shared_state["navigate"]("LoginPage")  
+                self.pack_forget()
                 return
+            self.display_error("")            
             
-            self.display_error("")
-            self.shared_state["navigate"]("LoginPage")  
-            self.pack_forget()
 
         except Exception as ve:
             print('Register Page has a problem: ', ve)
