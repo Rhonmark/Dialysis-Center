@@ -34,14 +34,21 @@ def register_validation(username, password, secret_answer):
     return
 
 def forgot_validator(password, confirm_password):
+    
     if len(password) < 6 or len(confirm_password) < 6:
-        return
+        print("Password must be at least 6 characters")
+        return 
     if password in ["Enter new password", ""]:
+        print("Input cannot be missing...")
         return
     if confirm_password in ["Confirm new password", ""]:
+        print("Input cannot be missing...")
         return
     if password != confirm_password:
+        print("Confirm your password...")
         return
+    
+    return None
 
 def null_validator(username, password, secret_answer):
     fields = {

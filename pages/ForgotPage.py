@@ -159,43 +159,55 @@ class ForgotPage(tk.Frame):
         retrieved_answer = get_answer_from_db(username)
         hashed_answer = hashlib.sha256(secret_answer.encode()).hexdigest()
 
+        try: 
+            if self.step == 1:
+                if not retrieved_username or username in ['Username must be at least 8 characters']:
+                    self.error_label.config(text="Invalid username!")
+                    return
+                self.error_label.config(text="")
+                self.secret_question_label.config(text=f"Secret Question: {retrieved_question}")
+                self.username_label.place_forget()
+                self.username_field.place_forget()
+                self.secret_question_label.place(relx=0.28, rely=0.36, anchor="n")
+                self.secret_question_field.place(relx=0.5, rely=0.40, anchor="n", width=300, height=50)
+                self.step += 1
+                
+            elif self.step == 2:
+                if retrieved_answer != hashed_answer:
+                    self.error_label.config(text="Incorrect answer!")
+                    return
+                self.error_label.config(text="")
+                self.secret_question_label.place_forget()
+                self.secret_question_field.place_forget()
+                self.new_password_label.place(relx=0.27, rely=0.33, anchor="n")
+                self.new_password_field.place(relx=0.5, rely=0.37, anchor="n", width=300, height=50)
+                self.confirm_password_label.place(relx=0.30, rely=0.48, anchor="n")
+                self.confirm_password_field.place(relx=0.5, rely=0.52, anchor="n", width=300, height=50)
+                self.step += 1
 
-        if self.step == 1:
-            if not retrieved_username or username in ['Username must be at least 8 characters']:
-                self.error_label.config(text="Invalid username!")
-                return
-            self.error_label.config(text="")
-            self.secret_question_label.config(text=f"Secret Question: {retrieved_question}")
-            self.username_label.place_forget()
-            self.username_field.place_forget()
-            self.secret_question_label.place(relx=0.28, rely=0.36, anchor="n")
-            self.secret_question_field.place(relx=0.5, rely=0.40, anchor="n", width=300, height=50)
-            self.step += 1
-            
-        elif self.step == 2:
-            if retrieved_answer != hashed_answer:
-                self.error_label.config(text="Incorrect answer!")
-                return
-            self.error_label.config(text="")
-            self.secret_question_label.place_forget()
-            self.secret_question_field.place_forget()
-            self.new_password_label.place(relx=0.27, rely=0.33, anchor="n")
-            self.new_password_field.place(relx=0.5, rely=0.37, anchor="n", width=300, height=50)
-            self.confirm_password_label.place(relx=0.30, rely=0.48, anchor="n")
-            self.confirm_password_field.place(relx=0.5, rely=0.52, anchor="n", width=300, height=50)
-            self.step += 1
+            elif self.step == 3:
+                
+                if len(password) < 6 or len(confirm_password) < 6:
+                    self.error_label.config(text="Password must be at least 6 characters")
+                    return
+                if password in ["Enter new password", ""]:
+                    self.error_label.config(text="Input cannot be missing...")
+                    return
+                if confirm_password in ["Enter new password", ""]:
+                    self.error_label.config(text="Input cannot be missing...")
+                    return
+                if password != confirm_password:
+                    self.error_label.config(text="Password must be match")
+                    return
 
-        elif self.step == 3:
-            if forgot_validator(password, confirm_password):
-                self.error_label.config(text="Passwords do not match!")
-                return
+                set_new_password(hashed_password, username)
 
-            set_new_password(hashed_password, username)
-
-            self.shared_state["navigate"]("LoginPage") 
-            self.error_label.config(text="")
-            self.step = 1
-            self.pack_forget()
+                self.shared_state["navigate"]("LoginPage") 
+                self.error_label.config(text="")
+                self.step = 1
+                self.pack_forget()
+        except Exception as e:
+            print("Error with forgot password: ", e)
 
 
     def on_cancel_click(self):
