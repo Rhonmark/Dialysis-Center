@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
 from components.buttons import Button
+from components.buttons import BackButton
+
 
 class BaseWindow(tk.Toplevel):
     def __init__(self, parent, title):
@@ -33,75 +35,74 @@ class PatientInfoWindow(BaseWindow):
         super().__init__(parent, "Patient Information")
 
         # Title Label
-        tk.Label(self, text="Patient Information", font=("Arial", 20, "bold"), bg="white").place(x=90, y=70)
+        tk.Label(self, text="Patient Information", font=("Merriweather bold", 25 ), bg="white").place(x=90, y=60)
 
         # Last Name, First Name, Middle Name
-        tk.Label(self, text="Last Name*", font=("Arial", 14, "bold"), bg="white").place(x=95, y=150)
-        entry_lastname = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_lastname.place(x=100, y=180, height=30)
-        tk.Frame(self, bg="black", height=2, width=200).place(x=100, y=210)
+        tk.Label(self, text="Last Name *", font=("Merriweather Sans bold", 15 ), bg="white").place(x=120, y=150)
+        entry_lastname = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_lastname.place(x=120, y=200, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=230)
 
-        tk.Label(self, text="First Name*", font=("Arial", 14, "bold"), bg="white").place(x=380, y=150)
-        entry_firstname = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_firstname.place(x=385, y=180, height=30)
-        tk.Frame(self, bg="black", height=2, width=200).place(x=385, y=210)
+        tk.Label(self, text="First Name *", font=("Merriweather Sans bold", 15 ), bg="white").place(x=420, y=150)
+        entry_firstname = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_firstname.place(x=420, y=200, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=230)
 
-        tk.Label(self, text="Middle Name", font=("Arial", 14, "bold"), bg="white").place(x=680, y=150)
-        entry_middlename = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_middlename.place(x=685, y=180, height=30)
-        tk.Frame(self, bg="black", height=2, width=200).place(x=685, y=210)
+        tk.Label(self, text="Middle Name", font=("Merriweather Sans bold", 15), bg="white").place(x=720, y=150)
+        entry_middlename = tk.Entry(self, width=15, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_middlename.place(x=720, y=200, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=150).place(x=720, y=230)
 
         # Status, Type of Access, Birthdate, Age
-        tk.Label(self, text="Status*", font=("Arial", 14, "bold"), bg="white").place(x=95, y=270)
-        entry_status = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_status.place(x=100, y=300, height=30)
-        tk.Frame(self, bg="black", height=2, width=200).place(x=100, y=330)
+        tk.Label(self, text="Status *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=270)
+        entry_status = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_status.place(x=120, y=320, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=350)
 
-        tk.Label(self, text="Type of Access*", font=("Arial", 14, "bold"), bg="white").place(x=360, y=270)
-        entry_access = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_access.place(x=360, y=300, height=30)
-        tk.Frame(self, bg="black", height=2, width=200).place(x=360, y=330)
+        tk.Label(self, text="Type of Access *", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=270)
+        entry_access = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_access.place(x=420, y=320, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=350)
 
-        tk.Label(self, text="Birthdate*", font=("Arial", 14, "bold"), bg="white").place(x=600, y=270)
-        entry_birthdate = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_birthdate.place(x=600, y=300, height=30)
-        tk.Frame(self, bg="black", height=2, width=200).place(x=600, y=330)
+        tk.Label(self, text="Birthdate *", font=("Merriweather Sans bold", 15), bg="white").place(x=720, y=270)
+        entry_birthdate = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_birthdate.place(x=720, y=320, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=180).place(x=720, y=350)
 
-        tk.Label(self, text="Age*", font=("Arial", 14, "bold"), bg="white").place(x=850, y=270)
-        entry_age = tk.Entry(self, width=10, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_age.place(x=850, y=300, height=30)
-        tk.Frame(self, bg="black", height=2, width=100).place(x=850, y=330)
+        tk.Label(self, text="Age *", font=("Merriweather Sans bold", 15), bg="white").place(x=1020, y=270)
+        entry_age = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_age.place(x=1020, y=320, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=180).place(x=1020, y=350)
 
         # Gender, Height, Civil Status, Religion
-        tk.Label(self, text="Gender*", font=("Arial", 14, "bold"), bg="white").place(x=95, y=390)
-        entry_gender = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_gender.place(x=100, y=420, height=30)
-        tk.Frame(self, bg="black", height=2, width=200).place(x=100, y=450)
+        tk.Label(self, text="Gender *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=390)
+        entry_gender = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_gender.place(x=120, y=440, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=470)
 
-        tk.Label(self, text="Height*", font=("Arial", 14, "bold"), bg="white").place(x=350, y=390)
-        entry_height = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_height.place(x=350, y=420, height=30)
-        tk.Frame(self, bg="black", height=2, width=200).place(x=350, y=450)
+        tk.Label(self, text="Height *", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=390)
+        entry_height = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_height.place(x=420, y=440, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=470)
 
-        tk.Label(self, text="Civil Status*", font=("Arial", 14, "bold"), bg="white").place(x=600, y=390)
-        entry_civil_status = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_civil_status.place(x=600, y=420, height=30)
-        tk.Frame(self, bg="black", height=2, width=200).place(x=600, y=450)
+        tk.Label(self, text="Civil Status *", font=("Merriweather Sans bold",15), bg="white").place(x=720, y=390)
+        entry_civil_status = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_civil_status.place(x=720, y=440, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=180).place(x=720, y=470)
 
-        tk.Label(self, text="Religion*", font=("Arial", 14, "bold"), bg="white").place(x=850, y=390)
-        entry_religion = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_religion.place(x=850, y=420, height=30)
-        tk.Frame(self, bg="black", height=2, width=150).place(x=850, y=450)
+        tk.Label(self, text="Religion *", font=("Merriweather Sans bold", 15), bg="white").place(x=1020, y=390)
+        entry_religion = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_religion.place(x=1020, y=440, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=180).place(x=1020, y=470)
 
         # Complete Address 
-        tk.Label(self, text="Complete Address*", font=("Arial", 14, "bold"), bg="white").place(x=95, y=510)
-        entry_address = tk.Entry(self, width=80, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_address.place(x=100, y=540, height=30)
-        tk.Frame(self, bg="black", height=2, width=800).place(x=100, y=570)
+        tk.Label(self, text="Complete Address *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=510)
+        entry_address = tk.Entry(self, width=50, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_address.place(x=120, y=560, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=500).place(x=120, y=590)
 
-        # Next Button
         self.btn_next = Button(self, text="Next", command=self.open_next)
-        self.btn_next.place(x=1070, y=600, width=150, height=50)
+        self.btn_next.place(x=1070, y=600, width=120, height=40)
 
     def open_next(self):
         self.destroy()
@@ -112,47 +113,48 @@ class ContactPersonWindow(BaseWindow):
         super().__init__(parent, "Contact Person Info")
 
         # Back Button
-        self.btn_back = ttk.Button(self, text="Back", command=self.go_back)
-        self.btn_back.place(x=40, y=20)
+        self.btn_back = BackButton(self, text="Back", command=self.go_back)
+        self.btn_back.place(x=90, y=30, width=120, height=40)
+
         # Title Label
-        tk.Label(self, text="Contact Person Info", font=("Arial", 20, "bold"), bg="white").place(x=50, y=50)
+        tk.Label(self, text="Contact Person Info", font=("Merriweather bold", 25), bg="white").place(x=90, y=100)
 
         # Last Name, First Name, Middle Name
-        tk.Label(self, text="Last Name*", font=("Arial", 14, "bold"), bg="white").place(x=50, y=80)
-        entry_lastname = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_lastname.place(x=50, y=110, height=30)
-        tk.Frame(self, bg="black", height=2, width=200).place(x=50, y=140)
+        tk.Label(self, text="Last Name *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=190)
+        entry_lastname = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_lastname.place(x=120, y=240, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=270)
 
-        tk.Label(self, text="First Name*", font=("Arial", 14, "bold"), bg="white").place(x=300, y=80)
-        entry_firstname = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_firstname.place(x=300, y=110, height=30)
-        tk.Frame(self, bg="black", height=2, width=200).place(x=300, y=140)
+        tk.Label(self, text="First Name *", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=190)
+        entry_firstname = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_firstname.place(x=420, y=240, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=270)
 
-        tk.Label(self, text="Middle Name", font=("Arial", 14, "bold"), bg="white").place(x=550, y=80)
-        entry_middlename = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_middlename.place(x=550, y=110, height=30)
-        tk.Frame(self, bg="black", height=2, width=200).place(x=550, y=140)
+        tk.Label(self, text="Middle Name", font=("Merriweather Sans bold", 15), bg="white").place(x=720, y=190)
+        entry_middlename = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_middlename.place(x=720, y=240, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=180).place(x=720, y=270)
 
         # Contact Number, Relationship to the Patient
-        tk.Label(self, text="Contact Number*", font=("Arial", 14, "bold"), bg="white").place(x=50, y=180)
-        entry_contact = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_contact.place(x=50, y=210, height=30)
-        tk.Frame(self, bg="black", height=2, width=200).place(x=50, y=240)
+        tk.Label(self, text="Contact Number *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=310)
+        entry_contact = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_contact.place(x=120, y=360, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=390)
 
-        tk.Label(self, text="Relationship to the Patient*", font=("Arial", 14, "bold"), bg="white").place(x=300, y=180)
-        entry_relationship = tk.Entry(self, width=30, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_relationship.place(x=300, y=210, height=30)
-        tk.Frame(self, bg="black", height=2, width=300).place(x=300, y=240)
+        tk.Label(self, text="Relationship to the Patient *", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=310)
+        entry_relationship = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_relationship.place(x=420, y=360, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=390)
 
         # Complete Address 
-        tk.Label(self, text="Complete Address*", font=("Arial", 14, "bold"), bg="white").place(x=50, y=280)
-        entry_address = tk.Entry(self, width=80, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_address.place(x=50, y=310, height=30)
-        tk.Frame(self, bg="black", height=2, width=800).place(x=50, y=340)
+        tk.Label(self, text="Complete Address *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=430)
+        entry_address = tk.Entry(self, width=50, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_address.place(x=120, y=480, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=500).place(x=120, y=510)
 
-        # Next Button
+        
         self.btn_next = Button(self, text="Next", command=self.open_next)
-        self.btn_next.place(x=1070, y=600, width=150, height=50)
+        self.btn_next.place(x=1070, y=600, width=120, height=40)
 
     def go_back(self):
         self.destroy()
@@ -167,42 +169,42 @@ class RelativeInfoWindow(BaseWindow):
         super().__init__(parent, "Relative Info")
 
         # Back Button
-        self.btn_back = ttk.Button(self, text="Back", command=self.go_back)
-        self.btn_back.place(x=40, y=20)
+        self.btn_back = BackButton(self, text="Back", command=self.go_back)
+        self.btn_back.place(x=90, y=30, width=120, height=40)
         # Title Label
-        tk.Label(self, text="Relative Info", font=("Arial", 20, "bold"), bg="white").place(x=50, y=50)
+        tk.Label(self, text="Relative Info", font=("Merriweather bold", 25), bg="white").place(x=90, y=100)
 
         # Last Name, First Name, Middle Name
-        tk.Label(self, text="Last Name*", font=("Arial", 14, "bold"), bg="white").place(x=50, y=80)
-        entry_lastname = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_lastname.place(x=50, y=110, height=30)
-        tk.Frame(self, bg="black", height=2, width=200).place(x=50, y=140)
+        tk.Label(self, text="Last Name*", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=190)
+        entry_lastname = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_lastname.place(x=120, y=240, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=270)
 
-        tk.Label(self, text="First Name*", font=("Arial", 14, "bold"), bg="white").place(x=300, y=80)
-        entry_firstname = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_firstname.place(x=300, y=110, height=30)
-        tk.Frame(self, bg="black", height=2, width=200).place(x=300, y=140)
+        tk.Label(self, text="First Name*", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=190)
+        entry_firstname = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_firstname.place(x=420, y=240, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=270)
 
-        tk.Label(self, text="Middle Name", font=("Arial", 14, "bold"), bg="white").place(x=550, y=80)
-        entry_middlename = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_middlename.place(x=550, y=110, height=30)
-        tk.Frame(self, bg="black", height=2, width=200).place(x=550, y=140)
+        tk.Label(self, text="Middle Name", font=("Merriweather Sans bold", 15), bg="white").place(x=720, y=190)
+        entry_middlename = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_middlename.place(x=720, y=240, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=180).place(x=720, y=270)
 
         # Contact Number
-        tk.Label(self, text="Contact Number*", font=("Arial", 14, "bold"), bg="white").place(x=50, y=180)
-        entry_contact = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_contact.place(x=50, y=210, height=30)
-        tk.Frame(self, bg="black", height=2, width=200).place(x=50, y=240)
+        tk.Label(self, text="Contact Number*", font=("Merriweather Sans bold",15), bg="white").place(x=120, y=310)
+        entry_contact = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_contact.place(x=120, y=360, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=390)
 
         # Complete Address
-        tk.Label(self, text="Complete Address*", font=("Arial", 14, "bold"), bg="white").place(x=50, y=280)
-        entry_address = tk.Entry(self, width=80, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_address.place(x=50, y=310, height=30)
-        tk.Frame(self, bg="black", height=2, width=800).place(x=50, y=340)
+        tk.Label(self, text="Complete Address*", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=430)
+        entry_address = tk.Entry(self, width=50, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_address.place(x=120, y=480, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=500).place(x=120, y=510)
 
         # Next Button
         self.btn_next = Button(self, text="Next", command=self.open_next)
-        self.btn_next.place(x=1070, y=600, width=150, height=50)
+        self.btn_next.place(x=1070, y=600, width=120, height=40)
 
     def go_back(self):
         self.destroy()
@@ -217,47 +219,47 @@ class PhilHealthInfoWindow(BaseWindow):
         super().__init__(parent, "PhilHealth and Other Info")
 
         # Back Button
-        self.btn_back = ttk.Button(self, text="Back", command=self.go_back)
-        self.btn_back.place(x=40, y=20)
+        self.btn_back = BackButton(self, text="Back", command=self.go_back)
+        self.btn_back.place(x=90, y=30, width=120, height=40)
         # Title Label
-        tk.Label(self, text="PhilHealth and Other Info", font=("Arial", 20, "bold"), bg="white").place(x=50, y=50)
+        tk.Label(self, text="PhilHealth and Other Info", font=("Merriweather bold", 25), bg="white").place(x=90, y=100)
 
         # PhilHealth Number & Membership
-        tk.Label(self, text="PhilHealth Number*", font=("Arial", 14, "bold"), bg="white").place(x=50, y=80)
-        entry_philhealth = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_philhealth.place(x=50, y=110, height=30)
-        tk.Frame(self, bg="black", height=2, width=200).place(x=50, y=140)
+        tk.Label(self, text="PhilHealth Number *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=190)
+        entry_philhealth = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_philhealth.place(x=120, y=240, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=270)
 
-        tk.Label(self, text="Membership*", font=("Arial", 14, "bold"), bg="white").place(x=300, y=80)
-        entry_membership = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_membership.place(x=300, y=110, height=30)
-        tk.Frame(self, bg="black", height=2, width=200).place(x=300, y=140)
+        tk.Label(self, text="Membership *", font=("Merriweather Sans bold",15), bg="white").place(x=420, y=190)
+        entry_membership = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_membership.place(x=420, y=240, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=270)
 
         # PWD & PWD ID Number
-        tk.Label(self, text="PWD", font=("Arial", 14, "bold"), bg="white").place(x=50, y=180)
-        entry_pwd = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_pwd.place(x=50, y=210, height=30)
-        tk.Frame(self, bg="black", height=2, width=200).place(x=50, y=240)
+        tk.Label(self, text="PWD", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=310)
+        entry_pwd = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_pwd.place(x=120, y=360, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=390)
 
-        tk.Label(self, text="PWD ID Number", font=("Arial", 14, "bold"), bg="white").place(x=300, y=180)
-        entry_pwd_id = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_pwd_id.place(x=300, y=210, height=30)
-        tk.Frame(self, bg="black", height=2, width=200).place(x=300, y=240)
+        tk.Label(self, text="PWD ID Number", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=310)
+        entry_pwd_id = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_pwd_id.place(x=420, y=360, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=390)
 
         # Senior & Senior ID Number
-        tk.Label(self, text="Senior", font=("Arial", 14, "bold"), bg="white").place(x=50, y=280)
-        entry_senior = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_senior.place(x=50, y=310, height=30)
-        tk.Frame(self, bg="black", height=2, width=200).place(x=50, y=340)
+        tk.Label(self, text="Senior", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=430)
+        entry_senior = tk.Entry(self, width=180, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_senior.place(x=120, y=480, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=510)
 
-        tk.Label(self, text="Senior ID Number", font=("Arial", 14, "bold"), bg="white").place(x=300, y=280)
-        entry_senior_id = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_senior_id.place(x=300, y=310, height=30)
-        tk.Frame(self, bg="black", height=2, width=200).place(x=300, y=340)
+        tk.Label(self, text="Senior ID Number", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=430)
+        entry_senior_id = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_senior_id.place(x=420, y=480, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=510)
 
         # Next Button
         self.btn_next = Button(self, text="Next", command=self.open_next)
-        self.btn_next.place(x=1070, y=600, width=150, height=50)
+        self.btn_next.place(x=1070, y=600, width=120, height=40)
 
     def go_back(self):
         self.destroy()
@@ -272,61 +274,61 @@ class PatientHistory1Window(BaseWindow):
         super().__init__(parent, "Patient History Part 1")
 
         # Back Button
-        self.btn_back = ttk.Button(self, text="Back", command=self.go_back)
-        self.btn_back.place(x=40, y=20)
-        tk.Label(self, text="Patient History Part 1", font=("Arial", 20, "bold"), bg="white").place(x=50, y=50)
+        self.btn_back = BackButton(self, text="Back", command=self.go_back)
+        self.btn_back.place(x=90, y=30, width=120, height=40)
+        tk.Label(self, text="Patient History Part 1 ", font=("Merriweather bold", 25, ), bg="white").place(x=90, y=100)
 
         # Family History
-        tk.Label(self, text="Family History*", font=("Arial", 16, "bold"), bg="white").place(x=50, y=60)
+        tk.Label(self, text="Family History *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=190)
 
         self.family_hypertension = tk.BooleanVar()
         self.family_diabetes = tk.BooleanVar()
         self.family_malignancy = tk.BooleanVar()
         
-        tk.Checkbutton(self, variable=self.family_hypertension, bg="white").place(x=50, y=100)
-        tk.Label(self, text="Hypertension", font=("Arial", 14), bg="white").place(x=80, y=100)
+        tk.Checkbutton(self, variable=self.family_hypertension, bg="white").place(x=120, y=240)
+        tk.Label(self, text="Hypertension", font=("Merriweather Sans bold", 12), bg="white").place(x=140, y=240)
 
-        tk.Checkbutton(self, variable=self.family_diabetes, bg="white").place(x=300, y=100)
-        tk.Label(self, text="Diabetes Mellitus", font=("Arial", 14), bg="white").place(x=330, y=100)
+        tk.Checkbutton(self, variable=self.family_diabetes, bg="white").place(x=320, y=240)
+        tk.Label(self, text="Diabetes Mellitus", font=("Merriweather Sans bold", 12), bg="white").place(x=340, y=240)
 
-        tk.Checkbutton(self, variable=self.family_malignancy, bg="white").place(x=600, y=100)
-        tk.Label(self, text="Malignancy", font=("Arial", 14), bg="white").place(x=630, y=100)
+        tk.Checkbutton(self, variable=self.family_malignancy, bg="white").place(x=520, y=240)
+        tk.Label(self, text="Malignancy", font=("Merriweather Sans bold", 12), bg="white").place(x=540, y=240)
 
         # Other Family History
-        tk.Label(self, text="Other:", font=("Arial", 14), bg="white").place(x=50, y=140)
-        self.family_other = tk.Entry(self, width=50, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        self.family_other.place(x=120, y=140, height=30)
-        tk.Frame(self, bg="black", height=2, width=400).place(x=120, y=170)
+        tk.Label(self, text="Other:", font=("Merriweather Sans bold", 12), bg="white").place(x=140, y=300)
+        self.family_other = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.family_other.place(x=140 , y=340, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=180).place(x=140, y=370)
 
         # Medical History
-        tk.Label(self, text="Medical History*", font=("Arial", 16, "bold"), bg="white").place(x=50, y=200)
+        tk.Label(self, text="Medical History *", font=("Merriweather sans bold", 15), bg="white").place(x=120, y=400)
 
         self.med_hypertension = tk.BooleanVar()
         self.med_urinary_stone = tk.BooleanVar()
         self.med_recurrent_uti = tk.BooleanVar()
         self.med_diabetes_type = tk.BooleanVar()
         
-        tk.Checkbutton(self, variable=self.med_hypertension, bg="white").place(x=50, y=240)
-        tk.Label(self, text="Hypertension", font=("Arial", 14), bg="white").place(x=80, y=240)
+        tk.Checkbutton(self, variable=self.med_hypertension, bg="white").place(x=120, y=450)
+        tk.Label(self, text="Hypertension", font=("Merriweather Sans bold", 12), bg="white").place(x=140, y=450)
 
-        tk.Checkbutton(self, variable=self.med_urinary_stone, bg="white").place(x=300, y=240)
-        tk.Label(self, text="Urinary Stone", font=("Arial", 14), bg="white").place(x=330, y=240)
+        tk.Checkbutton(self, variable=self.med_urinary_stone, bg="white").place(x=320, y=450)
+        tk.Label(self, text="Urinary Stone", font=("Merriweather Sans bold", 12), bg="white").place(x=340, y=450)
 
-        tk.Checkbutton(self, variable=self.med_recurrent_uti, bg="white").place(x=600, y=240)
-        tk.Label(self, text="Recurrent UTI", font=("Arial", 14), bg="white").place(x=630, y=240)
+        tk.Checkbutton(self, variable=self.med_recurrent_uti, bg="white").place(x=520, y=450)
+        tk.Label(self, text="Recurrent UTI", font=("Merriweather Sans bold", 12), bg="white").place(x=540, y=450)
 
-        tk.Checkbutton(self, variable=self.med_diabetes_type, bg="white").place(x=50, y=280)
-        tk.Label(self, text="Diabetes Mellitus Type", font=("Arial", 14), bg="white").place(x=80, y=280)
+        tk.Checkbutton(self, variable=self.med_diabetes_type, bg="white").place(x=720, y=450)
+        tk.Label(self, text="Diabetes Mellitus Type", font=("Merriweather Sans bold", 12), bg="white").place(x=740, y=450)
 
         # Other Medical History
-        tk.Label(self, text="Other:", font=("Arial", 14), bg="white").place(x=50, y=320)
-        self.med_other1 = tk.Entry(self, width=30, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        self.med_other1.place(x=120, y=320, height=30)
-        tk.Frame(self, bg="black", height=2, width=250).place(x=120, y=350)
+        tk.Label(self, text="Other:", font=("Merriweather Sans bold", 12), bg="white").place(x=140, y=510)
+        self.med_other1 = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.med_other1.place(x=140, y=550, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=180).place(x=140, y=580)
 
         # Next Button
         self.btn_next = Button(self, text="Next", command=self.open_next)
-        self.btn_next.place(x=1070, y=600, width=150, height=50)
+        self.btn_next.place(x=1070, y=600, width=120, height=40)
 
     def go_back(self):
         self.destroy()
@@ -341,25 +343,25 @@ class PatientHistory2Window(BaseWindow):
         super().__init__(parent, "Patient History Part 2")
 
         # Back Button
-        self.btn_back = ttk.Button(self, text="Back", command=self.go_back)
-        self.btn_back.place(x=40, y=20)
-        tk.Label(self, text="Patient History Part 2", font=("Arial", 20, "bold"), bg="white").place(x=50, y=50)
+        self.btn_back = BackButton(self, text="Back", command=self.go_back)
+        self.btn_back.place(x=90, y=30, width=120, height=40)
+        tk.Label(self, text="Patient History Part 2", font=("Merriweather bold", 25), bg="white").place(x=90, y=100)
 
         # History of Present Illness
-        tk.Label(self, text="History of Present Illness*", font=("Arial", 16, "bold"), bg="white").place(x=50, y=60)
-        self.history_illness = tk.Text(self, width=80, height=5, font=("Arial", 12), bg="white", bd=1, relief="solid")
+        tk.Label(self, text="History of Present Illness *", font=("Merriweather Sans bold", 15,), bg="white").place(x=120, y=190)
+        self.history_illness = tk.Text(self, width=80, height=5, font=("Merriweather light", 12,), bg="white", bd=1, relief="solid")
         self.history_illness.insert("1.0", "Type here")  # Placeholder text
-        self.history_illness.place(x=50, y=100)
+        self.history_illness.place(x=120, y=240)
 
         # Pertinent Past Medical History
-        tk.Label(self, text="Pertinent Past Medical History*", font=("Arial", 16, "bold"), bg="white").place(x=50, y=220)
-        self.past_medical_history = tk.Text(self, width=80, height=5, font=("Arial", 12), bg="white", bd=1, relief="solid")
+        tk.Label(self, text="Pertinent Past Medical History *", font=("Merriweather Sans bold", 15 ), bg="white").place(x=120, y=400)
+        self.past_medical_history = tk.Text(self, width=80, height=5, font=("Merriweather light", 12,), bg="white", bd=1, relief="solid")
         self.past_medical_history.insert("1.0", "Type here")  # Placeholder text
-        self.past_medical_history.place(x=50, y=260)
+        self.past_medical_history.place(x=120, y=450)
 
         # Next Button
         self.btn_next = Button(self, text="Next", command=self.open_next)
-        self.btn_next.place(x=1070, y=600, width=150, height=50)
+        self.btn_next.place(x=1070, y=600, width=120, height=40)
 
     def go_back(self):
         self.destroy()
@@ -374,47 +376,47 @@ class PatientHistory3Window(BaseWindow):
         super().__init__(parent, "Patient History Part 3")
 
         # Back Button
-        self.btn_back = ttk.Button(self, text="Back", command=self.go_back)
-        self.btn_back.place(x=40, y=20)
+        self.btn_back = BackButton(self, text="Back", command=self.go_back)
+        self.btn_back.place(x=90, y=30, width=120, height=40)
 
-        tk.Label(self, text="Patient History Part 3", font=("Arial", 20, "bold"), bg="white").place(x=50, y=50)
+        tk.Label(self, text="Patient History Part 3", font=("Merriweather bold", 25), bg="white").place(x=90, y=100)
 
         # Date of First Diagnosed having Kidney Disease 
-        tk.Label(self, text="Date of First Diagnosed having Kidney Disease*", font=("Arial", 14, "bold"), bg="white").place(x=50, y=80)
-        entry_diagnosed = tk.Entry(self, width=30, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_diagnosed.place(x=50, y=110, height=30)
-        tk.Frame(self, bg="black", height=2, width=300).place(x=50, y=140)
+        tk.Label(self, text="Date of First Diagnosed having Kidney Disease *", font=("Merriweather Sans bold", 15 ), bg="white").place(x=120, y=190)
+        entry_diagnosed = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_diagnosed.place(x=120, y=240, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=270)
 
-        tk.Label(self, text="Date of First Dialysis*", font=("Arial", 14, "bold"), bg="white").place(x=600, y=80)
-        entry_dialysis = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_dialysis.place(x=600, y=110, height=30)
-        tk.Frame(self, bg="black", height=2, width=200).place(x=600, y=140)
+        tk.Label(self, text="Date of First Dialysis", font=("Merriweather Sans bold", 15), bg="white").place(x=750, y=190)
+        entry_dialysis = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_dialysis.place(x=750, y=240, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=180).place(x=750, y=270)
 
         # Mode & Access
-        tk.Label(self, text="Mode", font=("Arial", 14, "bold"), bg="white").place(x=50, y=180)
-        entry_mode = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_mode.place(x=50, y=210, height=30)
-        tk.Frame(self, bg="black", height=2, width=200).place(x=50, y=240)
+        tk.Label(self, text="Mode *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=310)
+        entry_mode = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_mode.place(x=120, y=360, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=390)
 
-        tk.Label(self, text="Access", font=("Arial", 14, "bold"), bg="white").place(x=400, y=180)
-        entry_access = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_access.place(x=400, y=210, height=30)
-        tk.Frame(self, bg="black", height=2, width=200).place(x=400, y=240)
+        tk.Label(self, text="Access *", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=310)
+        entry_access = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_access.place(x=420, y=360, height=30)
+        tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=390)
 
         # Chronic Hemodialysis & Clinical Impression
-        tk.Label(self, text="Date of First Chronic Hemodialysis*", font=("Arial", 14, "bold"), bg="white").place(x=50, y=280)
-        entry_chronic = tk.Entry(self, width=30, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_chronic.place(x=50, y=310, height=30)
-        tk.Frame(self, bg="black", height=2, width=300).place(x=50, y=340)
+        tk.Label(self, text="Date of First Chronic Hemodialysis ", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=430)
+        entry_chronic = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_chronic.place(x=120, y=480, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=510)
 
-        tk.Label(self, text="Clinical Impression*", font=("Arial", 14, "bold"), bg="white").place(x=400, y=280)
-        entry_clinical = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_clinical.place(x=400, y=310, height=30)
-        tk.Frame(self, bg="black", height=2, width=200).place(x=400, y=340)
+        tk.Label(self, text="Clinical Impression *", font=("Merriweather Sans bold", 15), bg="white").place(x=550, y=430)
+        entry_clinical = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_clinical.place(x=550, y=480, height=25)
+        tk.Frame(self, bg="#979797", height=1, width=180).place(x=550, y=510)
 
         # Next Button
         self.btn_next = Button(self, text="Next", command=self.open_next)
-        self.btn_next.place(x=1070, y=600, width=150, height=50)
+        self.btn_next.place(x=1070, y=600, width=120, height=40)
         
     def go_back(self):
         self.destroy()
@@ -429,55 +431,55 @@ class MedicationWindow(BaseWindow):
         super().__init__(parent, "Medication")
 
         # Back Button
-        self.btn_back = ttk.Button(self, text="Back", command=self.go_back)
-        self.btn_back.place(x=40, y=20)
+        self.btn_back = BackButton(self, text="Back", command=self.go_back)
+        self.btn_back.place(x=90, y=30, width=120, height=40)
 
         # Title Label
-        tk.Label(self, text="Medication", font=("Arial", 20, "bold"), bg="white").place(x=50, y=50)
+        tk.Label(self, text="Medication", font=("Merriweather bold", 25), bg="white").place(x=90, y=100)
 
         # Medication 1, Medication 2, Medication 3
-        tk.Label(self, text="Medication 1", font=("Arial", 14, "bold"), bg="white").place(x=50, y=80)
-        entry_med1 = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_med1.place(x=50, y=110, height=30)
-        tk.Frame(self, bg="black", height=2, width=200).place(x=50, y=140)
+        tk.Label(self, text="Medication 1", font=("Merriweather Sans bold", 14, "bold"), bg="white").place(x=120, y=190)
+        entry_med1 = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_med1.place(x=120, y=240, height=25)
+        tk.Frame(self, bg="black", height=1, width=180).place(x=120, y=270)
 
-        tk.Label(self, text="Medication 2", font=("Arial", 14, "bold"), bg="white").place(x=300, y=80)
-        entry_med2 = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_med2.place(x=300, y=110, height=30)
-        tk.Frame(self, bg="black", height=2, width=200).place(x=300, y=140)
+        tk.Label(self, text="Medication 2", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=190)
+        entry_med2 = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_med2.place(x=420, y=240, height=25)
+        tk.Frame(self, bg="black", height=1, width=180).place(x=420, y=270)
 
-        tk.Label(self, text="Medication 3", font=("Arial", 14, "bold"), bg="white").place(x=550, y=80)
-        entry_med3 = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_med3.place(x=550, y=110, height=30)
-        tk.Frame(self, bg="black", height=2, width=200).place(x=550, y=140)
+        tk.Label(self, text="Medication 3", font=("Merriweather Sans bold", 15), bg="white").place(x=720, y=190)
+        entry_med3 = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_med3.place(x=720, y=240, height=25)
+        tk.Frame(self, bg="black", height=1, width=180).place(x=720, y=270)
 
         # Medication 4, Medication 5, Medication 6
-        tk.Label(self, text="Medication 4", font=("Arial", 14, "bold"), bg="white").place(x=50, y=180)
-        entry_med4 = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_med4.place(x=50, y=210, height=30)
-        tk.Frame(self, bg="black", height=2, width=200).place(x=50, y=240)
+        tk.Label(self, text="Medication 4", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=310)
+        entry_med4 = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_med4.place(x=120, y=360, height=25)
+        tk.Frame(self, bg="black", height=1, width=180).place(x=120, y=390)
 
-        tk.Label(self, text="Medication 5", font=("Arial", 14, "bold"), bg="white").place(x=300, y=180)
-        entry_med5 = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_med5.place(x=300, y=210, height=30)
-        tk.Frame(self, bg="black", height=2, width=200).place(x=300, y=240)
+        tk.Label(self, text="Medication 5", font=("Merriweather Sans bold", 15 ), bg="white").place(x=420, y=310)
+        entry_med5 = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_med5.place(x=420, y=360, height=25)
+        tk.Frame(self, bg="black", height=1, width=180).place(x=420, y=390)
 
-        tk.Label(self, text="Medication 6", font=("Arial", 14, "bold"), bg="white").place(x=550, y=180)
-        entry_med6 = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_med6.place(x=550, y=210, height=30)
-        tk.Frame(self, bg="black", height=2, width=200).place(x=550, y=240)
+        tk.Label(self, text="Medication 6", font=("Merriweather Sans bold", 15 ), bg="white").place(x=720, y=310)
+        entry_med6 = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_med6.place(x=720, y=360, height=25)
+        tk.Frame(self, bg="black", height=1, width=180).place(x=720, y=390)
 
         # Medication 7 and "+ Another Slot"
-        tk.Label(self, text="Medication 7", font=("Arial", 14, "bold"), bg="white").place(x=50, y=280)
-        entry_med7 = tk.Entry(self, width=20, font=("Arial", 12), bg="white", bd=0, highlightthickness=0)
-        entry_med7.place(x=50, y=310, height=30)
-        tk.Frame(self, bg="black", height=2, width=200).place(x=50, y=340)
+        tk.Label(self, text="Medication 7", font=("Merriweather Sans bold", 15, ), bg="white").place(x=120, y=430)
+        entry_med7 = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_med7.place(x=120, y=480, height=25)
+        tk.Frame(self, bg="black", height=1, width=180).place(x=120, y=510)
 
-        tk.Label(self, text="+ Another Slot", font=("Arial", 14, "bold"), bg="#01516D", fg="white").place(x=300, y=310)
+        tk.Label(self, text="+ Another Slot", font=("Merriweather Sans bold", 15), fg="blue",bg="white").place(x=420, y=430)
 
         # Next Button
         self.btn_next = Button(self, text="Save", command=self.open_next)
-        self.btn_next.place(x=1070, y=600, width=150, height=50)
+        self.btn_next.place(x=1070, y=600, width=120, height=40)
 
     def go_back(self):
         self.destroy()
