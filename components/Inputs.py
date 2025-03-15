@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import PhotoImage
 from components.buttons import Button
+from components.textfields_patients import TextField_Patients
 
 class BaseWindow(tk.Toplevel):
     def __init__(self, parent, title, next_window=None, previous_window=None):
@@ -63,65 +64,65 @@ class PatientInfoWindow(BaseWindow):
 
         # Last Name, First Name, Middle Name
         tk.Label(self, text="Last Name *", font=("Merriweather Sans bold", 15 ), bg="white").place(x=120, y=150)
-        entry_lastname = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_lastname = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_lastname.place(x=120, y=200, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=230)
 
         tk.Label(self, text="First Name *", font=("Merriweather Sans bold", 15 ), bg="white").place(x=420, y=150)
-        entry_firstname = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_firstname = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_firstname.place(x=420, y=200, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=230)
 
         tk.Label(self, text="Middle Name", font=("Merriweather Sans bold", 15), bg="white").place(x=720, y=150)
-        entry_middlename = tk.Entry(self, width=15, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_middlename = TextField_Patients(self, width=15, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_middlename.place(x=720, y=200, height=25)
         tk.Frame(self, bg="#979797", height=1, width=150).place(x=720, y=230)
 
         # Status, Type of Access, Birthdate, Age
         tk.Label(self, text="Status *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=270)
-        entry_status = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_status = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_status.place(x=120, y=320, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=350)
 
         tk.Label(self, text="Type of Access *", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=270)
-        entry_access = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_access = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_access.place(x=420, y=320, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=350)
 
         tk.Label(self, text="Birthdate *", font=("Merriweather Sans bold", 15), bg="white").place(x=720, y=270)
-        entry_birthdate = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_birthdate = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_birthdate.place(x=720, y=320, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=720, y=350)
 
         tk.Label(self, text="Age *", font=("Merriweather Sans bold", 15), bg="white").place(x=1020, y=270)
-        entry_age = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_age = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_age.place(x=1020, y=320, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=1020, y=350)
 
         # Gender, Height, Civil Status, Religion
         tk.Label(self, text="Gender *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=390)
-        entry_gender = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_gender = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_gender.place(x=120, y=440, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=470)
 
         tk.Label(self, text="Height *", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=390)
-        entry_height = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_height = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_height.place(x=420, y=440, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=470)
 
         tk.Label(self, text="Civil Status *", font=("Merriweather Sans bold",15), bg="white").place(x=720, y=390)
-        entry_civil_status = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_civil_status = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_civil_status.place(x=720, y=440, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=720, y=470)
 
         tk.Label(self, text="Religion *", font=("Merriweather Sans bold", 15), bg="white").place(x=1020, y=390)
-        entry_religion = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_religion = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_religion.place(x=1020, y=440, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=1020, y=470)
 
         # Complete Address 
         tk.Label(self, text="Complete Address *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=510)
-        entry_address = tk.Entry(self, width=50, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_address = TextField_Patients(self, width=50, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_address.place(x=120, y=560, height=25)
         tk.Frame(self, bg="#979797", height=1, width=500).place(x=120, y=590)
 
@@ -134,34 +135,34 @@ class ContactPersonWindow(BaseWindow):
 
         # Last Name, First Name, Middle Name
         tk.Label(self, text="Last Name *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=190)
-        entry_lastname = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_lastname = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_lastname.place(x=120, y=240, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=270)
 
         tk.Label(self, text="First Name *", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=190)
-        entry_firstname = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_firstname = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_firstname.place(x=420, y=240, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=270)
 
-        tk.Label(self, text="Middle Name", font=("Merriweather Sans bold", 15), bg="white").place(x=720, y=190)
-        entry_middlename = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        tk.Label(self, text="Middle Name*", font=("Merriweather Sans bold", 15), bg="white").place(x=720, y=190)
+        entry_middlename = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_middlename.place(x=720, y=240, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=720, y=270)
 
         # Contact Number, Relationship to the Patient
         tk.Label(self, text="Contact Number *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=310)
-        entry_contact = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_contact = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_contact.place(x=120, y=360, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=390)
 
         tk.Label(self, text="Relationship to the Patient *", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=310)
-        entry_relationship = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_relationship = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_relationship.place(x=420, y=360, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=390)
 
         # Complete Address 
         tk.Label(self, text="Complete Address *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=430)
-        entry_address = tk.Entry(self, width=50, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_address = TextField_Patients(self, width=50, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_address.place(x=120, y=480, height=25)
         tk.Frame(self, bg="#979797", height=1, width=500).place(x=120, y=510)
 
@@ -174,29 +175,29 @@ class RelativeInfoWindow(BaseWindow):
 
         # Last Name, First Name, Middle Name
         tk.Label(self, text="Last Name*", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=190)
-        entry_lastname = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_lastname = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_lastname.place(x=120, y=240, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=270)
 
         tk.Label(self, text="First Name*", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=190)
-        entry_firstname = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_firstname = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_firstname.place(x=420, y=240, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=270)
 
-        tk.Label(self, text="Middle Name", font=("Merriweather Sans bold", 15), bg="white").place(x=720, y=190)
-        entry_middlename = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        tk.Label(self, text="Middle Name*", font=("Merriweather Sans bold", 15), bg="white").place(x=720, y=190)
+        entry_middlename = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_middlename.place(x=720, y=240, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=720, y=270)
 
         # Contact Number
         tk.Label(self, text="Contact Number*", font=("Merriweather Sans bold",15), bg="white").place(x=120, y=310)
-        entry_contact = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_contact = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_contact.place(x=120, y=360, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=390)
 
         # Complete Address
         tk.Label(self, text="Complete Address*", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=430)
-        entry_address = tk.Entry(self, width=50, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_address = TextField_Patients(self, width=50, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_address.place(x=120, y=480, height=25)
         tk.Frame(self, bg="#979797", height=1, width=500).place(x=120, y=510)
 
@@ -209,34 +210,34 @@ class PhilHealthInfoWindow(BaseWindow):
 
         # PhilHealth Number & Membership
         tk.Label(self, text="PhilHealth Number *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=190)
-        entry_philhealth = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_philhealth = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_philhealth.place(x=120, y=240, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=270)
 
         tk.Label(self, text="Membership *", font=("Merriweather Sans bold",15), bg="white").place(x=420, y=190)
-        entry_membership = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_membership = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_membership.place(x=420, y=240, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=270)
 
         # PWD & PWD ID Number
         tk.Label(self, text="PWD", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=310)
-        entry_pwd = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_pwd = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_pwd.place(x=120, y=360, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=390)
 
         tk.Label(self, text="PWD ID Number", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=310)
-        entry_pwd_id = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_pwd_id = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_pwd_id.place(x=420, y=360, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=390)
 
         # Senior & Senior ID Number
         tk.Label(self, text="Senior", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=430)
-        entry_senior = tk.Entry(self, width=180, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_senior = TextField_Patients(self, width=180, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_senior.place(x=120, y=480, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=510)
 
         tk.Label(self, text="Senior ID Number", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=430)
-        entry_senior_id = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_senior_id = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_senior_id.place(x=420, y=480, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=510)
 
@@ -247,7 +248,7 @@ class PatientHistory1Window(BaseWindow):
         tk.Label(self, text="Patient History Part 1 ", font=("Merriweather bold", 25, ), bg="white").place(x=90, y=100)
 
         # Family History
-        tk.Label(self, text="Family History *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=190)
+        tk.Label(self, text="Family History*", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=190)
 
         self.family_hypertension = tk.BooleanVar()
         self.family_diabetes = tk.BooleanVar()
@@ -264,12 +265,12 @@ class PatientHistory1Window(BaseWindow):
 
         # Other Family History
         tk.Label(self, text="Other:", font=("Merriweather Sans bold", 12), bg="white").place(x=140, y=300)
-        self.family_other = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.family_other = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         self.family_other.place(x=140 , y=340, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=140, y=370)
 
         # Medical History
-        tk.Label(self, text="Medical History *", font=("Merriweather sans bold", 15), bg="white").place(x=120, y=400)
+        tk.Label(self, text="Medical History*", font=("Merriweather sans bold", 15), bg="white").place(x=120, y=400)
 
         self.med_hypertension = tk.BooleanVar()
         self.med_urinary_stone = tk.BooleanVar()
@@ -290,7 +291,7 @@ class PatientHistory1Window(BaseWindow):
 
         # Other Medical History
         tk.Label(self, text="Other:", font=("Merriweather Sans bold", 12), bg="white").place(x=140, y=510)
-        self.med_other1 = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.med_other1 = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         self.med_other1.place(x=140, y=550, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=140, y=580)
 
@@ -302,16 +303,34 @@ class PatientHistory2Window(BaseWindow):
         tk.Label(self, text="Patient History Part 2", font=("Merriweather bold", 25), bg="white").place(x=90, y=100)
 
         # History of Present Illness
-        tk.Label(self, text="History of Present Illness *", font=("Merriweather Sans bold", 15,), bg="white").place(x=120, y=190)
-        self.history_illness = tk.Text(self, width=80, height=5, font=("Merriweather light", 12,), bg="white", bd=1, relief="solid")
-        self.history_illness.insert("1.0", "Type here")  # Placeholder text
+        tk.Label(self, text="History of Present Illness*", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=190)
+        self.history_illness = tk.Text(self, width=80, height=5, font=("Merriweather light", 12), bg="white", bd=1, relief="solid")
         self.history_illness.place(x=120, y=240)
+        self.add_placeholder(self.history_illness, "Type here")
 
         # Pertinent Past Medical History
-        tk.Label(self, text="Pertinent Past Medical History *", font=("Merriweather Sans bold", 15 ), bg="white").place(x=120, y=400)
-        self.past_medical_history = tk.Text(self, width=80, height=5, font=("Merriweather light", 12,), bg="white", bd=1, relief="solid")
-        self.past_medical_history.insert("1.0", "Type here")  # Placeholder text
+        tk.Label(self, text="Pertinent Past Medical History *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=400)
+        self.past_medical_history = tk.Text(self, width=80, height=5, font=("Merriweather light", 12), bg="white", bd=1, relief="solid")
         self.past_medical_history.place(x=120, y=450)
+        self.add_placeholder(self.past_medical_history, "Type here")
+
+    def add_placeholder(self, text_widget, placeholder):
+        """Adds a placeholder to a Text widget and handles focus events."""
+        def on_focus_in(event):
+            if text_widget.get("1.0", "end-1c") == placeholder:
+                text_widget.delete("1.0", "end")
+                text_widget.config(fg="black")
+
+        def on_focus_out(event):
+            if not text_widget.get("1.0", "end-1c").strip():
+                text_widget.insert("1.0", placeholder)
+                text_widget.config(fg="gray")
+
+        text_widget.insert("1.0", placeholder)
+        text_widget.config(fg="gray")
+        text_widget.bind("<FocusIn>", on_focus_in)
+        text_widget.bind("<FocusOut>", on_focus_out)
+
 
 class PatientHistory3Window(BaseWindow):
     def __init__(self, parent):
@@ -320,35 +339,35 @@ class PatientHistory3Window(BaseWindow):
         tk.Label(self, text="Patient History Part 3", font=("Merriweather bold", 25), bg="white").place(x=90, y=100)
 
         # Date of First Diagnosed having Kidney Disease 
-        tk.Label(self, text="Date of First Diagnosed having Kidney Disease *", font=("Merriweather Sans bold", 15 ), bg="white").place(x=120, y=190)
-        entry_diagnosed = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        tk.Label(self, text="Date of First Diagnosed having Kidney Disease*", font=("Merriweather Sans bold", 15 ), bg="white").place(x=120, y=190)
+        entry_diagnosed = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_diagnosed.place(x=120, y=240, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=270)
 
         tk.Label(self, text="Date of First Dialysis", font=("Merriweather Sans bold", 15), bg="white").place(x=750, y=190)
-        entry_dialysis = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_dialysis = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_dialysis.place(x=750, y=240, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=750, y=270)
 
         # Mode & Access
         tk.Label(self, text="Mode *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=310)
-        entry_mode = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_mode = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_mode.place(x=120, y=360, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=390)
 
         tk.Label(self, text="Access *", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=310)
-        entry_access = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_access = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_access.place(x=420, y=360, height=30)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=390)
 
         # Chronic Hemodialysis & Clinical Impression
         tk.Label(self, text="Date of First Chronic Hemodialysis ", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=430)
-        entry_chronic = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_chronic = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_chronic.place(x=120, y=480, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=510)
 
-        tk.Label(self, text="Clinical Impression *", font=("Merriweather Sans bold", 15), bg="white").place(x=550, y=430)
-        entry_clinical = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        tk.Label(self, text="Clinical Impression*", font=("Merriweather Sans bold", 15), bg="white").place(x=550, y=430)
+        entry_clinical = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_clinical.place(x=550, y=480, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=550, y=510)
 
@@ -361,39 +380,39 @@ class MedicationWindow(BaseWindow):
 
         # Medication 1, Medication 2, Medication 3
         tk.Label(self, text="Medication 1", font=("Merriweather Sans bold", 14, "bold"), bg="white").place(x=120, y=190)
-        entry_med1 = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_med1 = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_med1.place(x=120, y=240, height=25)
         tk.Frame(self, bg="black", height=1, width=180).place(x=120, y=270)
 
         tk.Label(self, text="Medication 2", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=190)
-        entry_med2 = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_med2 = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_med2.place(x=420, y=240, height=25)
         tk.Frame(self, bg="black", height=1, width=180).place(x=420, y=270)
 
         tk.Label(self, text="Medication 3", font=("Merriweather Sans bold", 15), bg="white").place(x=720, y=190)
-        entry_med3 = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_med3 = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_med3.place(x=720, y=240, height=25)
         tk.Frame(self, bg="black", height=1, width=180).place(x=720, y=270)
 
         # Medication 4, Medication 5, Medication 6
         tk.Label(self, text="Medication 4", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=310)
-        entry_med4 = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_med4 = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_med4.place(x=120, y=360, height=25)
         tk.Frame(self, bg="black", height=1, width=180).place(x=120, y=390)
 
         tk.Label(self, text="Medication 5", font=("Merriweather Sans bold", 15 ), bg="white").place(x=420, y=310)
-        entry_med5 = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_med5 = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_med5.place(x=420, y=360, height=25)
         tk.Frame(self, bg="black", height=1, width=180).place(x=420, y=390)
 
         tk.Label(self, text="Medication 6", font=("Merriweather Sans bold", 15 ), bg="white").place(x=720, y=310)
-        entry_med6 = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_med6 = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_med6.place(x=720, y=360, height=25)
         tk.Frame(self, bg="black", height=1, width=180).place(x=720, y=390)
 
         # Medication 7 and "+ Another Slot"
         tk.Label(self, text="Medication 7", font=("Merriweather Sans bold", 15, ), bg="white").place(x=120, y=430)
-        entry_med7 = tk.Entry(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry_med7 = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_med7.place(x=120, y=480, height=25)
         tk.Frame(self, bg="black", height=1, width=180).place(x=120, y=510)
 

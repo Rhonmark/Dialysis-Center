@@ -11,7 +11,7 @@ def main():
         if shared_state["current_frame"]:
             shared_state["current_frame"].pack_forget() 
         
-        root.update_idletasks()  
+        root.update_idletasks()
 
         if page_name == "LoginPage":
             from pages.LoginPage import LoginPage

@@ -1,7 +1,7 @@
 import random
 import tkinter as tk
 from tkinter import ttk
-from components.textfields import TextField
+from components.textfields_user_reg import TextField
 from components.buttons import Button
 from PIL import Image, ImageTk
 from backend.input_validator import forgot_validator
