@@ -1,17 +1,18 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import PhotoImage
 from components.buttons import Button
-from components.buttons import BackButton
-
 
 class BaseWindow(tk.Toplevel):
-    def __init__(self, parent, title):
+    def __init__(self, parent, title, next_window=None, previous_window=None):
         super().__init__(parent)
         self.title(title)
+        self.parent = parent
         self.geometry("1300x700")
         self.overrideredirect(True)
         self.wm_attributes("-topmost", True) 
         self.center_window()
+        self.next_window = next_window
+        self.previous_window = previous_window
 
         self.border_frame = tk.Frame(self, bg="black", bd=0.5) 
         self.border_frame.pack(expand=True, fill="both", padx=0, pady=0)
@@ -21,6 +22,29 @@ class BaseWindow(tk.Toplevel):
 
         self.sidebar = tk.Frame(self.main_frame, width=30, bg="#1A374D")
         self.sidebar.pack(side="left", fill="y")
+
+        self.exit_icon = PhotoImage(file="assets/exit.png")
+        self.btn_exit = tk.Button(self, image=self.exit_icon, bd=0, bg="white", activebackground="white", command=self.destroy)
+        self.btn_exit.place(x=1250, y=10)  
+
+        if self.next_window:
+            self.btn_next = Button(self, text="Next", command=self.open_next)
+            self.btn_next.place(x=1070, y=600, width=120, height=40)
+
+        if self.previous_window:
+            self.back_icon = PhotoImage(file="assets/back.png")
+            self.btn_back = tk.Button(self, image=self.back_icon, bd=0, bg="white", activebackground="white", command=self.go_back)
+            self.btn_back.place(x=50, y=25)
+
+    def go_back(self):
+        self.destroy()
+        if self.previous_window:
+            self.previous_window(self.master)
+
+    def open_next(self):
+        if self.next_window:
+            self.destroy()
+            self.next_window(self.master)
 
     def center_window(self):
         self.update_idletasks()
@@ -32,10 +56,10 @@ class BaseWindow(tk.Toplevel):
 
 class PatientInfoWindow(BaseWindow):
     def __init__(self, parent):
-        super().__init__(parent, "Patient Information")
+        super().__init__(parent, "Patient Information", next_window=ContactPersonWindow, previous_window=None)
 
         # Title Label
-        tk.Label(self, text="Patient Information", font=("Merriweather bold", 25 ), bg="white").place(x=90, y=60)
+        tk.Label(self, text="Patient Information", font=("Merriweather bold", 25), bg="white").place(x=90, y=60)
 
         # Last Name, First Name, Middle Name
         tk.Label(self, text="Last Name *", font=("Merriweather Sans bold", 15 ), bg="white").place(x=120, y=150)
@@ -101,20 +125,9 @@ class PatientInfoWindow(BaseWindow):
         entry_address.place(x=120, y=560, height=25)
         tk.Frame(self, bg="#979797", height=1, width=500).place(x=120, y=590)
 
-        self.btn_next = Button(self, text="Next", command=self.open_next)
-        self.btn_next.place(x=1070, y=600, width=120, height=40)
-
-    def open_next(self):
-        self.destroy()
-        ContactPersonWindow(self.master)
-
 class ContactPersonWindow(BaseWindow):
     def __init__(self, parent):
-        super().__init__(parent, "Contact Person Info")
-
-        # Back Button
-        self.btn_back = BackButton(self, text="Back", command=self.go_back)
-        self.btn_back.place(x=90, y=30, width=120, height=40)
+        super().__init__(parent, "Contact Person Info", next_window=RelativeInfoWindow, previous_window=PatientInfoWindow)
 
         # Title Label
         tk.Label(self, text="Contact Person Info", font=("Merriweather bold", 25), bg="white").place(x=90, y=100)
@@ -152,25 +165,10 @@ class ContactPersonWindow(BaseWindow):
         entry_address.place(x=120, y=480, height=25)
         tk.Frame(self, bg="#979797", height=1, width=500).place(x=120, y=510)
 
-        
-        self.btn_next = Button(self, text="Next", command=self.open_next)
-        self.btn_next.place(x=1070, y=600, width=120, height=40)
-
-    def go_back(self):
-        self.destroy()
-        PatientInfoWindow(self.master) 
-
-    def open_next(self):
-        self.destroy()
-        RelativeInfoWindow(self.master)
-
 class RelativeInfoWindow(BaseWindow):
     def __init__(self, parent):
-        super().__init__(parent, "Relative Info")
+        super().__init__(parent, "Relative Info", next_window=PhilHealthInfoWindow, previous_window=ContactPersonWindow)
 
-        # Back Button
-        self.btn_back = BackButton(self, text="Back", command=self.go_back)
-        self.btn_back.place(x=90, y=30, width=120, height=40)
         # Title Label
         tk.Label(self, text="Relative Info", font=("Merriweather bold", 25), bg="white").place(x=90, y=100)
 
@@ -202,25 +200,10 @@ class RelativeInfoWindow(BaseWindow):
         entry_address.place(x=120, y=480, height=25)
         tk.Frame(self, bg="#979797", height=1, width=500).place(x=120, y=510)
 
-        # Next Button
-        self.btn_next = Button(self, text="Next", command=self.open_next)
-        self.btn_next.place(x=1070, y=600, width=120, height=40)
-
-    def go_back(self):
-        self.destroy()
-        ContactPersonWindow(self.master) 
-
-    def open_next(self):
-        self.destroy()
-        PhilHealthInfoWindow(self.master)
-
 class PhilHealthInfoWindow(BaseWindow):
     def __init__(self, parent):
-        super().__init__(parent, "PhilHealth and Other Info")
+        super().__init__(parent, "PhilHealth and Other Info", next_window=PatientHistory1Window, previous_window=RelativeInfoWindow)
 
-        # Back Button
-        self.btn_back = BackButton(self, text="Back", command=self.go_back)
-        self.btn_back.place(x=90, y=30, width=120, height=40)
         # Title Label
         tk.Label(self, text="PhilHealth and Other Info", font=("Merriweather bold", 25), bg="white").place(x=90, y=100)
 
@@ -257,25 +240,10 @@ class PhilHealthInfoWindow(BaseWindow):
         entry_senior_id.place(x=420, y=480, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=510)
 
-        # Next Button
-        self.btn_next = Button(self, text="Next", command=self.open_next)
-        self.btn_next.place(x=1070, y=600, width=120, height=40)
-
-    def go_back(self):
-        self.destroy()
-        RelativeInfoWindow(self.master) 
-
-    def open_next(self):
-        self.destroy()
-        PatientHistory1Window(self.master)
-
 class PatientHistory1Window(BaseWindow):
     def __init__(self, parent):
-        super().__init__(parent, "Patient History Part 1")
+        super().__init__(parent, "Patient History Part 1", next_window=PatientHistory2Window, previous_window=PhilHealthInfoWindow)
 
-        # Back Button
-        self.btn_back = BackButton(self, text="Back", command=self.go_back)
-        self.btn_back.place(x=90, y=30, width=120, height=40)
         tk.Label(self, text="Patient History Part 1 ", font=("Merriweather bold", 25, ), bg="white").place(x=90, y=100)
 
         # Family History
@@ -326,25 +294,11 @@ class PatientHistory1Window(BaseWindow):
         self.med_other1.place(x=140, y=550, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=140, y=580)
 
-        # Next Button
-        self.btn_next = Button(self, text="Next", command=self.open_next)
-        self.btn_next.place(x=1070, y=600, width=120, height=40)
-
-    def go_back(self):
-        self.destroy()
-        PhilHealthInfoWindow(self.master) 
-
-    def open_next(self):
-        self.destroy()
-        PatientHistory2Window(self.master)
-
+        
 class PatientHistory2Window(BaseWindow):
     def __init__(self, parent):
-        super().__init__(parent, "Patient History Part 2")
+        super().__init__(parent, "Patient History Part 2", next_window=PatientHistory3Window, previous_window=PatientHistory1Window)
 
-        # Back Button
-        self.btn_back = BackButton(self, text="Back", command=self.go_back)
-        self.btn_back.place(x=90, y=30, width=120, height=40)
         tk.Label(self, text="Patient History Part 2", font=("Merriweather bold", 25), bg="white").place(x=90, y=100)
 
         # History of Present Illness
@@ -359,25 +313,9 @@ class PatientHistory2Window(BaseWindow):
         self.past_medical_history.insert("1.0", "Type here")  # Placeholder text
         self.past_medical_history.place(x=120, y=450)
 
-        # Next Button
-        self.btn_next = Button(self, text="Next", command=self.open_next)
-        self.btn_next.place(x=1070, y=600, width=120, height=40)
-
-    def go_back(self):
-        self.destroy()
-        PatientHistory1Window(self.master) 
-
-    def open_next(self):
-        self.destroy()
-        PatientHistory3Window(self.master)
-
 class PatientHistory3Window(BaseWindow):
     def __init__(self, parent):
-        super().__init__(parent, "Patient History Part 3")
-
-        # Back Button
-        self.btn_back = BackButton(self, text="Back", command=self.go_back)
-        self.btn_back.place(x=90, y=30, width=120, height=40)
+        super().__init__(parent, "Patient History Part 3", next_window=MedicationWindow, previous_window=PatientHistory2Window)
 
         tk.Label(self, text="Patient History Part 3", font=("Merriweather bold", 25), bg="white").place(x=90, y=100)
 
@@ -414,25 +352,9 @@ class PatientHistory3Window(BaseWindow):
         entry_clinical.place(x=550, y=480, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=550, y=510)
 
-        # Next Button
-        self.btn_next = Button(self, text="Next", command=self.open_next)
-        self.btn_next.place(x=1070, y=600, width=120, height=40)
-        
-    def go_back(self):
-        self.destroy()
-        PatientHistory2Window(self.master) 
-
-    def open_next(self):
-        self.destroy()
-        MedicationWindow(self.master)
-
 class MedicationWindow(BaseWindow):
     def __init__(self, parent):
-        super().__init__(parent, "Medication")
-
-        # Back Button
-        self.btn_back = BackButton(self, text="Back", command=self.go_back)
-        self.btn_back.place(x=90, y=30, width=120, height=40)
+        super().__init__(parent, "Medication", next_window=None, previous_window=PatientHistory3Window)
 
         # Title Label
         tk.Label(self, text="Medication", font=("Merriweather bold", 25), bg="white").place(x=90, y=100)
@@ -476,17 +398,3 @@ class MedicationWindow(BaseWindow):
         tk.Frame(self, bg="black", height=1, width=180).place(x=120, y=510)
 
         tk.Label(self, text="+ Another Slot", font=("Merriweather Sans bold", 15), fg="blue",bg="white").place(x=420, y=430)
-
-        # Next Button
-        self.btn_next = Button(self, text="Save", command=self.open_next)
-        self.btn_next.place(x=1070, y=600, width=120, height=40)
-
-    def go_back(self):
-        self.destroy()
-        PatientHistory3Window(self.master)  
-
-    def open_next(self):
-        self.destroy()
-
-    def open_next(self):
-        self.destroy()

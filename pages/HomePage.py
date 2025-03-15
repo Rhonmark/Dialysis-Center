@@ -1,4 +1,4 @@
-from PIL import Image, ImageTk 
+from PIL import Image, ImageTk, ImageGrab, ImageFilter 
 import tkinter as tk
 from tkinter import ttk
 from components.Inputs import PatientInfoWindow
@@ -16,15 +16,11 @@ class HomePage(tk.Frame):
         self.columnconfigure(1, weight=1)  
         self.rowconfigure(0, weight=1)
 
-        # Sidebar
         self.sidebar = Sidebar(self, shared_state)
         self.sidebar.grid(row=0, column=0, sticky="nsw")
 
-        # Main content frame
         self.main_frame = tk.Frame(self, bg="#E8FBFC", width=1600, height=1080)
         self.main_frame.grid(row=0, column=1, sticky="nsew")
-
-        # Cache pages so they are not recreated every time
         self.pages = {
             "Home": HomePageContent(self.main_frame, self.shared_state),
             "Patient": PatientPage(self.main_frame, self.shared_state),
@@ -46,7 +42,6 @@ class HomePage(tk.Frame):
         if self.current_page:
             self.current_page.pack_forget()
 
-        # Show a temporary "Loading..." message
         loading_label = tk.Label(self.main_frame, text="Loading...", font=("Arial", 24, "bold"), bg="#E8FBFC")
         loading_label.pack(fill="both", expand=True)
 
@@ -63,7 +58,6 @@ class Sidebar(tk.Frame):
         super().__init__(parent, bg="#1A374D", width=300, height=1080)
         self.place(x=0, y=0)
 
-        # Sidebar Title
         self.title = tk.Label(
             self, 
             text="First Priority\nDialysis Center", 
@@ -75,19 +69,16 @@ class Sidebar(tk.Frame):
         )
         self.title.place(x=102, y=76)
 
-        # Sidebar Logo
         self.logo_img = Image.open("assets/logo.png").convert("RGBA")
         self.logo_img = self.logo_img.resize((80, 80), Image.Resampling.LANCZOS)
         self.logo = ImageTk.PhotoImage(self.logo_img)
 
         self.logo_label = tk.Label(self, image=self.logo, bg="#1A374D")
-        self.logo_label.place(x=16, y=65)  # Adjust position for better layout
+        self.logo_label.place(x=16, y=65)  
 
-        # Sidebar Canvas for Menu
         self.canvas = tk.Canvas(self, bg="#1A374D", width=367, height=800, highlightthickness=0)
         self.canvas.place(x=0, y=150) 
 
-        # Load menu icons
         self.icons = {}
         menu_items = {
             "Home": "assets/home.png",
@@ -103,37 +94,30 @@ class Sidebar(tk.Frame):
             img = img.resize((30, 30), Image.Resampling.LANCZOS)
             self.icons[key] = ImageTk.PhotoImage(img)
 
-        # Adjusted positioning for icon and text
-        icon_x = 40    # Icon X position (aligned left)
-        text_x = 85    # Move text slightly closer to the icon
-        y_offset = 50  # Initial Y position for first menu item
+        icon_x = 40   
+        text_x = 85    
+        y_offset = 50 
 
         self.buttons = {}
 
         for item in menu_items.keys():
-            # Full-Width Highlight Background
             bg_rect = self.canvas.create_rectangle(0, y_offset, 367, y_offset + 50, fill="#1A374D", outline="")
 
-            # Create icon (centered vertically)
             icon_id = self.canvas.create_image(icon_x, y_offset + 26, image=self.icons[item], anchor="w")
 
-            # Create text (adjusted vertically)
             text_id = self.canvas.create_text(
-                text_x, y_offset + 25,  # Ensures text aligns with icon
+                text_x, y_offset + 25,  
                 text=item, 
                 font=("Arial", 20),  
                 fill="white", 
                 anchor="w"
             )
 
-            # Click event binding
             self.canvas.tag_bind(bg_rect, "<Button-1>", lambda event, name=item: self.navigate(name))
             self.canvas.tag_bind(icon_id, "<Button-1>", lambda event, name=item: self.navigate(name))
-            self.canvas.tag_bind(text_id, "<Button-1>", lambda event, name=item: self.navigate(name))
 
-            # Store references
             self.buttons[item] = {"bg_rect": bg_rect, "icon_id": icon_id, "text_id": text_id}
-            y_offset += 70  # Increase spacing for next menu item
+            y_offset += 70  
 
         self.highlight_selected("Home")
 
@@ -141,11 +125,11 @@ class Sidebar(tk.Frame):
         """Highlights the full button when selected."""
         for name, elements in self.buttons.items():
             if name == selected:
-                self.canvas.itemconfig(elements["bg_rect"], fill="#68EDC6")  # Highlight background
-                self.canvas.itemconfig(elements["text_id"], fill="#1A374D")  # Change text color
+                self.canvas.itemconfig(elements["bg_rect"], fill="#68EDC6")  
+                self.canvas.itemconfig(elements["text_id"], fill="#1A374D")  
             else:
-                self.canvas.itemconfig(elements["bg_rect"], fill="#1A374D")  # Reset background
-                self.canvas.itemconfig(elements["text_id"], fill="white")  # Reset text color
+                self.canvas.itemconfig(elements["bg_rect"], fill="#1A374D")  
+                self.canvas.itemconfig(elements["text_id"], fill="white")  
 
     def navigate(self, page_name):
         """Handles menu navigation."""
@@ -227,7 +211,7 @@ class PatientPage(tk.Frame):
             self.tree.insert("", "end", values=row)
 
     def open_add_window(self):
-        PatientInfoWindow(self)
+       PatientInfoWindow(self)
 
         # meron akong file (AddPatientWindow.py) example sya para sa pag add nung info into table
         # AddPatientWindow(self, self.add_patient)
