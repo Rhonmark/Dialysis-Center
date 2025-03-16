@@ -7,7 +7,6 @@ from components.buttons import Button
 from PIL import Image, ImageTk
 from backend.input_validator import register_validation, null_validator
 from components.buttons import Button, apply_selected_state
-from pages.LoginPage import LoginPage
 from backend.crud import register_to_db, get_usernames
 from backend.connector import db_connection as db
 

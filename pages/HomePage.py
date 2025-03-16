@@ -266,11 +266,8 @@ class SettingsPage(tk.Frame):
     def logout(self):
         try:
             connect, cursor = self.db_connection()  
+            # cursor = connect.cursor(buffered=True)
             username = shared_states.get('logged_username', None)
-            print(username)
-            # query = """
-            #     SELECT 
-            # """   
 
             cursor.execute("""
                 UPDATE sessions
@@ -278,10 +275,35 @@ class SettingsPage(tk.Frame):
                 WHERE employee_id = ((SELECT employee_id FROM users WHERE username = %s))
             """, (username,))
             connect.commit()
+
+            cursor.execute("""
+                SELECT s.employee_id, s.login_time, s.logout_time 
+                FROM sessions s 
+                LEFT JOIN users u ON s.employee_id = u.employee_id
+                WHERE u.username = %s
+            """, (username, ))
+            while(time_result := cursor.fetchone()):
+                employee_id, login_time, logout_time = time_result
+            else:
+                print("Something wrong fetching login and logout time...")
+
+            cursor.execute("""
+                INSERT INTO sessions_log(employee_id, login_time, logout_time, login_duration)
+                VALUES(%s, %s, %s, (SELECT TIMEDIFF(logout_time, login_time)))
+            """, (employee_id, login_time, logout_time))
+            connect.commit()
+            print("Insertion Successful")
+
+            cursor.execute("""
+                DELETE FROM sessions
+                WHERE ((SELECT employee_id FROM users WHERE username = %s))
+            """, (username, ))
+            connect.commit()
+            print("Deletion Successful!")
+
             self.shared_state["navigate"]("LoginPage")  
-            print("Logout")
         except Exception as e:
             print("Error with logout: ", e)
         finally:
-            connect.close()
             cursor.close()
+            connect.close()

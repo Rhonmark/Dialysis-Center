@@ -195,31 +195,5 @@ def add_patient(patient_name, date_registered, medical_condition, age, gender):
 
   """
 
-def for_wait():
-  #SQL QUERY FOR LOGIN
-    # INSERT INTO sessions (employee_id) 
-    # VALUES ((SELECT employee_id FROM users WHERE username = 'tristan25'));
-  
-  #SQL QUERY FOR LOGOUT
-    # DELETE FROM sessions
-    # WHERE employee_id = (SELECT employee_id FROM users WHERE username = 'tristan25');
-  pass
 
-def create_session(username):
-  connect, cursor = db_connection()
-  query = """
-          INSERT INTO sessions(employee_id) 
-          VALUES ((SELECT employee_id FROM users WHERE username = %s))
-  """
-  values = (username,)
-  cursor.execute(query, values)
-  connect.commit()
-  cursor.execute("SELECT employee_id FROM users WHERE username = %s", values)
-  id_fetch = cursor.fetchone()
 
-  cursor.execute("SELECT login_time FROM sessions WHERE employee_id = %s", id_fetch)
-  result = cursor.fetchone()
-  print(result[0])
-
-username = 'tristan25'
-create_session(username)
