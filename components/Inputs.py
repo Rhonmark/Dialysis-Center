@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import PhotoImage
 from components.buttons import Button
 from components.textfields_patients import TextField_Patients
+from backend.connector import db_connection as db
 
 class BaseWindow(tk.Toplevel):
     def __init__(self, parent, title, next_window=None, previous_window=None):
@@ -57,6 +58,7 @@ class BaseWindow(tk.Toplevel):
 
 class PatientInfoWindow(BaseWindow):
     def __init__(self, parent):
+
         super().__init__(parent, "Patient Information", next_window=ContactPersonWindow, previous_window=None)
 
         # Title Label
@@ -125,6 +127,22 @@ class PatientInfoWindow(BaseWindow):
         entry_address = TextField_Patients(self, width=50, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry_address.place(x=120, y=560, height=25)
         tk.Frame(self, bg="#979797", height=1, width=500).place(x=120, y=590)
+
+        try:
+            connect = db()
+            cursor = connect.cursor()
+
+            access = entry_access.get().strip()
+            address = entry_address.get().strip()
+            last_name = entry_lastname.get().strip()
+            print("Access:", access, "Address:", address, "Last Name:", last_name)
+
+        except Exception as e:
+            print("Error with step 1 input: ", e)
+
+        finally:
+            cursor.close()
+            connect.close()
 
 class ContactPersonWindow(BaseWindow):
     def __init__(self, parent):
