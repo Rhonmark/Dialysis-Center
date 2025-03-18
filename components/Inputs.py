@@ -3,6 +3,7 @@ from tkinter import PhotoImage
 from components.buttons import Button
 from components.textfields_patients import TextField_Patients
 from backend.connector import db_connection as db
+from backend.crud import create_patient_info, create_contact_person, create_relative_info
 
 class BaseWindow(tk.Toplevel):
     def __init__(self, parent, title, next_window=None, previous_window=None):
@@ -43,10 +44,10 @@ class BaseWindow(tk.Toplevel):
         if self.previous_window:
             self.previous_window(self.master)
 
-    def open_next(self):
+    def open_next(self, data=None):
         if self.next_window:
             self.destroy()
-            self.next_window(self.master)
+            self.next_window(self.master, data)
 
     def center_window(self):
         self.update_idletasks()
@@ -66,86 +67,109 @@ class PatientInfoWindow(BaseWindow):
 
         # Last Name, First Name, Middle Name
         tk.Label(self, text="Last Name *", font=("Merriweather Sans bold", 15 ), bg="white").place(x=120, y=150)
-        entry_lastname = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_lastname.place(x=120, y=200, height=25)
+        self.entry_lastname = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_lastname.place(x=120, y=200, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=230)
 
         tk.Label(self, text="First Name *", font=("Merriweather Sans bold", 15 ), bg="white").place(x=420, y=150)
-        entry_firstname = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_firstname.place(x=420, y=200, height=25)
+        self.entry_firstname = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_firstname.place(x=420, y=200, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=230)
 
         tk.Label(self, text="Middle Name", font=("Merriweather Sans bold", 15), bg="white").place(x=720, y=150)
-        entry_middlename = TextField_Patients(self, width=15, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_middlename.place(x=720, y=200, height=25)
+        self.entry_middlename = TextField_Patients(self, width=15, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_middlename.place(x=720, y=200, height=25)
         tk.Frame(self, bg="#979797", height=1, width=150).place(x=720, y=230)
 
         # Status, Type of Access, Birthdate, Age
         tk.Label(self, text="Status *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=270)
-        entry_status = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_status.place(x=120, y=320, height=25)
+        self.entry_status = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_status.place(x=120, y=320, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=350)
 
         tk.Label(self, text="Type of Access *", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=270)
-        entry_access = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_access.place(x=420, y=320, height=25)
+        self.entry_access = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_access.place(x=420, y=320, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=350)
 
         tk.Label(self, text="Birthdate *", font=("Merriweather Sans bold", 15), bg="white").place(x=720, y=270)
-        entry_birthdate = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_birthdate.place(x=720, y=320, height=25)
+        self.entry_birthdate = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_birthdate.place(x=720, y=320, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=720, y=350)
 
         tk.Label(self, text="Age *", font=("Merriweather Sans bold", 15), bg="white").place(x=1020, y=270)
-        entry_age = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_age.place(x=1020, y=320, height=25)
+        self.entry_age = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_age.place(x=1020, y=320, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=1020, y=350)
 
         # Gender, Height, Civil Status, Religion
         tk.Label(self, text="Gender *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=390)
-        entry_gender = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_gender.place(x=120, y=440, height=25)
+        self.entry_gender = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_gender.place(x=120, y=440, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=470)
 
         tk.Label(self, text="Height *", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=390)
-        entry_height = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_height.place(x=420, y=440, height=25)
+        self.entry_height = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_height.place(x=420, y=440, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=470)
 
         tk.Label(self, text="Civil Status *", font=("Merriweather Sans bold",15), bg="white").place(x=720, y=390)
-        entry_civil_status = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_civil_status.place(x=720, y=440, height=25)
+        self.entry_civil_status = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_civil_status.place(x=720, y=440, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=720, y=470)
 
         tk.Label(self, text="Religion *", font=("Merriweather Sans bold", 15), bg="white").place(x=1020, y=390)
-        entry_religion = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_religion.place(x=1020, y=440, height=25)
+        self.entry_religion = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_religion.place(x=1020, y=440, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=1020, y=470)
 
         # Complete Address 
         tk.Label(self, text="Complete Address *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=510)
-        entry_address = TextField_Patients(self, width=50, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_address.place(x=120, y=560, height=25)
+        self.entry_address = TextField_Patients(self, width=50, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_address.place(x=120, y=560, height=25)
         tk.Frame(self, bg="#979797", height=1, width=500).place(x=120, y=590)
+        
+    def open_next(self, data=None):
 
         try:
-            connect = db()
-            cursor = connect.cursor()
+            last_name = self.entry_lastname.get().strip()
+            first_name = self.entry_firstname.get().strip()
+            middle_name = self.entry_middlename.get().strip()
+            status = self.entry_status.get().strip()
+            access_type = self.entry_access.get().strip()
+            birthdate = self.entry_birthdate.get().strip()
+            age = self.entry_age.get().strip()
+            gender = self.entry_gender.get().strip()
+            height = self.entry_height.get().strip()
+            civil_status = self.entry_civil_status.get().strip()
+            religion = self.entry_religion.get().strip()
+            address = self.entry_address.get().strip()
 
-            access = entry_access.get().strip()
-            address = entry_address.get().strip()
-            last_name = entry_lastname.get().strip()
-            print("Access:", access, "Address:", address, "Last Name:", last_name)
+            super().open_next({
+                "last_name": last_name,
+                "first_name": first_name,
+                "middle_name": middle_name,
+                "status": status,
+                "access": access_type,
+                "birthdate": birthdate,
+                "age": age,
+                "gender": gender,
+                "height": height,
+                "civil_status": civil_status,
+                "religion": religion,
+                "address": address})
+            
+            create_info = create_patient_info(last_name, first_name, middle_name, status, access_type, birthdate,
+                              age, gender, height, civil_status, religion, address)
+
+            if create_info:
+                print("Successful with step 1 input!")
 
         except Exception as e:
             print("Error with step 1 input: ", e)
 
-        finally:
-            cursor.close()
-            connect.close()
-
 class ContactPersonWindow(BaseWindow):
-    def __init__(self, parent):
+    def __init__(self, parent, data):
         super().__init__(parent, "Contact Person Info", next_window=RelativeInfoWindow, previous_window=PatientInfoWindow)
 
         # Title Label
@@ -153,39 +177,67 @@ class ContactPersonWindow(BaseWindow):
 
         # Last Name, First Name, Middle Name
         tk.Label(self, text="Last Name *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=190)
-        entry_lastname = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_lastname.place(x=120, y=240, height=25)
+        self.entry_lastname = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_lastname.place(x=120, y=240, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=270)
 
         tk.Label(self, text="First Name *", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=190)
-        entry_firstname = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_firstname.place(x=420, y=240, height=25)
+        self.entry_firstname = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_firstname.place(x=420, y=240, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=270)
 
         tk.Label(self, text="Middle Name*", font=("Merriweather Sans bold", 15), bg="white").place(x=720, y=190)
-        entry_middlename = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_middlename.place(x=720, y=240, height=25)
+        self.entry_middlename = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_middlename.place(x=720, y=240, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=720, y=270)
 
         # Contact Number, Relationship to the Patient
         tk.Label(self, text="Contact Number *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=310)
-        entry_contact = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_contact.place(x=120, y=360, height=25)
+        self.entry_contact = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_contact.place(x=120, y=360, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=390)
 
         tk.Label(self, text="Relationship to the Patient *", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=310)
-        entry_relationship = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_relationship.place(x=420, y=360, height=25)
+        self.entry_relationship = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_relationship.place(x=420, y=360, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=390)
 
         # Complete Address 
         tk.Label(self, text="Complete Address *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=430)
-        entry_address = TextField_Patients(self, width=50, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_address.place(x=120, y=480, height=25)
+        self.entry_address = TextField_Patients(self, width=50, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_address.place(x=120, y=480, height=25)
         tk.Frame(self, bg="#979797", height=1, width=500).place(x=120, y=510)
 
+    def open_next(self, data=None):
+        
+        try:
+            last_name = self.entry_lastname.get().strip()
+            first_name = self.entry_firstname.get().strip()
+            middle_name = self.entry_middlename.get().strip()
+            contact_number = self.entry_contact.get().strip()
+            relationship = self.entry_relationship.get().strip()
+            address = self.entry_address.get().strip()
+
+            super().open_next({
+                "last_name": last_name,
+                "first_name": first_name,
+                "middle_name": middle_name,
+                "contact_number": contact_number,
+                "relationship": relationship,
+                "address": address})
+            
+            create_contact = create_contact_person(last_name, first_name, middle_name, contact_number, relationship, address)
+
+            if create_contact:
+                print("Successful with step 2 input!")
+
+        except Exception as e:
+            print("Error with step 2 input: ", e)
+
+        # print(last_name, first_name, middle_name, contact_number, relationship, address)
+
 class RelativeInfoWindow(BaseWindow):
-    def __init__(self, parent):
+    def __init__(self, parent, data):
         super().__init__(parent, "Relative Info", next_window=PhilHealthInfoWindow, previous_window=ContactPersonWindow)
 
         # Title Label
@@ -193,34 +245,58 @@ class RelativeInfoWindow(BaseWindow):
 
         # Last Name, First Name, Middle Name
         tk.Label(self, text="Last Name*", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=190)
-        entry_lastname = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_lastname.place(x=120, y=240, height=25)
+        self.entry_lastname = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_lastname.place(x=120, y=240, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=270)
 
         tk.Label(self, text="First Name*", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=190)
-        entry_firstname = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_firstname.place(x=420, y=240, height=25)
+        self.entry_firstname = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_firstname.place(x=420, y=240, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=270)
 
         tk.Label(self, text="Middle Name*", font=("Merriweather Sans bold", 15), bg="white").place(x=720, y=190)
-        entry_middlename = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_middlename.place(x=720, y=240, height=25)
+        self.entry_middlename = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_middlename.place(x=720, y=240, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=720, y=270)
 
         # Contact Number
         tk.Label(self, text="Contact Number*", font=("Merriweather Sans bold",15), bg="white").place(x=120, y=310)
-        entry_contact = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_contact.place(x=120, y=360, height=25)
+        self.entry_contact = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_contact.place(x=120, y=360, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=390)
 
         # Complete Address
         tk.Label(self, text="Complete Address*", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=430)
-        entry_address = TextField_Patients(self, width=50, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_address.place(x=120, y=480, height=25)
+        self.entry_address = TextField_Patients(self, width=50, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_address.place(x=120, y=480, height=25)
         tk.Frame(self, bg="#979797", height=1, width=500).place(x=120, y=510)
 
+    def open_next(self, data=None):
+
+        try:
+            last_name = self.entry_lastname.get().strip()
+            first_name = self.entry_firstname.get().strip()
+            middle_name = self.entry_middlename.get().strip()
+            contact_number = self.entry_contact.get().strip()
+            address = self.entry_address.get().strip()
+
+            super().open_next({
+                    "last_name": last_name,
+                    "first_name": first_name,
+                    "middle_name": middle_name,
+                    "contact_number": contact_number,
+                    "address": address})
+
+            relative_info = create_relative_info(last_name, first_name, middle_name, contact_number, address)
+
+            if relative_info:
+                print("Successful with step 3 input!")
+
+        except Exception as e:
+            print("Error with step 3 input: ", e)
+
 class PhilHealthInfoWindow(BaseWindow):
-    def __init__(self, parent):
+    def __init__(self, parent, data):
         super().__init__(parent, "PhilHealth and Other Info", next_window=PatientHistory1Window, previous_window=RelativeInfoWindow)
 
         # Title Label
@@ -260,7 +336,7 @@ class PhilHealthInfoWindow(BaseWindow):
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=510)
 
 class PatientHistory1Window(BaseWindow):
-    def __init__(self, parent):
+    def __init__(self, parent, data):
         super().__init__(parent, "Patient History Part 1", next_window=PatientHistory2Window, previous_window=PhilHealthInfoWindow)
 
         tk.Label(self, text="Patient History Part 1 ", font=("Merriweather bold", 25, ), bg="white").place(x=90, y=100)
@@ -313,9 +389,36 @@ class PatientHistory1Window(BaseWindow):
         self.med_other1.place(x=140, y=550, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=140, y=580)
 
+    def open_next(self, data=None):
+        try:
+            family_hypertension = self.family_hypertension.get()
+            family_diabetes = self.family_diabetes.get()
+            family_malignancy = self.family_malignancy.get()
+
+            med_hypertension = self.med_hypertension.get()
+            med_urinary_stone = self.med_urinary_stone.get()
+            med_recurrent_uti = self.med_recurrent_uti.get()
+            med_diabetes_type = self.med_diabetes_type.get()
+
+            super().open_next({
+                "family_hypertension": family_hypertension,
+                "family_diabetes": family_diabetes,
+                "family_malignancy": family_malignancy,
+                " med_hypertension":  med_hypertension,
+                "med_urinary_stone": med_urinary_stone,
+                "med_recurrent_uti": med_recurrent_uti,
+                "med_diabetes_type": med_diabetes_type
+            })
+
+            print(family_hypertension, family_diabetes, family_malignancy)
+            print(med_hypertension, med_urinary_stone, med_recurrent_uti, med_diabetes_type)
+
+        except Exception as e:
+            print("Error with patient history 1: ", e)
+
         
 class PatientHistory2Window(BaseWindow):
-    def __init__(self, parent):
+    def __init__(self, parent, data):
         super().__init__(parent, "Patient History Part 2", next_window=PatientHistory3Window, previous_window=PatientHistory1Window)
 
         tk.Label(self, text="Patient History Part 2", font=("Merriweather bold", 25), bg="white").place(x=90, y=100)
@@ -351,7 +454,7 @@ class PatientHistory2Window(BaseWindow):
 
 
 class PatientHistory3Window(BaseWindow):
-    def __init__(self, parent):
+    def __init__(self, parent, data):
         super().__init__(parent, "Patient History Part 3", next_window=MedicationWindow, previous_window=PatientHistory2Window)
 
         tk.Label(self, text="Patient History Part 3", font=("Merriweather bold", 25), bg="white").place(x=90, y=100)
@@ -390,7 +493,7 @@ class PatientHistory3Window(BaseWindow):
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=550, y=510)
 
 class MedicationWindow(BaseWindow):
-    def __init__(self, parent):
+    def __init__(self, parent, data):
         super().__init__(parent, "Medication", next_window=None, previous_window=PatientHistory3Window)
 
         # Title Label

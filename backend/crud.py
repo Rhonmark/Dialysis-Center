@@ -116,24 +116,26 @@ def get_usernames(username):
     else:
        return None
 
-
   except Exception as e:
     print("Error fetching username ", e)
   finally:
      connect.close()
      cursor.close()
 
-def create_patient_info(last_name, first_name, middle_name, status, access_type, birthdate, age, address, image_source):
+def create_patient_info(last_name, first_name, middle_name, status, access_type, birthdate,
+                              age, gender, height, civil_status, religion, address):
   try:
    connect, cursor = db_connection()
-   query = """"
-          INSERT INTO patient_info(last_name, first_name, middle_name, status, access_type, birthdate, age, address, image_source)
-          VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s)
+   query = """
+          INSERT INTO patient_info(last_name, first_name, middle_name, status, access_type, birthdate,
+                              age, gender, height, civil_status, religion, address)
+          VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
    """
-   values = (last_name, first_name, middle_name, status, access_type, birthdate, age, address, image_source)
+   values = (last_name, first_name, middle_name, status, access_type, birthdate,
+                              age, gender, height, civil_status, religion, address)
    cursor.execute(query, values)
    connect.commit()
-   return "Patient information successfully registered"
+   return " "
   except Exception as e:
     print("Patient info creation error: ", e)
   finally:
@@ -143,19 +145,39 @@ def create_patient_info(last_name, first_name, middle_name, status, access_type,
 def create_contact_person(last_name, first_name, middle_name, contact_number, relationship, address):
   try:
     connect, cursor = db_connection()
-    query = """"
+    query = """
             INSERT INTO patient_contact(last_name, first_name, middle_name, contact_number, relationship, address)
             VALUES(%s, %s, %s, %s, %s, %s)
     """ 
     values = (last_name, first_name, middle_name, contact_number, relationship, address)
     cursor.execute(query, values)
     connect.commit()
-    return "Contact person successfully registered"
+    return " "
   except Exception as e:
     print("Contact person information creation error: ", e)
   finally:
     connect.close()
     cursor.close()
+
+def create_relative_info(last_name, first_name, middle_name, contact_number, address):
+  try:
+    connect, cursor = db_connection()
+
+    query = """
+            INSERT INTO patient_relative(last_name, first_name, middle_name, contact_number, address)
+            VALUES (%s, %s, %s, %s, %s)
+    """
+    values = last_name, first_name, middle_name, contact_number, address
+    cursor.execute(query, values)
+    connect.commit()
+    return " "
+
+  except Exception as e:
+    print("Error creating relative info: ", e)
+  
+  finally:
+    cursor.close()
+    connect.close()
 
 def create_patient_history(family_history, medical_history, present_illness_history, past_illness_history, first_diagnosis, 
                            first_dialysis, mode, access_type, first_hemodialysis, clinical_impression):
@@ -190,10 +212,27 @@ def create_medication_taken(drugs_taken):
     cursor.close()
 
 def add_patient(patient_name, date_registered, medical_condition, age, gender):
-  connect, cursor = db_connection()
-  query = """
+  pass
 
-  """
+# def fetch_patients():
+#   try:
+#     patients = []
+#     connect, cursor = db_connection()
+    
+#     cursor.execute("""
+#           SELECT * FROM patient_list
+#     """)
+
+#     for i in cursor:
+#       patients.append(i)
+
+#     print(patients)
+  
+
+#   except Exception as e:
+#     print("error fetching patients: ", e)
 
 
+
+# fetch_patients()
 
