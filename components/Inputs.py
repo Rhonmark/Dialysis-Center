@@ -316,12 +316,13 @@ class PhilHealthInfoWindow(BaseWindow):
         self.entry_membership = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         self.entry_membership.place(x=420, y=240, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=270)
+        
 
         # PWD & PWD ID Number
         tk.Label(self, text="PWD", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=310)
-        self.entry_pwd = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_pwd.place(x=120, y=360, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=390)
+        self.pwd_var = tk.BooleanVar()
+        tk.Checkbutton(self, variable=self.pwd_var, bg="white").place(x=120, y=350)
+        tk.Label(self, text="Person with Disability", font=("Merriweather Sans bold", 12), bg="white").place(x=140, y=350)
 
         tk.Label(self, text="PWD ID Number", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=310)
         self.entry_pwd_id = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
@@ -329,10 +330,10 @@ class PhilHealthInfoWindow(BaseWindow):
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=390)
 
         # Senior & Senior ID Number
-        tk.Label(self, text="Senior", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=430)
-        self.entry_senior = TextField_Patients(self, width=180, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_senior.place(x=120, y=480, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=510)
+        tk.Label(self, text="Senior", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=440)
+        self.senior_var = tk.BooleanVar()
+        tk.Checkbutton(self, variable=self.senior_var, bg="white").place(x=120, y=480)
+        tk.Label(self, text="Senior Citizen", font=("Merriweather Sans bold", 12), bg="white").place(x=140, y=480)
 
         tk.Label(self, text="Senior ID Number", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=430)
         self.entry_senior_id = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
@@ -342,8 +343,8 @@ class PhilHealthInfoWindow(BaseWindow):
     def open_next(self, data=None):
         philhealth_number = self.entry_philhealth.get().strip() 
         membership_type = self.entry_membership.get().strip()
-        is_pwd = self.entry_pwd.get() #bool
-        is_senior = self.entry_senior_id.get()
+        is_pwd = self.pwd_var.get() #bool
+        is_senior = self.senior_var.get()
         pwd_id = self.entry_pwd_id.get().strip()
         senior_id = self.entry_senior_id.get().strip()  
         super().open_next({
