@@ -1,4 +1,4 @@
-from .connector import db_connection as db
+from connector import db_connection as db
 #running as relative import since no ui yet
 
 def db_connection():
@@ -198,6 +198,28 @@ def create_patient_history(family_history, medical_history, present_illness_hist
     connect.close()
     cursor.close()
 
+def create_philheath_info(philhealth_number, membership_type, is_pwd, is_senior, pwd_id, senior_id):
+  try: 
+    connect, cursor = db_connection()
+
+    query = """
+          INSERT INTO patient_benefits(philhealth_number, membership_type, is_pwd, is_senior, pwd_id, senior_id)
+          VALUES(%s, %s, %s, %s, %s, %s)
+    """    
+    values =(philhealth_number, membership_type, is_pwd, is_senior, pwd_id, senior_id)
+
+    cursor.execute(query, values)
+    connect.commit()
+
+    print("Successful creating philheath info")
+
+  except Exception as e:
+    print("Philhealth info creation error: ", e)
+  
+  finally:
+    cursor.close()
+    connect.close()
+
 def create_medication_taken(drugs_taken):
   try:
     connect, cursor = db_connection()
@@ -232,7 +254,6 @@ def add_patient(patient_name, date_registered, medical_condition, age, gender):
 #   except Exception as e:
 #     print("error fetching patients: ", e)
 
-
-
 # fetch_patients()
 
+create_philheath_info(philhealth_number = '12312312', membership_type = 'single', is_pwd = 1, is_senior = 1, pwd_id = '12312312', senior_id = '321321')

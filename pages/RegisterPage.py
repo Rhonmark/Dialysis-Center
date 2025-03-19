@@ -259,7 +259,5 @@ class RegisterPage(tk.Frame):
                 return
             self.display_error("")            
             
-
         except Exception as ve:
             print('Register Page has a problem: ', ve)
-

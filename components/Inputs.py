@@ -12,7 +12,6 @@ class BaseWindow(tk.Toplevel):
         self.parent = parent
         self.geometry("1300x700")
         self.overrideredirect(True)
-        self.wm_attributes("-topmost", True) 
         self.center_window()
         self.next_window = next_window
         self.previous_window = previous_window
@@ -304,36 +303,52 @@ class PhilHealthInfoWindow(BaseWindow):
 
         # PhilHealth Number & Membership
         tk.Label(self, text="PhilHealth Number *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=190)
-        entry_philhealth = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_philhealth.place(x=120, y=240, height=25)
+        self.entry_philhealth = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_philhealth.place(x=120, y=240, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=270)
 
         tk.Label(self, text="Membership *", font=("Merriweather Sans bold",15), bg="white").place(x=420, y=190)
-        entry_membership = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_membership.place(x=420, y=240, height=25)
+        self.entry_membership = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_membership.place(x=420, y=240, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=270)
 
         # PWD & PWD ID Number
         tk.Label(self, text="PWD", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=310)
-        entry_pwd = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_pwd.place(x=120, y=360, height=25)
+        self.entry_pwd = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_pwd.place(x=120, y=360, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=390)
 
         tk.Label(self, text="PWD ID Number", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=310)
-        entry_pwd_id = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_pwd_id.place(x=420, y=360, height=25)
+        self.entry_pwd_id = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_pwd_id.place(x=420, y=360, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=390)
 
         # Senior & Senior ID Number
         tk.Label(self, text="Senior", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=430)
-        entry_senior = TextField_Patients(self, width=180, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_senior.place(x=120, y=480, height=25)
+        self.entry_senior = TextField_Patients(self, width=180, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_senior.place(x=120, y=480, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=510)
 
         tk.Label(self, text="Senior ID Number", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=430)
-        entry_senior_id = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_senior_id.place(x=420, y=480, height=25)
+        self.entry_senior_id = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_senior_id.place(x=420, y=480, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=510)
+
+    def open_next(self, data=None):
+        philhealth_number = self.entry_philhealth.get().strip() 
+        membership_type = self.entry_membership.get().strip()
+        is_pwd = self.entry_pwd.get() #bool
+        is_senior = self.entry_senior_id.get()
+        pwd_id = self.entry_pwd_id.get().strip()
+        senior_id = self.entry_senior_id.get().strip()  
+        super().open_next({
+            "philhealth_number": philhealth_number,
+            "membership_type": membership_type, 
+            "is_pwd": is_pwd,
+            "is_senior": is_senior,
+            "pwd_id": pwd_id,
+            "senior_id": senior_id
+        })
 
 class PatientHistory1Window(BaseWindow):
     def __init__(self, parent, data):
