@@ -1,4 +1,4 @@
-from connector import db_connection as db
+from.connector import db_connection as db
 #running as relative import since no ui yet
 
 def db_connection():

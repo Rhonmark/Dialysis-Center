@@ -38,10 +38,10 @@ class BaseWindow(tk.Toplevel):
             self.btn_back = tk.Button(self, image=self.back_icon, bd=0, bg="white", activebackground="white", command=self.go_back)
             self.btn_back.place(x=50, y=25)
 
-    def go_back(self):
+    def go_back(self, data=None):
         self.destroy()
         if self.previous_window:
-            self.previous_window(self.master)
+            self.previous_window(self.master, data)
 
     def open_next(self, data=None):
         if self.next_window:
