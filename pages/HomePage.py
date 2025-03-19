@@ -210,20 +210,18 @@ class PatientPage(tk.Frame):
         for row in data:
             self.tree.insert("", "end", values=row)
 
-    def open_add_window(self):
-        input_window = PatientInfoWindow(self.master) 
+    def open_add_window(self, data=None):
+        input_window = PatientInfoWindow(self.master, data or {})
         input_window.grab_set()
         input_window.focus_force()
         self.wait_window(input_window)
 
-        # meron akong file (AddPatientWindow.py) example sya para sa pag add nung info into table
-        # AddPatientWindow(self, self.add_patient)
-
-    def open_edit_window(self):
-        input_window = PatientInfoWindow(self.master) 
+    def open_edit_window(self, data=None):
+        input_window = PatientInfoWindow(self.master, data or {})
         input_window.grab_set()
         input_window.focus_force()
         self.wait_window(input_window)
+
 
     def add_patient(self, patient_data):
         """Inserts new patient data into the table."""

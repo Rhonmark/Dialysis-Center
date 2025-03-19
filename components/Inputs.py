@@ -38,10 +38,10 @@ class BaseWindow(tk.Toplevel):
             self.btn_back = tk.Button(self, image=self.back_icon, bd=0, bg="white", activebackground="white", command=self.go_back)
             self.btn_back.place(x=50, y=25)
 
-    def go_back(self, data=None):
+    def go_back(self):
         self.destroy()
         if self.previous_window:
-            self.previous_window(self.master, data)
+            self.previous_window(self.parent, self.data if hasattr(self, "data") else None)
 
     def open_next(self, data=None):
         if self.next_window:
@@ -57,9 +57,11 @@ class BaseWindow(tk.Toplevel):
         self.geometry(f"1300x700+{x}+{y}")
 
 class PatientInfoWindow(BaseWindow):
-    def __init__(self, parent):
+    def __init__(self, parent, data):
 
         super().__init__(parent, "Patient Information", next_window=ContactPersonWindow, previous_window=None)
+
+        self.data = data
 
         # Title Label
         tk.Label(self, text="Patient Information", font=("Merriweather bold", 25), bg="white").place(x=90, y=60)
@@ -171,6 +173,8 @@ class ContactPersonWindow(BaseWindow):
     def __init__(self, parent, data):
         super().__init__(parent, "Contact Person Info", next_window=RelativeInfoWindow, previous_window=PatientInfoWindow)
 
+        self.data = data
+
         # Title Label
         tk.Label(self, text="Contact Person Info", font=("Merriweather bold", 25), bg="white").place(x=90, y=100)
 
@@ -239,6 +243,7 @@ class RelativeInfoWindow(BaseWindow):
     def __init__(self, parent, data):
         super().__init__(parent, "Relative Info", next_window=PhilHealthInfoWindow, previous_window=ContactPersonWindow)
 
+        self.data = data
         # Title Label
         tk.Label(self, text="Relative Info", font=("Merriweather bold", 25), bg="white").place(x=90, y=100)
 
@@ -297,7 +302,7 @@ class RelativeInfoWindow(BaseWindow):
 class PhilHealthInfoWindow(BaseWindow):
     def __init__(self, parent, data):
         super().__init__(parent, "PhilHealth and Other Info", next_window=PatientHistory1Window, previous_window=RelativeInfoWindow)
-
+        self.data = data
         # Title Label
         tk.Label(self, text="PhilHealth and Other Info", font=("Merriweather bold", 25), bg="white").place(x=90, y=100)
 
@@ -353,7 +358,7 @@ class PhilHealthInfoWindow(BaseWindow):
 class PatientHistory1Window(BaseWindow):
     def __init__(self, parent, data):
         super().__init__(parent, "Patient History Part 1", next_window=PatientHistory2Window, previous_window=PhilHealthInfoWindow)
-
+        self.data = data
         tk.Label(self, text="Patient History Part 1 ", font=("Merriweather bold", 25, ), bg="white").place(x=90, y=100)
 
         # Family History
@@ -435,7 +440,7 @@ class PatientHistory1Window(BaseWindow):
 class PatientHistory2Window(BaseWindow):
     def __init__(self, parent, data):
         super().__init__(parent, "Patient History Part 2", next_window=PatientHistory3Window, previous_window=PatientHistory1Window)
-
+        self.data = data
         tk.Label(self, text="Patient History Part 2", font=("Merriweather bold", 25), bg="white").place(x=90, y=100)
 
         # History of Present Illness
@@ -471,7 +476,7 @@ class PatientHistory2Window(BaseWindow):
 class PatientHistory3Window(BaseWindow):
     def __init__(self, parent, data):
         super().__init__(parent, "Patient History Part 3", next_window=MedicationWindow, previous_window=PatientHistory2Window)
-
+        self.data = data
         tk.Label(self, text="Patient History Part 3", font=("Merriweather bold", 25), bg="white").place(x=90, y=100)
 
         # Date of First Diagnosed having Kidney Disease 
@@ -510,7 +515,7 @@ class PatientHistory3Window(BaseWindow):
 class MedicationWindow(BaseWindow):
     def __init__(self, parent, data):
         super().__init__(parent, "Medication", next_window=None, previous_window=PatientHistory3Window)
-
+        self.data = data
         # Title Label
         tk.Label(self, text="Medication", font=("Merriweather bold", 25), bg="white").place(x=90, y=100)
 
@@ -553,3 +558,10 @@ class MedicationWindow(BaseWindow):
         tk.Frame(self, bg="black", height=1, width=180).place(x=120, y=510)
 
         tk.Label(self, text="+ Another Slot", font=("Merriweather Sans bold", 15), fg="blue",bg="white").place(x=420, y=430)
+
+        self.btn_submit = Button(self, text="Submit", command=self.submit_data)
+        self.btn_submit.place(x=1070, y=600, width=120, height=40)
+
+    def submit_data(self):
+        print("Submit button clicked!") 
+        self.destroy()
