@@ -211,8 +211,6 @@ def create_philheath_info(philhealth_number, membership_type, is_pwd, is_senior,
     cursor.execute(query, values)
     connect.commit()
 
-    print("Successful creating philheath info")
-
   except Exception as e:
     print("Philhealth info creation error: ", e)
   

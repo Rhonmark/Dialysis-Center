@@ -133,44 +133,30 @@ class PatientInfoWindow(BaseWindow):
     def open_next(self, data=None):
 
         try:
-            last_name = self.entry_lastname.get().strip()
-            first_name = self.entry_firstname.get().strip()
-            middle_name = self.entry_middlename.get().strip()
-            status = self.entry_status.get().strip()
-            access_type = self.entry_access.get().strip()
-            birthdate = self.entry_birthdate.get().strip()
-            age = self.entry_age.get().strip()
-            gender = self.entry_gender.get().strip()
-            height = self.entry_height.get().strip()
-            civil_status = self.entry_civil_status.get().strip()
-            religion = self.entry_religion.get().strip()
-            address = self.entry_address.get().strip()
+            self.data["patient_last_name"] = self.entry_lastname.get().strip()
+            self.data["patient_first_name"]= self.entry_firstname.get().strip()
+            self.data["patient_middle_name"] = self.entry_middlename.get().strip()
+            self.data["patient_status"] = self.entry_status.get().strip()
+            self.data["patient_access"] = self.entry_access.get().strip()
+            self.data["patient_birthdate"] = self.entry_birthdate.get().strip()
+            self.data["patient_age"] = self.entry_age.get().strip()
+            self.data["patient_gender"] = self.entry_gender.get().strip()
+            self.data["patient_height"] = self.entry_height.get().strip()
+            self.data["patient_civil_status"] = self.entry_civil_status.get().strip()
+            self.data["patient_religion"] = self.entry_religion.get().strip()
+            self.data["patient_address"] = self.entry_address.get().strip()
 
-            super().open_next({
-                "last_name": last_name,
-                "first_name": first_name,
-                "middle_name": middle_name,
-                "status": status,
-                "access": access_type,
-                "birthdate": birthdate,
-                "age": age,
-                "gender": gender,
-                "height": height,
-                "civil_status": civil_status,
-                "religion": religion,
-                "address": address})
+            print("\n","STEP 1 INPUT TESTING: ")
+            print("patient last name:", self.data['patient_last_name'], "\n")
             
-            create_info = create_patient_info(last_name, first_name, middle_name, status, access_type, birthdate,
-                              age, gender, height, civil_status, religion, address)
-
-            if create_info:
-                print("Successful with step 1 input!")
+            
+            super().open_next(self.data)
 
         except Exception as e:
             print("Error with step 1 input: ", e)
 
 class ContactPersonWindow(BaseWindow):
-    def __init__(self, parent, data):
+    def __init__(self, parent, data=None):
         super().__init__(parent, "Contact Person Info", next_window=RelativeInfoWindow, previous_window=PatientInfoWindow)
 
         self.data = data
@@ -214,33 +200,23 @@ class ContactPersonWindow(BaseWindow):
     def open_next(self, data=None):
         
         try:
-            last_name = self.entry_lastname.get().strip()
-            first_name = self.entry_firstname.get().strip()
-            middle_name = self.entry_middlename.get().strip()
-            contact_number = self.entry_contact.get().strip()
-            relationship = self.entry_relationship.get().strip()
-            address = self.entry_address.get().strip()
+            self.data["contact_last_name"] = self.entry_lastname.get().strip()
+            self.data["contact_first_name"]= self.entry_firstname.get().strip()
+            self.data["contact_middle_name"] = self.entry_middlename.get().strip()
+            self.data["contact_contact_number"] = self.entry_contact.get().strip()
+            self.data["contact_relationship"] = self.entry_relationship.get().strip()
+            self.data["contact_address"] = self.entry_address.get().strip()
 
-            super().open_next({
-                "last_name": last_name,
-                "first_name": first_name,
-                "middle_name": middle_name,
-                "contact_number": contact_number,
-                "relationship": relationship,
-                "address": address})
-            
-            create_contact = create_contact_person(last_name, first_name, middle_name, contact_number, relationship, address)
+            super().open_next(self.data)
 
-            if create_contact:
-                print("Successful with step 2 input!")
+            print("STEP 2 INPUT TESTING: ")
+            print("contact last name:", self.data['contact_last_name'], "\n")
 
         except Exception as e:
             print("Error with step 2 input: ", e)
 
-        # print(last_name, first_name, middle_name, contact_number, relationship, address)
-
 class RelativeInfoWindow(BaseWindow):
-    def __init__(self, parent, data):
+    def __init__(self, parent, data=None):
         super().__init__(parent, "Relative Info", next_window=PhilHealthInfoWindow, previous_window=ContactPersonWindow)
 
         self.data = data
@@ -278,29 +254,22 @@ class RelativeInfoWindow(BaseWindow):
     def open_next(self, data=None):
 
         try:
-            last_name = self.entry_lastname.get().strip()
-            first_name = self.entry_firstname.get().strip()
-            middle_name = self.entry_middlename.get().strip()
-            contact_number = self.entry_contact.get().strip()
-            address = self.entry_address.get().strip()
+            self.data["relative_last_name"] = self.entry_lastname.get().strip()
+            self.data["relative_first_name"]= self.entry_firstname.get().strip()
+            self.data["relative_middle_name"] = self.entry_middlename.get().strip()
+            self.data["relative_contact_number"] = self.entry_contact.get().strip()
+            self.data["relative_address"] = self.entry_address.get().strip()
 
-            super().open_next({
-                    "last_name": last_name,
-                    "first_name": first_name,
-                    "middle_name": middle_name,
-                    "contact_number": contact_number,
-                    "address": address})
+            super().open_next(self.data)
 
-            relative_info = create_relative_info(last_name, first_name, middle_name, contact_number, address)
-
-            if relative_info:
-                print("Successful with step 3 input!")
+            print("STEP 3 INPUT TESTING: ")
+            print("relative last name:", self.data['relative_last_name'], "\n")
 
         except Exception as e:
             print("Error with step 3 input: ", e)
 
 class PhilHealthInfoWindow(BaseWindow):
-    def __init__(self, parent, data):
+    def __init__(self, parent, data=None):
         super().__init__(parent, "PhilHealth and Other Info", next_window=PatientHistory1Window, previous_window=RelativeInfoWindow)
         self.data = data
         # Title Label
@@ -341,23 +310,24 @@ class PhilHealthInfoWindow(BaseWindow):
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=510)
 
     def open_next(self, data=None):
-        philhealth_number = self.entry_philhealth.get().strip() 
-        membership_type = self.entry_membership.get().strip()
-        is_pwd = self.pwd_var.get() #bool
-        is_senior = self.senior_var.get()
-        pwd_id = self.entry_pwd_id.get().strip()
-        senior_id = self.entry_senior_id.get().strip()  
-        super().open_next({
-            "philhealth_number": philhealth_number,
-            "membership_type": membership_type, 
-            "is_pwd": is_pwd,
-            "is_senior": is_senior,
-            "pwd_id": pwd_id,
-            "senior_id": senior_id
-        })
+        try:
+            self.data["philhealth_number"] = self.entry_philhealth.get().strip()
+            self.data["membership_type"] = self.entry_membership.get().strip()
+            self.data["is_pwd"] = self.pwd_var.get()
+            self.data["is_senior"] = self.senior_var.get()
+            self.data["pwd_id"] = self.entry_pwd_id.get().strip()
+            self.data["senior_id"] = self.entry_senior_id.get().strip()
+
+            super().open_next(self.data)
+
+            print("STEP 4 INPUT TESTING: ")
+            print("philhealth number:", self.data['philhealth_number'], "\n")
+
+        except Exception as e:
+            print("Error with step 4 input: ", e)
 
 class PatientHistory1Window(BaseWindow):
-    def __init__(self, parent, data):
+    def __init__(self, parent, data=None):
         super().__init__(parent, "Patient History Part 1", next_window=PatientHistory2Window, previous_window=PhilHealthInfoWindow)
         self.data = data
         tk.Label(self, text="Patient History Part 1 ", font=("Merriweather bold", 25, ), bg="white").place(x=90, y=100)
@@ -412,34 +382,27 @@ class PatientHistory1Window(BaseWindow):
 
     def open_next(self, data=None):
         try:
-            family_hypertension = self.family_hypertension.get()
-            family_diabetes = self.family_diabetes.get()
-            family_malignancy = self.family_malignancy.get()
+            self.data["family_hypertension"] = self.family_hypertension.get()
+            self.data["family_diabetes"] = self.family_diabetes.get()
+            self.data["family_malignancy"] = self.family_malignancy.get()
+            self.data["family_other"] = self.family_other.get().strip()
 
-            med_hypertension = self.med_hypertension.get()
-            med_urinary_stone = self.med_urinary_stone.get()
-            med_recurrent_uti = self.med_recurrent_uti.get()
-            med_diabetes_type = self.med_diabetes_type.get()
+            self.data["med_hypertension"] = self.med_hypertension.get()
+            self.data["med_urinary_stone"] = self.med_urinary_stone.get()
+            self.data["med_recurrent_uti"] = self.med_recurrent_uti.get()
+            self.data["med_diabetes_type"] = self.med_diabetes_type.get()
+            self.data["med_other"] = self.med_other1.get().strip()
 
-            super().open_next({
-                "family_hypertension": family_hypertension,
-                "family_diabetes": family_diabetes,
-                "family_malignancy": family_malignancy,
-                " med_hypertension":  med_hypertension,
-                "med_urinary_stone": med_urinary_stone,
-                "med_recurrent_uti": med_recurrent_uti,
-                "med_diabetes_type": med_diabetes_type
-            })
+            super().open_next(self.data)
 
-            print(family_hypertension, family_diabetes, family_malignancy)
-            print(med_hypertension, med_urinary_stone, med_recurrent_uti, med_diabetes_type)
+            print("STEP 5 INPUT TESTING: ")
+            print("family hypertension:", self.data['family_hypertension'], "\n")
 
         except Exception as e:
-            print("Error with patient history 1: ", e)
-
+            print("Error with step 5 input: ", e)
         
 class PatientHistory2Window(BaseWindow):
-    def __init__(self, parent, data):
+    def __init__(self, parent, data=None):
         super().__init__(parent, "Patient History Part 2", next_window=PatientHistory3Window, previous_window=PatientHistory1Window)
         self.data = data
         tk.Label(self, text="Patient History Part 2", font=("Merriweather bold", 25), bg="white").place(x=90, y=100)
@@ -473,6 +436,18 @@ class PatientHistory2Window(BaseWindow):
         text_widget.bind("<FocusIn>", on_focus_in)
         text_widget.bind("<FocusOut>", on_focus_out)
 
+    def open_next(self, data=None):
+        try:
+            self.data["illness_history"] = self.history_illness.get("1.0", "end-1c").strip()
+            self.data["medical_history"] = self.past_medical_history.get("1.0", "end-1c").strip()
+
+            super().open_next(self.data)
+
+            print("STEP 6 INPUT TESTING: ")
+            print("illness history:", self.data['illness_history'], "\n")
+
+        except Exception as e:
+            print("Error with step 6 input: ", e)
 
 class PatientHistory3Window(BaseWindow):
     def __init__(self, parent, data):
@@ -482,36 +457,53 @@ class PatientHistory3Window(BaseWindow):
 
         # Date of First Diagnosed having Kidney Disease 
         tk.Label(self, text="Date of First Diagnosed having Kidney Disease*", font=("Merriweather Sans bold", 15 ), bg="white").place(x=120, y=190)
-        entry_diagnosed = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_diagnosed.place(x=120, y=240, height=25)
+        self.entry_diagnosed = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_diagnosed.place(x=120, y=240, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=270)
 
         tk.Label(self, text="Date of First Dialysis", font=("Merriweather Sans bold", 15), bg="white").place(x=750, y=190)
-        entry_dialysis = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_dialysis.place(x=750, y=240, height=25)
+        self.entry_dialysis = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_dialysis.place(x=750, y=240, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=750, y=270)
 
         # Mode & Access
         tk.Label(self, text="Mode *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=310)
-        entry_mode = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_mode.place(x=120, y=360, height=25)
+        self.entry_mode = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_mode.place(x=120, y=360, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=390)
 
         tk.Label(self, text="Access *", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=310)
-        entry_access = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_access.place(x=420, y=360, height=30)
+        self.entry_access = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_access.place(x=420, y=360, height=30)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=390)
 
         # Chronic Hemodialysis & Clinical Impression
         tk.Label(self, text="Date of First Chronic Hemodialysis ", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=430)
-        entry_chronic = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_chronic.place(x=120, y=480, height=25)
+        self.entry_chronic = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_chronic.place(x=120, y=480, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=510)
 
         tk.Label(self, text="Clinical Impression*", font=("Merriweather Sans bold", 15), bg="white").place(x=550, y=430)
-        entry_clinical = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_clinical.place(x=550, y=480, height=25)
+        self.entry_clinical = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_clinical.place(x=550, y=480, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=550, y=510)
+    
+    def open_next(self, data=None):
+        try:    
+            self.data["history_3_diagnosed"] = self.entry_diagnosed.get().strip()
+            self.data["history_3_dialysis"] = self.entry_dialysis.get().strip()
+            self.data["history_3_mode"] = self.entry_mode.get().strip()
+            self.data["history_3_access"] = self.entry_access.get().strip()
+            self.data["history_3_chronic"] = self.entry_chronic.get().strip()
+            self.data["history_3_clinical"] = self.entry_clinical.get().strip()
+
+            super().open_next(self.data)
+
+            print("STEP 7 INPUT TESTING: ")
+            print("diagnosed history:", self.data['history_3_diagnosed'], "\n")
+
+        except Exception as e:
+            print("Error with step 7 input: ", e)
 
 class MedicationWindow(BaseWindow):
     def __init__(self, parent, data):
@@ -522,46 +514,53 @@ class MedicationWindow(BaseWindow):
 
         # Medication 1, Medication 2, Medication 3
         tk.Label(self, text="Medication 1", font=("Merriweather Sans bold", 14, "bold"), bg="white").place(x=120, y=190)
-        entry_med1 = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_med1.place(x=120, y=240, height=25)
+        self.entry_med1 = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_med1.place(x=120, y=240, height=25)
         tk.Frame(self, bg="black", height=1, width=180).place(x=120, y=270)
 
         tk.Label(self, text="Medication 2", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=190)
-        entry_med2 = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_med2.place(x=420, y=240, height=25)
+        self.entry_med2 = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_med2.place(x=420, y=240, height=25)
         tk.Frame(self, bg="black", height=1, width=180).place(x=420, y=270)
 
         tk.Label(self, text="Medication 3", font=("Merriweather Sans bold", 15), bg="white").place(x=720, y=190)
-        entry_med3 = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_med3.place(x=720, y=240, height=25)
+        self.entry_med3 = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_med3.place(x=720, y=240, height=25)
         tk.Frame(self, bg="black", height=1, width=180).place(x=720, y=270)
 
         # Medication 4, Medication 5, Medication 6
         tk.Label(self, text="Medication 4", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=310)
-        entry_med4 = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_med4.place(x=120, y=360, height=25)
+        self.entry_med4 = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_med4.place(x=120, y=360, height=25)
         tk.Frame(self, bg="black", height=1, width=180).place(x=120, y=390)
 
         tk.Label(self, text="Medication 5", font=("Merriweather Sans bold", 15 ), bg="white").place(x=420, y=310)
-        entry_med5 = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_med5.place(x=420, y=360, height=25)
+        self.entry_med5 = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_med5.place(x=420, y=360, height=25)
         tk.Frame(self, bg="black", height=1, width=180).place(x=420, y=390)
 
         tk.Label(self, text="Medication 6", font=("Merriweather Sans bold", 15 ), bg="white").place(x=720, y=310)
-        entry_med6 = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_med6.place(x=720, y=360, height=25)
+        self.entry_med6 = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_med6.place(x=720, y=360, height=25)
         tk.Frame(self, bg="black", height=1, width=180).place(x=720, y=390)
 
         # Medication 7 and "+ Another Slot"
         tk.Label(self, text="Medication 7", font=("Merriweather Sans bold", 15, ), bg="white").place(x=120, y=430)
-        entry_med7 = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        entry_med7.place(x=120, y=480, height=25)
+        self.entry_med7 = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_med7.place(x=120, y=480, height=25)
         tk.Frame(self, bg="black", height=1, width=180).place(x=120, y=510)
 
         tk.Label(self, text="+ Another Slot", font=("Merriweather Sans bold", 15), fg="blue",bg="white").place(x=420, y=430)
 
         self.btn_submit = Button(self, text="Submit", command=self.submit_data)
         self.btn_submit.place(x=1070, y=600, width=120, height=40)
+
+    def open_next(self, data=None):
+        try:
+            # self.data[""] = 
+            pass
+        except Exception as e:
+            print("Error with step 8 input: ", e)       
 
     def submit_data(self):
         print("Submit button clicked!") 
