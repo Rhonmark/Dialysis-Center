@@ -222,10 +222,9 @@ class PatientPage(tk.Frame):
         input_window.focus_force()
         self.wait_window(input_window)
 
-
-    def add_patient(self, patient_data):
-        """Inserts new patient data into the table."""
-        self.tree.insert("", "end", values=patient_data)
+    #def add_patient(self, patient_data):
+    #    """Inserts new patient data into the table."""
+    #    self.tree.insert("", "end", values=patient_data)
 
 class SupplyPage(tk.Frame):
     def __init__(self, parent, shared_state):

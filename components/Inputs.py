@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import PhotoImage
+from tkinter import ttk
 from components.buttons import Button
 from components.textfields_patients import TextField_Patients
 from backend.connector import db_connection as db
@@ -27,11 +28,15 @@ class BaseWindow(tk.Toplevel):
 
         self.exit_icon = PhotoImage(file="assets/exit.png")
         self.btn_exit = tk.Button(self, image=self.exit_icon, bd=0, bg="white", activebackground="white", command=self.destroy)
-        self.btn_exit.place(x=1250, y=10)  
+        self.btn_exit.place(x=1200, y=10)  
 
         if self.next_window:
             self.btn_next = Button(self, text="Next", command=self.open_next)
             self.btn_next.place(x=1070, y=600, width=120, height=40)
+
+        if not self.next_window: 
+            self.btn_submit = Button(self, text="Submit", command=self.submit_form)
+            self.btn_submit.place(x=1070, y=600, width=120, height=40)
 
         if self.previous_window:
             self.back_icon = PhotoImage(file="assets/back.png")
@@ -47,6 +52,9 @@ class BaseWindow(tk.Toplevel):
         if self.next_window:
             self.destroy()
             self.next_window(self.master, data)
+
+    def submit_form(self):
+        self.destroy()
 
     def center_window(self):
         self.update_idletasks()
@@ -506,62 +514,90 @@ class PatientHistory3Window(BaseWindow):
             print("Error with step 7 input: ", e)
 
 class MedicationWindow(BaseWindow):
+    medication_slots = [] #storage for medication slots
+
     def __init__(self, parent, data):
-        super().__init__(parent, "Medication", next_window=None, previous_window=PatientHistory3Window)
         self.data = data
+        super().__init__(parent, "Medication", next_window=None, previous_window=PatientHistory3Window)
+        self.medication_entries = []
+        self.max_columns = 3 
+
         # Title Label
-        tk.Label(self, text="Medication", font=("Merriweather bold", 25), bg="white").place(x=90, y=100)
+        tk.Label(self.main_frame, text="Medication", font=("Merriweather bold", 25), bg="white").pack(pady=20)
 
-        # Medication 1, Medication 2, Medication 3
-        tk.Label(self, text="Medication 1", font=("Merriweather Sans bold", 14, "bold"), bg="white").place(x=120, y=190)
-        self.entry_med1 = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_med1.place(x=120, y=240, height=25)
-        tk.Frame(self, bg="black", height=1, width=180).place(x=120, y=270)
+        container = tk.Frame(self.main_frame, bg="white")
+        container.pack(fill="both", expand=True, padx=20, pady=10)
 
-        tk.Label(self, text="Medication 2", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=190)
-        self.entry_med2 = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_med2.place(x=420, y=240, height=25)
-        tk.Frame(self, bg="black", height=1, width=180).place(x=420, y=270)
+        self.canvas = tk.Canvas(container, bg="white", highlightthickness=0)
+        self.scrollbar = ttk.Scrollbar(container, orient="vertical", command=self.canvas.yview)
+        self.scroll_frame = tk.Frame(self.canvas, bg="white")
 
-        tk.Label(self, text="Medication 3", font=("Merriweather Sans bold", 15), bg="white").place(x=720, y=190)
-        self.entry_med3 = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_med3.place(x=720, y=240, height=25)
-        tk.Frame(self, bg="black", height=1, width=180).place(x=720, y=270)
+        self.scroll_frame.bind("<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
+        self.canvas.create_window((0, 0), window=self.scroll_frame, anchor="nw")
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
 
-        # Medication 4, Medication 5, Medication 6
-        tk.Label(self, text="Medication 4", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=310)
-        self.entry_med4 = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_med4.place(x=120, y=360, height=25)
-        tk.Frame(self, bg="black", height=1, width=180).place(x=120, y=390)
+        self.canvas.pack(side="left", fill="both", expand=True)
+        self.scrollbar.pack(side="right", fill="y")
 
-        tk.Label(self, text="Medication 5", font=("Merriweather Sans bold", 15 ), bg="white").place(x=420, y=310)
-        self.entry_med5 = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_med5.place(x=420, y=360, height=25)
-        tk.Frame(self, bg="black", height=1, width=180).place(x=420, y=390)
+        self.grid_frame = tk.Frame(self.scroll_frame, bg="white")
+        self.grid_frame.pack(pady=10, padx=20, fill="x")
 
-        tk.Label(self, text="Medication 6", font=("Merriweather Sans bold", 15 ), bg="white").place(x=720, y=310)
-        self.entry_med6 = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_med6.place(x=720, y=360, height=25)
-        tk.Frame(self, bg="black", height=1, width=180).place(x=720, y=390)
+        # Restore Previous Slots or Initialize New Slots
+        if not MedicationWindow.medication_slots:
+            for i in range(9):  # Default 9 slots
+                MedicationWindow.medication_slots.append("")
+        
+        for i, value in enumerate(MedicationWindow.medication_slots):
+            self.add_medication_slot(i + 1, value)
 
-        # Medication 7 and "+ Another Slot"
-        tk.Label(self, text="Medication 7", font=("Merriweather Sans bold", 15, ), bg="white").place(x=120, y=430)
-        self.entry_med7 = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_med7.place(x=120, y=480, height=25)
-        tk.Frame(self, bg="black", height=1, width=180).place(x=120, y=510)
+        #+ Another Slot Button
+        self.add_slot_button = tk.Button(
+            self.grid_frame, text="+ Another Slot", font=("Merriweather Sans bold", 14),
+            fg="blue", bg="white", bd=0, cursor="hand2", command=self.add_new_slot
+        )
+        self.add_slot_button.grid(row=len(self.medication_entries) // self.max_columns, column=len(self.medication_entries) % self.max_columns, padx=10, pady=10)
 
-        tk.Label(self, text="+ Another Slot", font=("Merriweather Sans bold", 15), fg="blue",bg="white").place(x=420, y=430)
+        self.right_panel = tk.Frame(self.main_frame, bg="white", width=200)
+        self.right_panel.pack(side="right", fill="y", padx=20, pady=10)
 
-        self.btn_submit = Button(self, text="Submit", command=self.submit_data)
-        self.btn_submit.place(x=1070, y=600, width=120, height=40)
+        # Mouse Scroll
+        self.bind_scroll_events()
 
-    def open_next(self, data=None):
-        try:
-            # self.data[""] = 
-            pass
-        except Exception as e:
-            print("Error with step 8 input: ", e)       
+    def add_medication_slot(self, slot_number, value=""):
+        frame = tk.Frame(self.grid_frame, bg="white", bd=1)
+        frame.grid(row=len(self.medication_entries) // self.max_columns, column=len(self.medication_entries) % self.max_columns, padx=10, pady=10)
 
-    def submit_data(self):
-        print("Submit button clicked!") 
-        self.destroy()
+        tk.Label(frame, text=f"Medication {slot_number}", font=("Merriweather Sans bold", 12), bg="white").pack(anchor="w")
+        entry = TextField_Patients(frame, width=15, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        entry.pack(anchor="w", pady=5)
+        tk.Frame(frame, bg="black", height=1, width=150).pack(anchor="w", pady=5)
+
+        entry.insert(0, value)  # Restore saved value
+        self.medication_entries.append(entry)
+
+    def add_new_slot(self):
+        new_slot_number = len(self.medication_entries) + 1
+        MedicationWindow.medication_slots.append("")  #extend storage
+        self.add_medication_slot(new_slot_number)
+
+        row = len(self.medication_entries) // self.max_columns
+        col = len(self.medication_entries) % self.max_columns
+        self.add_slot_button.grid(row=row, column=col, padx=10, pady=10)
+
+        self.canvas.update_idletasks()
+        self.canvas.yview_moveto(1)
+
+    def save_slots(self):
+        """Save slots"""
+        for i, entry in enumerate(self.medication_entries):
+            MedicationWindow.medication_slots[i] = entry.get().strip()
+        print("Saved Medications:", MedicationWindow.medication_slots)
+    
+    def bind_scroll_events(self):
+        """Enable mouse."""
+        def on_mousewheel(event):
+            self.canvas.yview_scroll(-1 * (event.delta // 120), "units")
+
+        self.canvas.bind_all("<MouseWheel>", on_mousewheel)  
+        self.canvas.bind_all("<Button-4>", lambda e: self.canvas.yview_scroll(-1, "units"))  
+        self.canvas.bind_all("<Button-5>", lambda e: self.canvas.yview_scroll(1, "units"))  
