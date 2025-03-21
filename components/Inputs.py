@@ -5,6 +5,8 @@ from components.buttons import Button
 from components.textfields_patients import TextField_Patients
 from backend.connector import db_connection as db
 from backend.crud import submit_form_creation, submit_form_subcreation
+import tkinter as tk
+from tkcalendar import DateEntry
 
 class BaseWindow(tk.Toplevel):
     def __init__(self, parent, title, next_window=None, previous_window=None):
@@ -61,23 +63,24 @@ class BaseWindow(tk.Toplevel):
         y = (self.winfo_screenheight() // 2) - (height // 2)
         self.geometry(f"1300x700+{x}+{y}")
 
+import tkinter as tk
+from tkcalendar import DateEntry
+
 class PatientInfoWindow(BaseWindow):
     def __init__(self, parent, data):
-
         super().__init__(parent, "Patient Information", next_window=ContactPersonWindow, previous_window=None)
-
         self.data = data
 
         # Title Label
         tk.Label(self, text="Patient Information", font=("Merriweather bold", 25), bg="white").place(x=90, y=60)
 
         # Last Name, First Name, Middle Name
-        tk.Label(self, text="Last Name *", font=("Merriweather Sans bold", 15 ), bg="white").place(x=120, y=150)
+        tk.Label(self, text="Last Name *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=150)
         self.entry_lastname = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         self.entry_lastname.place(x=120, y=200, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=230)
 
-        tk.Label(self, text="First Name *", font=("Merriweather Sans bold", 15 ), bg="white").place(x=420, y=150)
+        tk.Label(self, text="First Name *", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=150)
         self.entry_firstname = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         self.entry_firstname.place(x=420, y=200, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=230)
@@ -99,9 +102,8 @@ class PatientInfoWindow(BaseWindow):
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=350)
 
         tk.Label(self, text="Birthdate *", font=("Merriweather Sans bold", 15), bg="white").place(x=720, y=270)
-        self.entry_birthdate = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_birthdate = DateEntry(self, width=18, font=("Merriweather light", 12), bg="white", date_pattern="yyyy-MM-dd", state="readonly")
         self.entry_birthdate.place(x=720, y=320, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=180).place(x=720, y=350)
 
         tk.Label(self, text="Age *", font=("Merriweather Sans bold", 15), bg="white").place(x=1020, y=270)
         self.entry_age = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
@@ -136,14 +138,13 @@ class PatientInfoWindow(BaseWindow):
         tk.Frame(self, bg="#979797", height=1, width=500).place(x=120, y=590)
         
     def open_next(self, data=None):
-
         try:
             self.data["patient_last_name"] = self.entry_lastname.get().strip()
-            self.data["patient_first_name"]= self.entry_firstname.get().strip()
+            self.data["patient_first_name"] = self.entry_firstname.get().strip()
             self.data["patient_middle_name"] = self.entry_middlename.get().strip()
             self.data["patient_status"] = self.entry_status.get().strip()
             self.data["patient_access"] = self.entry_access.get().strip()
-            self.data["patient_birthdate"] = self.entry_birthdate.get().strip()
+            self.data["patient_birthdate"] = self.entry_birthdate.get_date().strftime("%Y-%m-%d")  
             self.data["patient_age"] = self.entry_age.get().strip()
             self.data["patient_gender"] = self.entry_gender.get().strip()
             self.data["patient_height"] = self.entry_height.get().strip()
@@ -446,15 +447,13 @@ class PatientHistory3Window(BaseWindow):
         tk.Label(self, text="Patient History Part 3", font=("Merriweather bold", 25), bg="white").place(x=90, y=100)
 
         # Date of First Diagnosed having Kidney Disease 
-        tk.Label(self, text="Date of First Diagnosed having Kidney Disease*", font=("Merriweather Sans bold", 15 ), bg="white").place(x=120, y=190)
-        self.entry_diagnosed = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        tk.Label(self, text="Date of First Diagnosed having Kidney Disease*", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=190)
+        self.entry_diagnosed = DateEntry(self, width=18, font=("Merriweather light", 12), bg="white", date_pattern="yyyy-MM-dd", state="readonly")
         self.entry_diagnosed.place(x=120, y=240, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=270)
 
         tk.Label(self, text="Date of First Dialysis", font=("Merriweather Sans bold", 15), bg="white").place(x=750, y=190)
-        self.entry_dialysis = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.entry_dialysis = DateEntry(self, width=18, font=("Merriweather light", 12), bg="white", date_pattern="yyyy-MM-dd", state="readonly")
         self.entry_dialysis.place(x=750, y=240, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=180).place(x=750, y=270)
 
         # Mode & Access
         tk.Label(self, text="Mode *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=310)
@@ -468,10 +467,9 @@ class PatientHistory3Window(BaseWindow):
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=390)
 
         # Chronic Hemodialysis & Clinical Impression
-        tk.Label(self, text="Date of First Chronic Hemodialysis ", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=430)
-        self.entry_chronic = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        tk.Label(self, text="Date of First Chronic Hemodialysis", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=430)
+        self.entry_chronic = DateEntry(self, width=18, font=("Merriweather light", 12), bg="white", date_pattern="yyyy-MM-dd", state="readonly")
         self.entry_chronic.place(x=120, y=480, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=510)
 
         tk.Label(self, text="Clinical Impression*", font=("Merriweather Sans bold", 15), bg="white").place(x=550, y=430)
         self.entry_clinical = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
@@ -480,17 +478,18 @@ class PatientHistory3Window(BaseWindow):
     
     def open_next(self, data=None):
         try:    
-            self.data["history_3_diagnosed"] = self.entry_diagnosed.get().strip()
-            self.data["history_3_dialysis"] = self.entry_dialysis.get().strip()
+            self.data["history_3_diagnosed"] = self.entry_diagnosed.get_date().strftime("%Y-%m-%d")
+            self.data["history_3_dialysis"] = self.entry_dialysis.get_date().strftime("%Y-%m-%d")
             self.data["history_3_mode"] = self.entry_mode.get().strip()
             self.data["history_3_access"] = self.entry_access.get().strip()
-            self.data["history_3_chronic"] = self.entry_chronic.get().strip()
+            self.data["history_3_chronic"] = self.entry_chronic.get_date().strftime("%Y-%m-%d")
             self.data["history_3_clinical"] = self.entry_clinical.get().strip()
 
             super().open_next(self.data)
 
         except Exception as e:
             print("Error with step 7 input: ", e)
+
 
 class MedicationWindow(BaseWindow):
     medication_slots = [] #storage for medication slots
