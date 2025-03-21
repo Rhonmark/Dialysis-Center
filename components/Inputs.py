@@ -4,7 +4,7 @@ from tkinter import ttk
 from components.buttons import Button
 from components.textfields_patients import TextField_Patients
 from backend.connector import db_connection as db
-from backend.crud import create_patient_info, create_contact_person, create_relative_info
+from backend.crud import submit_form_creation, submit_form_subcreation
 
 class BaseWindow(tk.Toplevel):
     def __init__(self, parent, title, next_window=None, previous_window=None):
@@ -52,9 +52,6 @@ class BaseWindow(tk.Toplevel):
         if self.next_window:
             self.destroy()
             self.next_window(self.master, data)
-
-    def submit_form(self):
-        self.destroy()
 
     def center_window(self):
         self.update_idletasks()
@@ -153,10 +150,6 @@ class PatientInfoWindow(BaseWindow):
             self.data["patient_civil_status"] = self.entry_civil_status.get().strip()
             self.data["patient_religion"] = self.entry_religion.get().strip()
             self.data["patient_address"] = self.entry_address.get().strip()
-
-            print("\n","STEP 1 INPUT TESTING: ")
-            print("patient last name:", self.data['patient_last_name'], "\n")
-            
             
             super().open_next(self.data)
 
@@ -177,7 +170,7 @@ class ContactPersonWindow(BaseWindow):
         self.entry_lastname = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         self.entry_lastname.place(x=120, y=240, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=270)
-
+    
         tk.Label(self, text="First Name *", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=190)
         self.entry_firstname = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         self.entry_firstname.place(x=420, y=240, height=25)
@@ -216,9 +209,6 @@ class ContactPersonWindow(BaseWindow):
             self.data["contact_address"] = self.entry_address.get().strip()
 
             super().open_next(self.data)
-
-            print("STEP 2 INPUT TESTING: ")
-            print("contact last name:", self.data['contact_last_name'], "\n")
 
         except Exception as e:
             print("Error with step 2 input: ", e)
@@ -270,9 +260,6 @@ class RelativeInfoWindow(BaseWindow):
 
             super().open_next(self.data)
 
-            print("STEP 3 INPUT TESTING: ")
-            print("relative last name:", self.data['relative_last_name'], "\n")
-
         except Exception as e:
             print("Error with step 3 input: ", e)
 
@@ -319,17 +306,18 @@ class PhilHealthInfoWindow(BaseWindow):
 
     def open_next(self, data=None):
         try:
+
+            is_pwd = 1 if self.pwd_var.get() else 0
+            is_senior = 1 if self.senior_var.get() else 0
+
             self.data["philhealth_number"] = self.entry_philhealth.get().strip()
             self.data["membership_type"] = self.entry_membership.get().strip()
-            self.data["is_pwd"] = self.pwd_var.get()
-            self.data["is_senior"] = self.senior_var.get()
+            self.data["is_pwd"] = is_pwd
+            self.data["is_senior"] = is_senior
             self.data["pwd_id"] = self.entry_pwd_id.get().strip()
             self.data["senior_id"] = self.entry_senior_id.get().strip()
 
             super().open_next(self.data)
-
-            print("STEP 4 INPUT TESTING: ")
-            print("philhealth number:", self.data['philhealth_number'], "\n")
 
         except Exception as e:
             print("Error with step 4 input: ", e)
@@ -365,13 +353,13 @@ class PatientHistory1Window(BaseWindow):
         # Medical History
         tk.Label(self, text="Medical History*", font=("Merriweather sans bold", 15), bg="white").place(x=120, y=400)
 
-        self.med_hypertension = tk.BooleanVar()
+        self.med_kidney_disease = tk.BooleanVar()
         self.med_urinary_stone = tk.BooleanVar()
         self.med_recurrent_uti = tk.BooleanVar()
         self.med_diabetes_type = tk.BooleanVar()
         
-        tk.Checkbutton(self, variable=self.med_hypertension, bg="white").place(x=120, y=450)
-        tk.Label(self, text="Hypertension", font=("Merriweather Sans bold", 12), bg="white").place(x=140, y=450)
+        tk.Checkbutton(self, variable=self.med_kidney_disease, bg="white").place(x=120, y=450)
+        tk.Label(self, text="Hypertension prior to kidney disease", font=("Merriweather Sans bold", 12), bg="white").place(x=140, y=450)
 
         tk.Checkbutton(self, variable=self.med_urinary_stone, bg="white").place(x=320, y=450)
         tk.Label(self, text="Urinary Stone", font=("Merriweather Sans bold", 12), bg="white").place(x=340, y=450)
@@ -395,16 +383,13 @@ class PatientHistory1Window(BaseWindow):
             self.data["family_malignancy"] = self.family_malignancy.get()
             self.data["family_other"] = self.family_other.get().strip()
 
-            self.data["med_hypertension"] = self.med_hypertension.get()
+            self.data["med_kidney_disease"] = self.med_kidney_disease.get()
             self.data["med_urinary_stone"] = self.med_urinary_stone.get()
             self.data["med_recurrent_uti"] = self.med_recurrent_uti.get()
             self.data["med_diabetes_type"] = self.med_diabetes_type.get()
             self.data["med_other"] = self.med_other1.get().strip()
 
             super().open_next(self.data)
-
-            print("STEP 5 INPUT TESTING: ")
-            print("family hypertension:", self.data['family_hypertension'], "\n")
 
         except Exception as e:
             print("Error with step 5 input: ", e)
@@ -450,9 +435,6 @@ class PatientHistory2Window(BaseWindow):
             self.data["medical_history"] = self.past_medical_history.get("1.0", "end-1c").strip()
 
             super().open_next(self.data)
-
-            print("STEP 6 INPUT TESTING: ")
-            print("illness history:", self.data['illness_history'], "\n")
 
         except Exception as e:
             print("Error with step 6 input: ", e)
@@ -506,9 +488,6 @@ class PatientHistory3Window(BaseWindow):
             self.data["history_3_clinical"] = self.entry_clinical.get().strip()
 
             super().open_next(self.data)
-
-            print("STEP 7 INPUT TESTING: ")
-            print("diagnosed history:", self.data['history_3_diagnosed'], "\n")
 
         except Exception as e:
             print("Error with step 7 input: ", e)
@@ -601,3 +580,192 @@ class MedicationWindow(BaseWindow):
         self.canvas.bind_all("<MouseWheel>", on_mousewheel)  
         self.canvas.bind_all("<Button-4>", lambda e: self.canvas.yview_scroll(-1, "units"))  
         self.canvas.bind_all("<Button-5>", lambda e: self.canvas.yview_scroll(1, "units"))  
+
+    def submit_form(self):
+        
+        try:
+            connect = db()
+            cursor = connect.cursor()
+
+            patient_information = {
+                "last_name": self.data.get("patient_last_name"),
+                "first_name": self.data.get("patient_first_name"),
+                "middle_name": self.data.get("patient_middle_name"), 
+                "status": self.data.get("patient_status"),
+                "access_type": self.data.get("patient_access"),
+                "birthdate": self.data.get("patient_birthdate"),
+                "age": self.data.get("patient_age"),
+                "gender": self.data.get("patient_gender"),
+                "height": self.data.get("patient_height"),
+                "civil_status": self.data.get("patient_civil_status"),
+                "religion": self.data.get("patient_religion"),
+                "address": self.data.get("patient_address")
+            }
+
+            patient_information_column = ', '.join(patient_information.keys())
+            patient_information_row = [f"{entries}" for entries in patient_information.values()]
+
+            patient_contact_information = {
+                "last_name": self.data.get("contact_last_name"),
+                "first_name": self.data.get("contact_first_name"),
+                "middle_name": self.data.get("contact_middle_name"), 
+                "contact_number": self.data.get("contact_contact_number"),
+                "relationship": self.data.get("contact_relationship"),
+                "address": self.data.get("contact_address")
+            }
+
+            patient_contact_information_column = ', '.join(patient_contact_information.keys())
+            patient_contact_information_row = [f"{entries}" for entries in patient_contact_information.values()]
+
+            patient_relative_information = {
+                "last_name": self.data.get("relative_last_name"),
+                "first_name": self.data.get("relative_first_name"),
+                "middle_name": self.data.get("relative_middle_name"), 
+                "contact_number": self.data.get("relative_contact_number"),
+                "address": self.data.get("relative_access")
+            }
+
+            patient_relative_information_column = ', '.join(patient_relative_information.keys())
+            patient_relative_information_row = [f"{entries}" for entries in patient_relative_information.values()]
+
+            patient_benefits = {
+                "is_senior": self.data.get("is_senior"),
+                "is_pwd": self.data.get("is_pwd"),
+                "philhealth_number": self.data.get("philhealth_number"),
+                "membership_type": self.data.get("membership_type"),
+                "pwd_id": self.data.get("pwd_id"), 
+                "senior_id": self.data.get("senior_id")
+            }
+
+            patient_benefits_column = ', '.join(patient_benefits.keys())
+            patient_benefits_row = [f"{entries}" for entries in patient_benefits.values()]
+
+            patient_history_1 = {
+                "has_hypertension": self.data.get("family_hypertension"),
+                "has_diabetes": self.data.get("family_diabetes"),
+                "has_malignancy": self.data.get("family_malignancy"), 
+                "other_family_history": self.data.get("family_other"),
+
+                "has_kidney_disease": self.data.get("med_kidney_disease"),
+                "has_urinary_stone": self.data.get("med_urinary_stone"),
+                "has_recurrent_uti": self.data.get("med_recurrent_uti"), 
+                "diabetes_type": self.data.get("med_diabetes_type"),
+                "other_medical_history": self.data.get("med_other")
+            }
+
+            patient_history_2 = {
+                "present_illness_history": self.data.get("illness_history"), 
+                "past_illness_history": self.data.get("medical_history"),
+            }
+
+            patient_history_3 = {
+                "first_diagnosis": self.data.get("history_3_diagnosed"),
+                "first_dialysis": self.data.get("history_3_dialysis"),
+                "mode": self.data.get("history_3_mode"),
+                "access_type": self.data.get("history_3_access"),
+                "first_hemodialysis": self.data.get("history_3_chronic"),
+                "clinical_impression": self.data.get("history_3_clinical"),
+            }
+
+            medication_entries_row = [entries.get().strip() for entries in self.medication_entries]
+            medication_entries_data = ', '.join(medication_entries_row)
+
+            print(medication_entries_row)
+            print(medication_entries_data)
+
+            patient_history_column = ', '.join(
+                list(patient_history_1.keys()) +
+                list(patient_history_2.keys()) +
+                list(patient_history_3.keys()))
+            
+            patient_history_row = [
+                value if isinstance(value, (bool)) else str(value)    
+                for value in (
+                list(patient_history_1.values()) +  
+                list(patient_history_2.values()) +
+                list(patient_history_3.values())
+                )]
+            
+            #this creates the main table
+            pk_patient_id = submit_form_creation(patient_information_column, patient_information_row, table_name='patient_info')
+
+            if pk_patient_id:
+                print("Step 1 input successfully created")
+            else:
+                print("Error with step 1 input creation")
+                return
+
+            create_patient_contact = submit_form_subcreation(
+                patient_contact_information_column, 
+                patient_contact_information_row,
+                pk_patient_id,
+                table_name='patient_contact')
+
+            if create_patient_contact:
+                print("Step 2 input successfully created")
+            else:
+                print("Error with step 2 input creation")
+                return
+            
+            create_patient_relative_information = submit_form_subcreation(
+                patient_relative_information_column,
+                patient_relative_information_row,
+                pk_patient_id,
+                table_name='patient_relative'
+            )
+
+            if create_patient_relative_information:
+               print("Step 3 input successfully created")
+            else:
+                print("Error with step 3 input creation")
+                return
+            
+            create_patient_benefits = submit_form_subcreation(
+                patient_benefits_column,
+                patient_benefits_row,
+                pk_patient_id,
+                table_name='patient_benefits'
+            )
+
+            if create_patient_benefits:
+               print("Step 4 input successfully created")
+            else:
+                print("Error with step 4 input creation")
+                return
+            
+            create_patient_history = submit_form_subcreation(
+                patient_history_column,
+                patient_history_row,
+                pk_patient_id,
+                table_name='patient_history'
+            )
+
+            if create_patient_history:
+               print("Step 5 input successfully created")
+            else:
+                print("Error with step 5 input creation")
+                return
+            
+            # medications_column = "drugs_taken"
+
+            # create_patient_medications = submit_form_subcreation(
+            #     medications_column,
+            #     medication_entries_data,
+            #     pk_patient_id,
+            #     table_name='patient_medications'
+            # )
+
+            # if create_patient_medications:
+            #    print("Step 6 input successfully created")
+            # else:
+            #     print("Error with step 6 input creation")
+            #     return
+
+            self.destroy()
+
+        except Exception as e:
+            print("Error with submitting the form: ", e)
+        
+        finally:
+            cursor.close()
+            connect.close()
