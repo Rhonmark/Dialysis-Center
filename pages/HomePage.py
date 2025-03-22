@@ -288,7 +288,7 @@ class SettingsPage(tk.Frame):
             while(time_result := cursor.fetchone()):
                 employee_id, login_time, logout_time = time_result
             else:
-                print("Something wrong fetching login and logout time...")
+                print("Successfully logged out")
 
             cursor.execute("""
                 INSERT INTO sessions_log(employee_id, login_time, logout_time, login_duration)

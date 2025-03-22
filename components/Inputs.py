@@ -4,7 +4,7 @@ from tkinter import ttk
 from components.buttons import Button
 from components.textfields_patients import TextField_Patients
 from backend.connector import db_connection as db
-from backend.crud import submit_form_creation, submit_form_subcreation
+from backend.crud import submit_form_creation, submit_form_subcreation, submit_form_extra
 import tkinter as tk
 from tkcalendar import DateEntry
 
@@ -62,9 +62,6 @@ class BaseWindow(tk.Toplevel):
         x = (self.winfo_screenwidth() // 2) - (width // 2) + int(3 * 50)
         y = (self.winfo_screenheight() // 2) - (height // 2)
         self.geometry(f"1300x700+{x}+{y}")
-
-import tkinter as tk
-from tkcalendar import DateEntry
 
 class PatientInfoWindow(BaseWindow):
     def __init__(self, parent, data):
@@ -684,8 +681,8 @@ class MedicationWindow(BaseWindow):
                 list(patient_history_2.values()) +
                 list(patient_history_3.values())
                 )]
-            
-            #this creates the main table
+        
+            #this creates the main table which includes the patient id
             pk_patient_id = submit_form_creation(patient_information_column, patient_information_row, table_name='patient_info')
 
             if pk_patient_id:
@@ -744,21 +741,17 @@ class MedicationWindow(BaseWindow):
             else:
                 print("Error with step 5 input creation")
                 return
-            
-            # medications_column = "drugs_taken"
 
-            # create_patient_medications = submit_form_subcreation(
-            #     medications_column,
-            #     medication_entries_data,
-            #     pk_patient_id,
-            #     table_name='patient_medications'
-            # )
+            create_patient_medications = submit_form_extra(
+                pk_patient_id,
+                medication_entries_row
+            )
 
-            # if create_patient_medications:
-            #    print("Step 6 input successfully created")
-            # else:
-            #     print("Error with step 6 input creation")
-            #     return
+            if create_patient_medications:
+               print("Step 6 input successfully created")
+            else:
+                print("Error with step 6 input creation")
+                return
 
             self.destroy()
 

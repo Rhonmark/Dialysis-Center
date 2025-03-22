@@ -5,7 +5,7 @@ from components.textfields_user_reg import TextField
 from components.buttons import Button
 from PIL import Image, ImageTk
 from backend.input_validator import forgot_validator
-from backend.crud import get_answer_from_db, get_username_from_db, set_new_password, get_secret_question
+from backend.crud import get_login_credentials, set_new_password
 from components.buttons import Button, apply_selected_state
 import hashlib
 
@@ -154,9 +154,9 @@ class ForgotPage(tk.Frame):
         confirm_password = self.confirm_password_field.get().strip()
 
         hashed_password = hashlib.sha256(password.encode()).hexdigest()
-        retrieved_username = get_username_from_db(username)
-        retrieved_question = get_secret_question(username)
-        retrieved_answer = get_answer_from_db(username)
+        retrieved_username = get_login_credentials(username, target_data="username")
+        retrieved_question = get_login_credentials(username, target_data="secret_question")
+        retrieved_answer = get_login_credentials(username, target_data="secret_answer")
         hashed_answer = hashlib.sha256(secret_answer.encode()).hexdigest()
 
         try: 
@@ -191,19 +191,6 @@ class ForgotPage(tk.Frame):
                 if forgot_result:
                     self.error_label.config(text=forgot_result)
                     return  
-
-                # if len(password) < 6 or len(confirm_password) < 6:
-                #     self.error_label.config(text="Password must be at least 6 characters")
-                #     return
-                # if password in ["Enter new password", ""]:
-                #     self.error_label.config(text="Input cannot be missing...")
-                #     return
-                # if confirm_password in ["Enter new password", ""]:
-                #     self.error_label.config(text="Input cannot be missing...")
-                #     return
-                # if password != confirm_password:
-                #     self.error_label.config(text="Password must be match")
-                #     return
 
                 set_new_password(hashed_password, username)
 

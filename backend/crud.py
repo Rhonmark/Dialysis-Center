@@ -25,44 +25,18 @@ def register_to_db(role, username, password, secret_question, secret_answer):
       cursor.close()
       connect.close()
 
-def get_password_from_db(username):
-  try:
-    connect, cursor = db_connection()
-    query = "SELECT password, role FROM users WHERE username = %s"
-    cursor.execute(query, [username])
-    result = cursor.fetchone()
-    return result[0] if result else None
-  except Exception as e:
-    print("Error getting password ", e)
-  finally:
-    cursor.close()
-    connect.close()
-
-def get_answer_from_db(username):
-  try:
-    connect, cursor = db_connection()
-    query = "SELECT secret_answer FROM users WHERE username = %s"
-    cursor.execute(query, [username])
-    result = cursor.fetchone()
-    return result[0] if result else None
-  except Exception as e:
-    print("Error getting secret_answer ", e)
-  finally:
-    cursor.close()
-    connect.close()
-
-def get_username_from_db(username):
-  try:
-    connect, cursor = db_connection()
-    query = "SELECT username FROM users WHERE username = %s"
-    cursor.execute(query, [username])
-    result = cursor.fetchone()
-    return result[0] if result else None
-  except Exception as e:
-    print("Error getting username ", e)
-  finally:
-     cursor.close()
-     connect.close()
+def get_login_credentials(username, target_data):
+    try:
+      connect, cursor = db_connection()
+      query = f"SELECT {target_data} FROM users WHERE username = %s"
+      cursor.execute(query, [username])
+      result = cursor.fetchone()
+      return result[0] if result else None
+    except Exception as e:
+      print(f"Error getting {target_data} ", e)
+    finally:
+      cursor.close()
+      connect.close()
 
 def set_new_password(password, username):
   try:
@@ -78,36 +52,10 @@ def set_new_password(password, username):
     cursor.close()
     connect.close()
 
-def get_secret_question (username):
+def get_existing_credentials(username, target_data):
   try:
     connect, cursor = db_connection()
-    query = "SELECT secret_question FROM users WHERE username = %s"
-    cursor.execute(query, [username])
-    result = cursor.fetchone()
-    return result[0] if result else None
-  except Exception as e:
-      print("Error getting secret_question ", e)
-  finally:
-      cursor.close()
-      connect.close()
-
-def get_role (username):
-  try: 
-    connect, cursor = db_connection()
-    query = "SELECT role FROM users WHERE username = %s"
-    cursor.execute(query, [username])
-    result = cursor.fetchone()
-    return result[0] if result else None
-  except Exception as e:
-      print("Error getting role ", e)
-  finally:
-      cursor.close()
-      connect.close()
-
-def get_usernames(username):
-  try:
-    connect, cursor = db_connection()
-    query = "SELECT COUNT(*) FROM users WHERE username = %s"
+    query = f"SELECT {target_data} FROM users WHERE username = %s"
     cursor.execute(query, [username])
     result = cursor.fetchone()[0]
 
@@ -117,7 +65,7 @@ def get_usernames(username):
        return None
 
   except Exception as e:
-    print("Error fetching username ", e)
+    print(f"Error fetching {target_data} ", e)
   finally:
      cursor.close()
      connect.close()
@@ -174,20 +122,22 @@ def submit_form_subcreation(column, row, pk_patient_id, table_name):
         cursor.close()
         connect.close()
 
-def submit_form_extra(column, row, table_name):
+def submit_form_extra(patient_id, medication_entries):
         try:
             connect = db()
             cursor = connect.cursor()
 
-            values_placeholder = ', '.join(['%s'] * len(row))
+            for medication in medication_entries:
 
-            query = f"""
-                INSERT INTO {table_name}({column})
-                VALUES({values_placeholder})
-            """
-            cursor.execute(query, tuple(row))
-            connect.commit()  
-            
+              cursor.execute("INSERT IGNORE INTO medicines(medication_name) VALUES (%s)", (medication, ))
+
+              cursor.execute("SELECT medication_id FROM medicines WHERE medication_name = %s", (medication, ))
+              medication_id = cursor.fetchone()[0]
+
+              cursor.execute("INSERT IGNORE INTO patient_medications VALUES (%s, %s)", (patient_id, medication_id))
+
+            connect.commit()
+
             return True
         
         except Exception as e:
@@ -198,37 +148,4 @@ def submit_form_extra(column, row, table_name):
             cursor.close()
             connect.close()
 
-# def fetch_id():
-#   try:
-#     connect, cursor = db_connection()
 
-#     patient_id = cursor.lastrowid
-    
-#     return patient_id
-
-#   except Exception as e:
-#     print("Error fetching patient_id: ", e)
-#   finally:
-#     cursor.close()
-#     connect.close()
-
-
-# def fetch_patients():
-#   try:
-#     patients = []
-#     connect, cursor = db_connection()
-    
-#     cursor.execute("""
-#           SELECT * FROM patient_list
-#     """)
-
-#     for i in cursor:
-#       patients.append(i)
-
-#     print(patients)
-  
-
-#   except Exception as e:
-#     print("error fetching patients: ", e)
-
-# fetch_patients()

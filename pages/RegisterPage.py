@@ -7,7 +7,7 @@ from components.buttons import Button
 from PIL import Image, ImageTk
 from backend.input_validator import register_validation, null_validator
 from components.buttons import Button, apply_selected_state
-from backend.crud import register_to_db, get_usernames
+from backend.crud import register_to_db, get_existing_credentials
 from backend.connector import db_connection as db
 
 
@@ -242,7 +242,7 @@ class RegisterPage(tk.Frame):
                 self.display_error("All fields are required!")
                 return
 
-            existing_username = get_usernames(username)
+            existing_username = get_existing_credentials(username, target_data="COUNT(*)")
             if existing_username:
                 self.display_error(existing_username)
                 return

@@ -4,7 +4,7 @@ from components.textfields_user_reg import TextField
 from components.buttons import Button
 from PIL import Image, ImageTk
 from backend.input_validator import login_validation
-from backend.crud import get_password_from_db, get_role, get_usernames
+from backend.crud import get_login_credentials, get_existing_credentials
 from components.buttons import Button, apply_selected_state
 from backend.connector import db_connection as db
 from components.state import shared_states
@@ -177,14 +177,15 @@ class LoginPage(tk.Frame):
         return connect, cursor
 
     def on_login_click(self):
+
         username = self.username_field.get().strip()
         shared_states['logged_username'] = username    
         password = self.password_field.get().strip()
-        user_role = get_role(username)
+        user_role = get_login_credentials(username, target_data="role")
         selected_role = self.shared_state.get("selected_role", None)  
-        stored_user_password = get_password_from_db(username)
-        existing_username = get_usernames(username)
-        
+        stored_user_password = get_login_credentials(username, target_data="password")
+        existing_username = get_existing_credentials(username, target_data="COUNT(*)")
+
         try:
             connect, cursor = self.db_connection()
             
