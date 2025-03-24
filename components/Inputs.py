@@ -7,6 +7,7 @@ from backend.connector import db_connection as db
 from backend.crud import submit_form_creation, submit_form_subcreation, submit_form_extra
 import tkinter as tk
 from tkcalendar import DateEntry
+from datetime import date
 
 class BaseWindow(tk.Toplevel):
     def __init__(self, parent, title, next_window=None, previous_window=None):
@@ -618,7 +619,7 @@ class MedicationWindow(BaseWindow):
                 "first_name": self.data.get("relative_first_name"),
                 "middle_name": self.data.get("relative_middle_name"), 
                 "contact_number": self.data.get("relative_contact_number"),
-                "address": self.data.get("relative_access")
+                "address": self.data.get("relative_address")
             }
 
             patient_relative_information_column = ', '.join(patient_relative_information.keys())
@@ -666,8 +667,8 @@ class MedicationWindow(BaseWindow):
             medication_entries_row = [entries.get().strip() for entries in self.medication_entries]
             medication_entries_data = ', '.join(medication_entries_row)
 
-            print(medication_entries_row)
-            print(medication_entries_data)
+            # print(medication_entries_row)
+            # print(medication_entries_data)
 
             patient_history_column = ', '.join(
                 list(patient_history_1.keys()) +
@@ -681,11 +682,51 @@ class MedicationWindow(BaseWindow):
                 list(patient_history_2.values()) +
                 list(patient_history_3.values())
                 )]
-        
+
+            first_name = self.data.get("patient_first_name")
+            middle_name = self.data.get("patient_middle_name")
+            last_name = self.data.get("patient_last_name")
+
+            null_values = ["Type Here", None, "", " "]
+
+            name_validation = [name for name in [first_name, middle_name, last_name] if name not in null_values]
+
+            # name_validation = list(filter(lambda x: x == "Type Here", null_values))
+            # print("filter:", name_validation)
+
+            patient_full_namme = ' '.join(name_validation)
+            
+
+            patient_list = {
+                'patient_name': patient_full_namme,   
+                'age': self.data.get("patient_age"),
+                'gender': self.data.get("patient_gender"),
+                'access_type': self.data.get("patient_access"), 
+                'date_registered': date.today()
+            }       
+
+            patient_list_column = ', '.join(patient_list.keys())
+            patient_list_row = [entries.strip() if isinstance(entries, str) else entries for entries in patient_list.values()]
+
+            print(patient_list_column)
+            print(patient_list_row)
+
             #this creates the main table which includes the patient id
-            pk_patient_id = submit_form_creation(patient_information_column, patient_information_row, table_name='patient_info')
+            pk_patient_id = submit_form_creation(patient_list_column, patient_list_row, table_name='patient_list')
 
             if pk_patient_id:
+                print("Successfully inserted on the list")
+            else:
+                print("Error with list insertion")
+                return
+            
+            create_patient_info = submit_form_subcreation(
+                patient_information_column, 
+                patient_information_row, 
+                pk_patient_id,  
+                table_name='patient_info')
+
+            if create_patient_info:
                 print("Step 1 input successfully created")
             else:
                 print("Error with step 1 input creation")
