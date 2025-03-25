@@ -3,10 +3,9 @@ import tkinter as tk
 import hashlib
 from tkinter import ttk
 from components.textfields_user_reg import TextField
-from components.buttons import Button
 from PIL import Image, ImageTk
 from backend.input_validator import register_validation, null_validator
-from components.buttons import Button, apply_selected_state
+from components.buttons import CTkButtonSelectable, apply_selected_state
 from backend.crud import register_to_db, get_existing_credentials
 from backend.connector import db_connection as db
 
@@ -78,26 +77,29 @@ class RegisterPage(tk.Frame):
         )
 
         # Admin Button
-        self.admin_button = Button(
-            left_container, 
-            text="Admin", 
+        self.admin_button = CTkButtonSelectable(
+            left_container,
+            text="Admin",
             selectable=True,
             shared_state=self.shared_state,
-            command=lambda: self.shared_state.update({"selected_role": "Admin"})
+            width=250, 
+            height=55  
         )
-        self.admin_button.place(relx=0.24, rely=0.73, anchor="n", width=250, height=55) 
+        self.admin_button.place(relx=0.24, rely=0.73, anchor="n") 
 
         # Staff Button
-        self.staff_button = Button(
+        self.staff_button = CTkButtonSelectable(
             left_container,
-            text="Staff", 
+            text="Staff",
             selectable=True,
             shared_state=self.shared_state,
-            command=lambda: self.shared_state.update({"selected_role": "Staff"})
+            width=250,  
+            height=55   
         )
-        self.staff_button.place(relx=0.59, rely=0.73, anchor="n", width=250, height=55) 
+        self.staff_button.place(relx=0.59, rely=0.73, anchor="n")
 
-        apply_selected_state(shared_state, left_container)
+        # Apply selected state
+        apply_selected_state(self.shared_state, left_container)
 
         # Right container
         right_container = tk.Frame(self, bg="#1A374D")  
@@ -175,13 +177,25 @@ class RegisterPage(tk.Frame):
         self.error_secret_question_label = tk.Label(self, text="", font=("Arial", 12), fg="red", bg="#1A374D")
         self.error_secret_question_label.place(relx=0.84, rely=0.71, anchor="n")
 
-         # Add Login Button
-        login_button = Button(right_container, text="Login", command=self.on_login_click)
-        login_button.place(relx=0.5, rely=0.77, anchor="n", width=230, height=50)
+        # Login Button
+        login_button = CTkButtonSelectable(
+            right_container,
+            text="Login",
+            command=self.on_login_click,
+            width=230,  
+            height=50   
+        )
+        login_button.place(relx=0.5, rely=0.76, anchor="n")  
 
-        # Add Signup Button
-        signup_button = Button(right_container, text="Register", command=self.on_signup_click)
-        signup_button.place(relx=0.5, rely=0.86, anchor="n", width=230, height=50)
+        # Signup Button
+        signup_button = CTkButtonSelectable(
+            right_container,
+            text="Register",
+            command=self.on_signup_click,
+            width=230, 
+            height=50  
+        )
+        signup_button.place(relx=0.5, rely=0.85, anchor="n")  
 
     def check_password_input(self, event=None):
         """Shows or hides the eye icon based on user input, ensuring it starts closed."""
@@ -215,7 +229,6 @@ class RegisterPage(tk.Frame):
 
     def on_login_click(self):
         self.shared_state["navigate"]("LoginPage")  
-        self.pack_forget()
 
     def db_connection():
         connect = db()
@@ -255,7 +268,6 @@ class RegisterPage(tk.Frame):
                 self.display_error(create_user)
 
                 self.shared_state["navigate"]("LoginPage")  
-                self.pack_forget()
                 return
             self.display_error("")            
             

@@ -1,13 +1,13 @@
 import tkinter as tk
 import hashlib
 from components.textfields_user_reg import TextField
-from components.buttons import Button
 from PIL import Image, ImageTk
 from backend.input_validator import login_validation
 from backend.crud import get_login_credentials, get_existing_credentials
-from components.buttons import Button, apply_selected_state
 from backend.connector import db_connection as db
 from components.state import shared_states
+import customtkinter as ctk
+from components.buttons import CTkButtonSelectable, apply_selected_state
 
 class LoginPage(tk.Frame):
     def __init__(self, parent, shared_state):
@@ -62,15 +62,30 @@ class LoginPage(tk.Frame):
             anchor="n"  
         )
 
-        # Admin Button
-        self.admin_button = Button(left_container, text="Admin", selectable=True, shared_state=self.shared_state, command=lambda: self.shared_state.update({"selected_role": "Admin"}))
-        self.admin_button.place(relx=0.24, rely=0.73, anchor="n", width=250, height=55)
+       # Admin Button
+        self.admin_button = CTkButtonSelectable(
+            left_container,
+            text="Admin",
+            selectable=True,
+            shared_state=self.shared_state,
+            width=250, 
+            height=55  
+        )
+        self.admin_button.place(relx=0.24, rely=0.73, anchor="n") 
 
         # Staff Button
-        self.staff_button = Button(left_container, text="Staff", selectable=True, shared_state=self.shared_state, command=lambda: self.shared_state.update({"selected_role": "Staff"}))
-        self.staff_button.place(relx=0.59, rely=0.73, anchor="n", width=250, height=55)
+        self.staff_button = CTkButtonSelectable(
+            left_container,
+            text="Staff",
+            selectable=True,
+            shared_state=self.shared_state,
+            width=250,  
+            height=55   
+        )
+        self.staff_button.place(relx=0.59, rely=0.73, anchor="n")
 
-        apply_selected_state(shared_state, left_container)
+        # Apply selected state
+        apply_selected_state(self.shared_state, left_container)
 
         # Right container
         right_container = tk.Frame(self, bg="#1A374D")  
@@ -135,12 +150,24 @@ class LoginPage(tk.Frame):
         self.error_label.place(relx=0.5, rely=0.65, anchor="n")
 
         # Login Button
-        login_button = Button(right_container, text="Login", command=self.on_login_click)
-        login_button.place(relx=0.5, rely=0.71, anchor="n", width=230, height=50)
+        login_button = CTkButtonSelectable(
+            right_container,
+            text="Login",
+            command=self.on_login_click,
+            width=230,  
+            height=50   
+        )
+        login_button.place(relx=0.5, rely=0.71, anchor="n")  
 
         # Signup Button
-        signup_button = Button(right_container, text="Register", command=self.on_signup_click)
-        signup_button.place(relx=0.5, rely=0.8, anchor="n", width=230, height=50)
+        signup_button = CTkButtonSelectable(
+            right_container,
+            text="Register",
+            command=self.on_signup_click,
+            width=230, 
+            height=50  
+        )
+        signup_button.place(relx=0.5, rely=0.8, anchor="n")  
 
     def check_password_input(self, event=None):
         """Shows or hides the eye icon based on user input, ensuring it starts closed."""
@@ -230,8 +257,8 @@ class LoginPage(tk.Frame):
 
     def on_signup_click(self):
         self.shared_state["navigate"]("RegisterPage")  
-        self.pack_forget()  
+ 
 
     def on_forgot_password_click(self, event):
         self.shared_state["navigate"]("ForgotPage") 
-        self.pack_forget()  
+    

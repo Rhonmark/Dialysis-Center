@@ -2,11 +2,10 @@ import random
 import tkinter as tk
 from tkinter import ttk
 from components.textfields_user_reg import TextField
-from components.buttons import Button
 from PIL import Image, ImageTk
 from backend.input_validator import forgot_validator
 from backend.crud import get_login_credentials, set_new_password
-from components.buttons import Button, apply_selected_state
+from components.buttons import CTkButtonSelectable, apply_selected_state
 import hashlib
 
 class ForgotPage(tk.Frame):
@@ -85,25 +84,30 @@ class ForgotPage(tk.Frame):
             anchor="n"  
         )
 
-        # Admin Button 
-        self.admin_button = Button(
-            left_container, 
-            text="Admin", 
+        # Admin Button
+        self.admin_button = CTkButtonSelectable(
+            left_container,
+            text="Admin",
             selectable=True,
-            shared_state=self.shared_state
-            )
-        self.admin_button.place(relx=0.24, rely=0.73, anchor="n", width=250, height=55)
+            shared_state=self.shared_state,
+            width=250,
+            height=55
+        )
+        self.admin_button.place(relx=0.24, rely=0.73, anchor="n")  
 
-        # Staff Button 
-        self.staff_button = Button(
-            left_container, 
-            text="Staff", 
+        # Staff Button
+        self.staff_button = CTkButtonSelectable(
+            left_container,
+            text="Staff",
             selectable=True,
-            shared_state=self.shared_state
-            )
-        self.staff_button.place(relx=0.59, rely=0.73, anchor="n", width=250, height=55)
+            shared_state=self.shared_state,
+            width=250,
+            height=55
+        )
+        self.staff_button.place(relx=0.59, rely=0.73, anchor="n")
 
-        apply_selected_state(shared_state, left_container)
+        # Apply selected state
+        apply_selected_state(self.shared_state, left_container)
 
         # Right container
         right_container = tk.Frame(self, bg="#1A374D")  
@@ -137,12 +141,25 @@ class ForgotPage(tk.Frame):
         self.error_label.place(relx=0.5, rely=0.64, anchor="n")
         
         # Enter Button
-        self.enter_button = Button(right_container, text="Enter", command=self.on_enter_click)
-        self.enter_button.place(relx=0.5, rely=0.71, anchor="n", width=230, height=50)
+        self.enter_button = CTkButtonSelectable(
+            right_container, 
+            text="Enter", 
+            command=self.on_enter_click, 
+            width=230, 
+            height=50  
+        )
+        self.enter_button.place(relx=0.5, rely=0.71, anchor="n")
 
         # Cancel Button
-        cancel_button = Button(right_container, text="Cancel", command=self.on_cancel_click)
-        cancel_button.place(relx=0.5, rely=0.8, anchor="n", width=230, height=50)
+        self.cancel_button = CTkButtonSelectable(
+            right_container, 
+            text="Cancel", 
+            command=self.on_cancel_click, 
+            width=230, 
+            height=50  
+        )
+        self.cancel_button.place(relx=0.5, rely=0.8, anchor="n")
+
 
     def display_error(self, message):
         self.error_label.config(text=message)
