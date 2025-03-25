@@ -5,6 +5,7 @@ from components.Inputs import PatientInfoWindow
 from pages.AddPatientWindow import AddPatientWindow
 from backend.connector import db_connection as db
 from components.state import shared_states 
+from components.Inputs import MedicationWindow
 
 class HomePage(tk.Frame):
     def __init__(self, parent, shared_state):

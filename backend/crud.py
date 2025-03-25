@@ -1,9 +1,16 @@
-from.connector import db_connection as db
+from .connector import db_connection as db
 #running as relative import since no ui yet
+# cursor.lastrowid to retrieve recent patient
 
 def db_connection():
     connect = db()
     cursor = connect.cursor()
+
+    cursor.execute("SELECT patient_name, age, gender FROM patient_list ORDER BY patient_id DESC LIMIT 1")
+    result = cursor.fetchone()
+
+    print(result)
+
     return connect, cursor
 
 def register_to_db(role, username, password, secret_question, secret_answer):
@@ -123,29 +130,80 @@ def submit_form_subcreation(column, row, pk_patient_id, table_name):
         connect.close()
 
 def submit_form_extra(patient_id, medication_entries):
-        try:
-            connect = db()
-            cursor = connect.cursor()
+    try:
+        connect = db()
+        cursor = connect.cursor()
 
-            for medication in medication_entries:
-
-              cursor.execute("INSERT IGNORE INTO medicines(medication_name) VALUES (%s)", (medication, ))
-
-              cursor.execute("SELECT medication_id FROM medicines WHERE medication_name = %s", (medication, ))
-              medication_id = cursor.fetchone()[0]
-
-              cursor.execute("INSERT IGNORE INTO patient_medications VALUES (%s, %s)", (patient_id, medication_id))
-
-            connect.commit()
-
-            return True
-        
-        except Exception as e:
-            print("Patient info creation error: ", e)
+        # Check if patient exists
+        cursor.execute("SELECT 1 FROM patient_info WHERE patient_id = %s", (patient_id,))
+        if not cursor.fetchone():
+            print(f"Error: patient_id {patient_id} does not exist!")
             return False
-        
-        finally:
-            cursor.close()
-            connect.close()
 
+        for medication in medication_entries:
+            # Insert or select medicine
+            cursor.execute("""
+                INSERT INTO medicines (medication_name) 
+                VALUES (%s)
+                ON DUPLICATE KEY UPDATE medication_id = LAST_INSERT_ID(medication_id)
+            """, (medication,))
+            
+            medication_id = cursor.lastrowid or \
+                          cursor.execute("SELECT medication_id FROM medicines WHERE medication_name = %s", (medication,)).fetchone()[0]
 
+            # Ensure link exists
+            cursor.execute("""
+                REPLACE INTO patient_medications (patient_id, medication_id) 
+                VALUES (%s, %s)
+            """, (patient_id, medication_id))
+
+        connect.commit()
+        return True
+
+    except Exception as e:
+        print("Error in submit_form_extra():", e)
+        connect.rollback()
+        return False
+
+    finally:
+        cursor.close()
+        connect.close()
+
+def retrieve_form_data(patient_id, column, table_name):
+  try:
+    data_retrieval = []
+    connect, cursor = db_connection()
+
+    # column_data = ', '.join(column)
+
+    cursor.execute(f"""
+        SELECT {column} FROM {table_name}
+        WHERE patient_id = {patient_id}
+    """)
+    
+    result = cursor.fetchone()
+
+    for i in result:
+       data_retrieval.append(i)
+
+    return data_retrieval
+
+  except Exception as e:
+     print("Error retrieving form data: ", e)
+     return False
+  
+  finally:
+     cursor.close()
+     connect.close()
+
+def wag_galawin():
+
+  #ONLY WORKS WHEN INSERTING JUST HAPPENED, IF NOT DONT USE
+
+  # cursor.execute("SELECT patient_name, age, gender FROM patient_list WHERE patient_id = %s", (patient_id, ))
+  # result = cursor.fetchone()
+
+  # cursor.execute("SELECT patient_name, age, gender FROM patient_list WHERE patient_id = LAST_ROW_ID(patient_id)")
+  # result = cursor.fetchone()
+
+  pass

@@ -263,10 +263,10 @@ class RegisterPage(tk.Frame):
             secret_question = self.selected_question.get().strip()
             hashed_password = hashlib.sha256(password.encode()).hexdigest() 
             hashed_answer = hashlib.sha256(secret_answer.encode()).hexdigest()
+
             create_user = register_to_db(role, username, hashed_password, secret_question, hashed_answer)
             if create_user:
                 self.display_error(create_user)
-
                 self.shared_state["navigate"]("LoginPage")  
                 return
             self.display_error("")            

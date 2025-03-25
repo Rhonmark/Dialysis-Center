@@ -4,7 +4,7 @@ from tkinter import ttk
 from components.buttons import CTkButtonSelectable
 from components.textfields_patients import TextField_Patients
 from backend.connector import db_connection as db
-from backend.crud import submit_form_creation, submit_form_subcreation, submit_form_extra
+from backend.crud import submit_form_creation, submit_form_subcreation, submit_form_extra, retrieve_form_data
 import tkinter as tk
 from tkcalendar import DateEntry
 from datetime import date
@@ -680,8 +680,8 @@ class MedicationWindow(BaseWindow):
             medication_entries_row = [entries.get().strip() for entries in self.medication_entries]
             medication_entries_data = ', '.join(medication_entries_row)
 
-            # print(medication_entries_row)
-            # print(medication_entries_data)
+            # print("data", medication_entries_row)
+            # print("row", medication_entries_data)
 
             patient_history_column = ', '.join(
                 list(patient_history_1.keys()) +
@@ -695,7 +695,7 @@ class MedicationWindow(BaseWindow):
                 list(patient_history_2.values()) +
                 list(patient_history_3.values())
                 )]
-
+            
             first_name = self.data.get("patient_first_name")
             middle_name = self.data.get("patient_middle_name")
             last_name = self.data.get("patient_last_name")
@@ -707,11 +707,11 @@ class MedicationWindow(BaseWindow):
             # name_validation = list(filter(lambda x: x == "Type Here", null_values))
             # print("filter:", name_validation)
 
-            patient_full_namme = ' '.join(name_validation)
+            patient_full_name = ' '.join(name_validation)
             
 
             patient_list = {
-                'patient_name': patient_full_namme,   
+                'patient_name': patient_full_name,   
                 'age': self.data.get("patient_age"),
                 'gender': self.data.get("patient_gender"),
                 'access_type': self.data.get("patient_access"), 
@@ -809,6 +809,45 @@ class MedicationWindow(BaseWindow):
 
             self.destroy()
 
+            #retrieve all the data from patient list table
+            cursor.execute("SELECT * FROM patient_list")
+            list_result = cursor.fetchall()
+
+            for i in list_result:
+                print(i)
+
+            #retrieve all the data from patient info table
+            retrieve_patient_info = retrieve_form_data(pk_patient_id, patient_information_column, table_name='patient_info')
+            print(retrieve_patient_info)
+            
+            #retrieve all the data from patient contact table
+            retrieve_patient_contact = retrieve_form_data(pk_patient_id, patient_contact_information_column, table_name='patient_contact')
+            print(retrieve_patient_contact)
+
+            #retrieve all the data from patient relative table
+            retrieve_patient_relative = retrieve_form_data(pk_patient_id, patient_relative_information_column, table_name='patient_relative')
+            print(retrieve_patient_relative)
+
+            #retrieve all the data from patient benefits table
+            retrieve_patient_benefits = retrieve_form_data(pk_patient_id, patient_benefits_column, table_name='patient_benefits')
+            print(retrieve_patient_benefits)
+
+            #retrieve all the data from patient history table
+            retrieve_patient_history = retrieve_form_data(pk_patient_id, patient_history_column, table_name='patient_history')
+            print(retrieve_patient_history)
+
+            #retrieve all the data from patient medications table
+            cursor.execute(f"""
+                SELECT m.medication_name FROM patient_medications pm 
+                JOIN medicines m ON m.medication_id = pm.medication_id
+                JOIN patient_info pi ON pm.patient_id = pi.patient_id 
+                WHERE pi.patient_id = {pk_patient_id}
+            """)          
+
+            medication_result = cursor.fetchall()
+
+            print(medication_result)
+         
         except Exception as e:
             print("Error with submitting the form: ", e)
         
