@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import PhotoImage
 from tkinter import ttk
-from components.buttons import Button
+from components.buttons import CTkButtonSelectable
 from components.textfields_patients import TextField_Patients
 from backend.connector import db_connection as db
 from backend.crud import submit_form_creation, submit_form_subcreation, submit_form_extra
@@ -34,12 +34,25 @@ class BaseWindow(tk.Toplevel):
         self.btn_exit.place(x=1200, y=10)  
 
         if self.next_window:
-            self.btn_next = Button(self, text="Next", command=self.open_next)
-            self.btn_next.place(x=1070, y=600, width=120, height=40)
+            self.btn_next = CTkButtonSelectable(
+                self, 
+                text="Next", 
+                command=self.open_next, 
+                width=120, 
+                height=40  
+            )
+            self.btn_next.place(x=1070, y=600)
 
         if not self.next_window: 
-            self.btn_submit = Button(self, text="Submit", command=self.submit_form)
-            self.btn_submit.place(x=1070, y=600, width=120, height=40)
+            self.btn_submit = CTkButtonSelectable(
+                self, 
+                text="Submit", 
+                command=self.submit_form, 
+                width=120, 
+                height=40  
+            )
+            self.btn_submit.place(x=1070, y=600)
+
 
         if self.previous_window:
             self.back_icon = PhotoImage(file="assets/back.png")
