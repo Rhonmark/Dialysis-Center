@@ -62,6 +62,9 @@ def set_new_password(password, username):
 def get_existing_credentials(username, target_data):
   try:
     connect, cursor = db_connection()
+
+    column_name = ['users']
+
     query = f"SELECT {target_data} FROM users WHERE username = %s"
     cursor.execute(query, [username])
     result = cursor.fetchone()[0]
@@ -82,6 +85,7 @@ def submit_form_creation(column, row, table_name):
             connect = db()
             cursor = connect.cursor()
 
+            # column_names = ', '.join(column)
             values_placeholder = ', '.join(['%s'] * len(row))
 
             query = f"""
@@ -102,11 +106,12 @@ def submit_form_creation(column, row, table_name):
             cursor.close()
             connect.close()
 
-def submit_form_subcreation(column, row, pk_patient_id, table_name):
+def submit_form_subcreation(column, row, patient_id, table_name):
     try:
         connect = db()
         cursor = connect.cursor()
 
+        # column_names = ', '.join(column)
         values_placeholder = ', '.join(['%s'] * (len(row) + 1))
 
         query = f"""  
@@ -114,7 +119,7 @@ def submit_form_subcreation(column, row, pk_patient_id, table_name):
             VALUES({values_placeholder})
         """
 
-        values = (pk_patient_id, *tuple(row))
+        values = (patient_id, *tuple(row))
 
         cursor.execute(query, values)
         connect.commit()
@@ -207,3 +212,29 @@ def wag_galawin():
   # result = cursor.fetchone()
 
   pass
+
+def update_changes(patient_id, column, row, table_name):
+  try:
+    connect, cursor = db_connection()
+
+    # set_values = ', '.join(f"{col} = {val}" for col, val in zip(column, row))
+    set_values = ', '.join(f"{col} = %s" for col in column)
+
+    query = f"""
+        UPDATE {table_name}
+        SET {set_values}
+        WHERE patient_id = %s
+    """
+
+    cursor.execute(query, (*row, patient_id))
+
+    connect.commit()
+    return True
+
+  except Exception as e:
+     print("Error updating changes: ", e)
+     return False
+
+  finally:
+     cursor.close()
+     connect.close()
