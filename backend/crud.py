@@ -238,3 +238,48 @@ def update_changes(patient_id, column, row, table_name):
   finally:
      cursor.close()
      connect.close()
+
+
+def get_full_patient_details(patient_id):
+        try:
+            connect, cursor = db_connection()
+
+            # Fetch from patient_list
+            cursor.execute("""
+                SELECT patient_name, age, gender 
+                FROM patient_list 
+                WHERE patient_id = %s
+            """, (patient_id,))
+            patient_basic = cursor.fetchone()
+
+            # Fetch from patient_info (address, diagnosis, etc.)
+            cursor.execute("""
+                SELECT address, diagnosis, allergies
+                FROM patient_info
+                WHERE patient_id = %s
+            """, (patient_id,))
+            patient_info = cursor.fetchone()
+
+            # Fetch medications
+            cursor.execute("""
+                SELECT m.medication_name
+                FROM patient_medications pm
+                JOIN medicines m ON pm.medication_id = m.medication_id
+                WHERE pm.patient_id = %s
+            """, (patient_id,))
+            medications = cursor.fetchall()
+
+            full_details = {
+                "basic_info": patient_basic,
+                "extra_info": patient_info,
+                "medications": [med[0] for med in medications]  # List of medication names
+            }
+
+            return full_details
+
+        except Exception as e:
+            print("Error fetching full patient details: ", e)
+            return None
+        finally:
+            cursor.close()
+            connect.close()

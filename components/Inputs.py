@@ -1,13 +1,13 @@
 import tkinter as tk
-from tkinter import PhotoImage
-from tkinter import ttk
-from components.buttons import CTkButtonSelectable
-from components.textfields_patients import TextField_Patients
-from backend.connector import db_connection as db
-from backend.crud import submit_form_creation, submit_form_subcreation, submit_form_extra, retrieve_form_data
-import tkinter as tk
+from tkinter import ttk, PhotoImage
 from tkcalendar import DateEntry
 from datetime import date
+
+from components.buttons import CTkButtonSelectable
+from components.textfields_patients import TextField_Patients
+
+from backend.connector import db_connection as db
+from backend.crud import submit_form_creation, submit_form_subcreation, submit_form_extra, retrieve_form_data
 
 class BaseWindow(tk.Toplevel):
     def __init__(self, parent, title, next_window=None, previous_window=None):
@@ -60,14 +60,19 @@ class BaseWindow(tk.Toplevel):
             self.btn_back.place(x=50, y=25)
 
     def go_back(self):
-        self.destroy()
+        self.destroy()  
         if self.previous_window:
             self.previous_window(self.parent, self.data if hasattr(self, "data") else None)
 
     def open_next(self, data=None):
         if self.next_window:
-            self.destroy()
-            self.next_window(self.master, data)
+            self.withdraw()  
+            new_window = self.next_window(self.master, data)
+            new_window.center_window()  
+            new_window.grab_set()  
+            new_window.focus_force()
+            new_window.wait_window()  
+            self.destroy()  
 
     def center_window(self):
         self.update_idletasks()
@@ -708,7 +713,6 @@ class MedicationWindow(BaseWindow):
             # print("filter:", name_validation)
 
             patient_full_name = ' '.join(name_validation)
-            
 
             patient_list = {
                 'patient_name': patient_full_name,   
