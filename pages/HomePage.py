@@ -1,9 +1,9 @@
+import threading
 import customtkinter as ctk
+import tkinter as tk
 from PIL import Image
 from tkinter import ttk, messagebox
 from components.Inputs import PatientInfoWindow
-from components.outputs_patient import ContactInfoRelativeInfo, ContactOptionsPanel, FamilyHistory, Medication, OtherHistory, PatientHistory, PatientInfo, PatientPhoto, PhilHealthAndOtherInfo
-
 from backend.connector import db_connection as db
 from components.state import shared_states
 from backend.crud import retrieve_form_data
@@ -220,6 +220,240 @@ class PatientPage(ctk.CTkFrame):
 
         self.detailed_info_frame = ctk.CTkFrame(self, fg_color="#E8FBFC")
 
+        self.photo_frame = ctk.CTkFrame(
+            self.detailed_info_frame,
+            width=400,
+            height=200,
+            fg_color="white",
+            corner_radius=20
+        )
+        self.photo_frame.place(x=50, y=80)
+        self.photo_frame.place_forget()
+
+        self.top_frame = ctk.CTkFrame(
+            self.photo_frame,
+            width=400,
+            height=100,
+            fg_color="#68EDC6",
+            corner_radius=0
+        )
+        self.top_frame.place(x=0, y=0)
+
+        self.patient_id_label = ctk.CTkLabel(
+            self.photo_frame,
+            text="Patient ID",
+            font=("Merriweather", 14),
+            text_color="black"
+        )
+        self.patient_id_label.place(relx=0.5, rely=0.65, anchor="center")
+
+        self.patient_id_value = ctk.CTkLabel(
+            self.photo_frame,
+            text="",
+            font=("Merriweather", 14),
+            text_color="black"
+        )
+        self.patient_id_value.place(relx=0.5, rely=0.80, anchor="center")
+
+        info_frame = ctk.CTkFrame(
+            self.detailed_info_frame,
+            width=950,
+            height=500,
+            fg_color="white",
+            corner_radius=20
+        )
+        info_frame.place(x=600, y=80) 
+
+        left_bar = ctk.CTkFrame(
+            info_frame,
+            width=20,
+            height=500,
+            fg_color="#68EDC6",
+            corner_radius=0
+        )
+        left_bar.place(x=0, y=0)
+
+        title_label = ctk.CTkLabel(info_frame, text="Patient Info", font=("Merriweather", 20, "bold"))
+        title_label.place(x=50, y=20)
+
+        self.lastname_label = ctk.CTkLabel(info_frame, text="Last Name", font=("Merriweather", 14))
+        self.lastname_label.place(x=50, y=70)
+        self.lastname_labelv = ctk.CTkLabel(info_frame, text="Lopez", font=("Merriweather", 14))
+        self.lastname_labelv.place(x=50, y=100)
+
+        self.firstname_label = ctk.CTkLabel(info_frame, text="First Name", font=("Merriweather", 14))
+        self.firstname_label.place(x=300, y=70)
+        self.firstname_labelv = ctk.CTkLabel(info_frame, text="Juan", font=("Merriweather", 14))
+        self.firstname_labelv.place(x=300, y=100)
+
+        self.middlename_label = ctk.CTkLabel(info_frame, text="Middle Name", font=("Merriweather", 14))
+        self.middlename_label.place(x=550, y=70)
+        self.middlename_labelv = ctk.CTkLabel(info_frame, text="Carlos", font=("Merriweather", 14))
+        self.middlename_labelv.place(x=550, y=100)
+
+        self.status_label = ctk.CTkLabel(info_frame, text="Status", font=("Merriweather", 14))
+        self.status_label.place(x=50, y=120)
+        self.status_labelv = ctk.CTkLabel(info_frame, text="Active", font=("Merriweather", 14))
+        self.status_labelv.place(x=50, y=150)
+
+        self.access_type_label = ctk.CTkLabel(info_frame, text="Type of Access", font=("Merriweather", 14))
+        self.access_type_label.place(x=250, y=120)
+        self.access_type_labelv = ctk.CTkLabel(info_frame, text="Admin", font=("Merriweather", 14))
+        self.access_type_labelv.place(x=250, y=150)
+
+        self.birthdate_label = ctk.CTkLabel(info_frame, text="Birthdate", font=("Merriweather", 14))
+        self.birthdate_label.place(x=500, y=120)
+        self.birthdate_labelv = ctk.CTkLabel(info_frame, text="01/01/1980", font=("Merriweather", 14))
+        self.birthdate_labelv.place(x=500, y=150)
+
+        self.age_label = ctk.CTkLabel(info_frame, text="Age", font=("Merriweather", 14))
+        self.age_label.place(x=750, y=120)
+        self.age_labelv = ctk.CTkLabel(info_frame, text="45", font=("Merriweather", 14))
+        self.age_labelv.place(x=750, y=150)
+
+        self.gender_label = ctk.CTkLabel(info_frame, text="Gender", font=("Merriweather", 14))
+        self.gender_label.place(x=50, y=170)
+        self.gender_labelv = ctk.CTkLabel(info_frame, text="Male", font=("Merriweather", 14))
+        self.gender_labelv.place(x=50, y=200)
+
+        self.height_label = ctk.CTkLabel(info_frame, text="Height", font=("Merriweather", 14))
+        self.height_label.place(x=250, y=170)
+        self.height_labelv = ctk.CTkLabel(info_frame, text="5'8\"", font=("Merriweather", 14))
+        self.height_labelv.place(x=250, y=200)
+
+        self.civil_status_label = ctk.CTkLabel(info_frame, text="Civil Status", font=("Merriweather", 14))
+        self.civil_status_label.place(x=450, y=170)
+        self.civil_status_labelv = ctk.CTkLabel(info_frame, text="Married", font=("Merriweather", 14))
+        self.civil_status_labelv.place(x=450, y=200)
+
+        self.religion_label = ctk.CTkLabel(info_frame, text="Religion", font=("Merriweather", 14))
+        self.religion_label.place(x=650, y=170)
+        self.religion_labelv = ctk.CTkLabel(info_frame, text="Christian", font=("Merriweather", 14))
+        self.religion_labelv.place(x=650, y=200)
+
+        self.address_label = ctk.CTkLabel(info_frame, text="Complete Address", font=("Merriweather", 14))
+        self.address_label.place(x=50, y=230)
+        self.address_labelv = ctk.CTkLabel(info_frame, text="1234 Elm St, Quezon City", font=("Merriweather", 14))
+        self.address_labelv.place(x=50, y=260)
+
+        contact_options_panel = ctk.CTkFrame(
+            self.detailed_info_frame,
+            width=400,
+            height=400,
+            fg_color="white",
+            corner_radius=20
+        )
+        contact_options_panel.place(x=50, y=350)  
+
+        left_bar = ctk.CTkFrame(
+            contact_options_panel,
+            width=20,
+            height=400,
+            fg_color="#1A374D",
+            corner_radius=0
+        )
+        left_bar.place(x=0, y=0)
+
+        patient_history_btn = ctk.CTkButton(
+            contact_options_panel,
+            text="Patient History",
+            font=("Merriweather", 14),
+            corner_radius=20,
+            width=250,
+            height=40,
+            fg_color="#01516D",
+            hover_color="#013B50",
+            command=self.open_patient_history
+        )
+        patient_history_btn.place(x=80, y=80)
+
+        medication_btn = ctk.CTkButton(
+            contact_options_panel,
+            text="Medication",
+            font=("Merriweather", 14),
+            corner_radius=20,
+            width=250,
+            height=40,
+            fg_color="#01516D",
+            hover_color="#013B50",
+            command=self.open_medication
+        )
+        medication_btn.place(x=80, y=150)
+
+        contact_btn = ctk.CTkButton(
+            contact_options_panel,
+            text="Contact",
+            font=("Merriweather", 14),
+            corner_radius=20,
+            width=250,
+            height=40,
+            fg_color="#01516D",
+            hover_color="#013B50",
+            command=self.open_contact_info
+        )
+        contact_btn.place(x=80, y=220)
+
+        philhealth_info_panel = ctk.CTkFrame(
+            self.detailed_info_frame,
+            width=950,
+            height=300,
+            fg_color="white",
+            corner_radius=20
+        )
+        philhealth_info_panel.place(x=600, y=600) 
+
+        left_bar = ctk.CTkFrame(
+            philhealth_info_panel,
+            width=20,
+            height=300,
+            fg_color="#68EDC6",
+            corner_radius=0
+        )
+        left_bar.place(x=0, y=0)
+
+        title_label = ctk.CTkLabel(
+            philhealth_info_panel,
+            text="Phil Health and Other Info",
+            font=("Merriweather", 20, "bold")
+        )
+        title_label.place(x=50, y=20)
+
+        self.philhealth_number_label = ctk.CTkLabel(philhealth_info_panel,text="PhilHealth Number",font=("Merriweather", 14))
+        self.philhealth_number_label.place(x=50, y=70)
+
+        self.philhealth_number_labelv = ctk.CTkLabel(philhealth_info_panel,text="PH1234567890",font=("Merriweather", 14))
+        self.philhealth_number_labelv.place(x=50, y=100)
+
+        self.membership_label = ctk.CTkLabel(philhealth_info_panel,text="Membership",font=("Merriweather", 14))
+        self.membership_label.place(x=350, y=70)
+
+        self.membership_labelv = ctk.CTkLabel(philhealth_info_panel,text="Active",font=("Merriweather", 14))
+        self.membership_labelv.place(x=350, y=100)
+
+        self.pwd_label = ctk.CTkLabel(philhealth_info_panel,text="PWD",font=("Merriweather", 14))
+        self.pwd_label.place(x=50, y=120)
+
+        self.pwd_labelv = ctk.CTkLabel(philhealth_info_panel,text="Yes",font=("Merriweather", 14))
+        self.pwd_labelv.place(x=50, y=150)
+
+        self.pwd_id_label = ctk.CTkLabel(philhealth_info_panel,text="PWD ID Number",font=("Merriweather", 14))
+        self.pwd_id_label.place(x=200, y=120)
+
+        self.pwd_id_labelv = ctk.CTkLabel(philhealth_info_panel,text="PWD987654321",font=("Merriweather", 14))
+        self.pwd_id_labelv.place(x=200, y=150)
+
+        self.senior_label = ctk.CTkLabel(philhealth_info_panel,text="SENIOR",font=("Merriweather", 14))
+        self.senior_label.place(x=450, y=120)
+
+        self.senior_labelv = ctk.CTkLabel(philhealth_info_panel,text="No",font=("Merriweather", 14))
+        self.senior_labelv.place(x=450, y=150)
+
+        self.senior_id_label = ctk.CTkLabel(philhealth_info_panel,text="SENIOR ID Number",font=("Merriweather", 14))
+        self.senior_id_label.place(x=600, y=120)
+
+        self.senior_id_labelv = ctk.CTkLabel(philhealth_info_panel,text="None",font=("Merriweather", 14))
+        self.senior_id_labelv.place(x=600, y=150)
+
         self.back_button = ctk.CTkButton(self.detailed_info_frame, text="Back", font=("Merriweather", 14),
             corner_radius=20,
             width=250,
@@ -245,27 +479,28 @@ class PatientPage(ctk.CTkFrame):
             hover_color="#013B50")
         self.edit_button_detailed.place(x=1050, y=10)
 
-        self.patienphoto_widget = PatientPhoto(self.detailed_info_frame)
-        self.patienphoto_widget.place(x=70, y=80)
-
-        self.patientinfo_widget = PatientInfo(self.detailed_info_frame)
-        self.patientinfo_widget.place(x=600, y=80)
-
-        self.optionpanel_widget = ContactOptionsPanel(self.detailed_info_frame)
-        self.optionpanel_widget.place(x=70, y=530)
-
-        self.philotherinfo_widget = PhilHealthAndOtherInfo(self.detailed_info_frame)
-        self.philotherinfo_widget.place(x=600, y=630)
-
         self.button_frame.place(x=20, y=10, anchor="nw")
         self.table_frame.place(x=20, y=60, relwidth=0.95, relheight=0.8)
+
         self.populate_table(self.fetch_patient_data())
+
+    def open_patient_history(self):
+        self.patient_history_window = PatientHistory(self.master)
+        self.patient_history_window.place(x=60, y=10)
+
+    def open_medication(self):
+        self.medication_window = Medication(self.master)
+        self.medication_window.place(x=60, y=10)
+
+    def open_contact_info(self):
+        self.contact_info_window = ContactInfoRelativeInfo(self.master)
+        self.contact_info_window.place(x=60, y=10)
 
     def fetch_patient_data(self):
         try:
             connect = db()
             cursor = connect.cursor()
-            cursor.execute("""
+            cursor.execute(""" 
                 SELECT patient_id, patient_name, age, gender, access_type, date_registered
                 FROM patient_list
             """)
@@ -297,24 +532,25 @@ class PatientPage(ctk.CTkFrame):
         if item_id:
             patient_data = self.tree.item(item_id, 'values')
             patient_id = patient_data[0]
-            print(f"Fetching details for Patient ID: {patient_id}")
-            self.show_detailed_info(patient_id)
+            threading.Thread(target=lambda: self.show_detailed_info(patient_id)).start()
 
     def show_detailed_info(self, patient_id):
         self.table_frame.place_forget()
         self.button_frame.place_forget()
         detailed_data = self.get_patient_details_from_db(patient_id)
         if detailed_data:
-            print(f"Detailed data for Patient ID {patient_id}: {detailed_data}")
-            self.patientinfo_widget.update_info(detailed_data)
-            self.detailed_info_frame.place(x=20, y=20, relwidth=0.95, relheight=0.95) 
-        else:
-            self.detailed_info_frame.place(x=20, y=20, relwidth=0.95, relheight=0.95) 
+            self.display_patient_details(detailed_data)
+        self.detailed_info_frame.place(x=20, y=20, relwidth=0.95, relheight=0.95)
+
+    def display_patient_details(self, patient_data):
+        self.photo_frame.place(x=50, y=80)
+        self.patient_id_value.configure(text=patient_data[0]) 
 
     def show_table_view(self):
         self.detailed_info_frame.place_forget()
+        self.photo_frame.place_forget()
         self.button_frame.place(x=20, y=10, anchor="nw") 
-        self.table_frame.place(x=20, y=60, relwidth=0.95, relheight=0.8) 
+        self.table_frame.place(x=20, y=60, relwidth=0.95, relheight=0.8)
 
     def get_patient_details_from_db(self, patient_id):
         try:
@@ -331,9 +567,6 @@ class PatientPage(ctk.CTkFrame):
         finally:
             if connect:
                 connect.close()
-
-    def update_detailed_info_display(self, data):
-        self.detailed_info_label.configure(text=f"Detailed Information:\n{data}")
 
     def open_input_window(self, window_class, data=None):
         input_window = window_class(self.master, data or {})
@@ -371,6 +604,334 @@ class PatientPage(ctk.CTkFrame):
     def open_edit_window(self, data=None):
         self.disable_buttons()
         self.open_input_window(PatientInfoWindow, data)
+
+class PatientHistory(ctk.CTkFrame):
+    def __init__(self, master=None, **kwargs):
+        super().__init__(master, width=1443, height=1100, fg_color="white", corner_radius=20, **kwargs)
+        self.pack_propagate(False)
+
+        self.left_bar = ctk.CTkFrame(self, width=20, fg_color="#1A374D", corner_radius=0)
+        self.left_bar.pack(side="left", fill="y")
+
+        self.title_label = ctk.CTkLabel(self, text="Patient History", font=("Merriweather", 20, "bold"))
+        self.title_label.place(x=50, y=20)
+
+        self.family_history = FamilyHistory(self)
+        self.family_history.place(x=50, y=70)
+
+        self.medical_history = MedicalHistory(self)
+        self.medical_history.place(x=800, y=70)
+
+        self.other_history = OtherHistory(self)
+        self.other_history.place(x=50, y=400)
+
+        self.exit_button = create_exit_button(self, command=self.exit_patienthistory)
+        self.exit_button.place(x=1330, y=15)
+
+    def exit_patienthistory(self):
+        print("Patient History closed")
+        self.place_forget()
+
+class Medication(ctk.CTkFrame):
+    def __init__(self, master=None, **kwargs):
+        super().__init__(master, width=1400, height=650, fg_color="white", corner_radius=20, **kwargs)
+        self.pack_propagate(False)
+
+        self.left_bar = ctk.CTkFrame(self, width=20, fg_color="#1A374D", corner_radius=0)
+        self.left_bar.pack(side="left", fill="y")
+
+        self.canvas, self.scrollbar, self.scrollable_frame = add_scrollable_frame(self)
+
+        self.title_label = ctk.CTkLabel(self, text="Medication", font=("Merriweather", 20, "bold"))
+        self.title_label.place(x=50, y=20)
+
+        self.exit_button = create_exit_button(self, command=self.exit_medication)
+        self.exit_button.place(x=1330, y=15)
+
+        self.medication_label = ctk.CTkLabel(self.scrollable_frame, text="Drugs Taken", font=("Merriweather", 16))
+        self.medication_label.place(x=30, y=35)
+
+        meds = [
+            "Amlodipine 10mg",
+            "Metformin 500mg",
+            "Erythropoietin Injection",
+            "Sevelamer 800mg",
+            "Calcium Carbonate 500mg"
+        ]
+
+        y_position = 60
+        for med in meds:
+            med_label = ctk.CTkLabel(self.scrollable_frame, text=med, font=("Merriweather", 13), text_color="black")
+            med_label.place(x=30, y=y_position)
+            y_position += 30
+
+    def exit_medication(self):
+        print("Medication closed")
+        self.place_forget()
+
+class ContactInfoRelativeInfo(ctk.CTkFrame):
+    def __init__(self, master=None, **kwargs):
+        super().__init__(master, width=980, height=815, fg_color="white", corner_radius=20, **kwargs)
+        self.pack_propagate(False)
+
+        self.left_bar = ctk.CTkFrame(
+            self,
+            width=20,
+            fg_color="#1A374D",  
+            corner_radius=0
+        )
+        self.left_bar.pack(side="left", fill="y")
+
+        self.contact_info_label = ctk.CTkLabel(self, text="Contact Info", font=("Merriweather", 20, "bold"))
+        self.contact_info_label.place(x=50, y=20)
+
+        self.last_name_label = ctk.CTkLabel(self, text="Last Name", font=("Merriweather", 14))
+        self.last_name_label.place(x=50, y=70)
+
+        self.last_name_value = ctk.CTkLabel(self, text="Garcia", font=("Merriweather", 14))
+        self.last_name_value.place(x=50, y=100)
+
+        self.first_name_label = ctk.CTkLabel(self, text="First Name", font=("Merriweather", 14))
+        self.first_name_label.place(x=250, y=70)
+
+        self.first_name_value = ctk.CTkLabel(self, text="Juan", font=("Merriweather", 14))
+        self.first_name_value.place(x=250, y=100)
+
+        self.middle_name_label = ctk.CTkLabel(self, text="Middle Name", font=("Merriweather", 14))
+        self.middle_name_label.place(x=450, y=70)
+
+        self.middle_name_value = ctk.CTkLabel(self, text="Dela Cruz", font=("Merriweather", 14))
+        self.middle_name_value.place(x=450, y=100)
+
+        self.contact_number_label = ctk.CTkLabel(self, text="Contact Number", font=("Merriweather", 14))
+        self.contact_number_label.place(x=50, y=120)
+
+        self.contact_number_value = ctk.CTkLabel(self, text="09123456789", font=("Merriweather", 14))
+        self.contact_number_value.place(x=50, y=150)
+
+        self.relationship_label = ctk.CTkLabel(self, text="Relationship to the Patient", font=("Merriweather", 14))
+        self.relationship_label.place(x=250, y=120)
+
+        self.relationship_value = ctk.CTkLabel(self, text="Brother", font=("Merriweather", 14))
+        self.relationship_value.place(x=250, y=150)
+
+        self.complete_address_label = ctk.CTkLabel(self, text="Complete Address", font=("Merriweather", 14))
+        self.complete_address_label.place(x=50, y=170)
+
+        self.address_value = ctk.CTkLabel(self, text="123 Barangay St., Cityville", font=("Merriweather", 14))
+        self.address_value.place(x=50, y=200)
+
+        self.relative_info_label = ctk.CTkLabel(self, text="Relative Info", font=("Merriweather", 20, "bold"))
+        self.relative_info_label.place(x=50, y=230)
+
+        self.relative_last_name_label = ctk.CTkLabel(self, text="Last Name", font=("Merriweather", 14))
+        self.relative_last_name_label.place(x=50, y=270)
+
+        self.relative_last_name_value = ctk.CTkLabel(self, text="Garcia", font=("Merriweather", 14))
+        self.relative_last_name_value.place(x=50, y=300)
+
+        self.relative_first_name_label = ctk.CTkLabel(self, text="First Name", font=("Merriweather", 14))
+        self.relative_first_name_label.place(x=250, y=270)
+
+        self.relative_first_name_value = ctk.CTkLabel(self, text="Maria", font=("Merriweather", 14))
+        self.relative_first_name_value.place(x=250, y=300)
+
+        self.relative_middle_name_label = ctk.CTkLabel(self, text="Middle Name", font=("Merriweather", 14))
+        self.relative_middle_name_label.place(x=450, y=270)
+
+        self.relative_middle_name_value = ctk.CTkLabel(self, text="Santos", font=("Merriweather", 14))
+        self.relative_middle_name_value.place(x=450, y=300)
+
+        self.relative_contact_number_label = ctk.CTkLabel(self, text="Contact Number", font=("Merriweather", 14))
+        self.relative_contact_number_label.place(x=50, y=320)
+
+        self.relative_contact_number_value = ctk.CTkLabel(self, text="09234567890", font=("Merriweather", 14))
+        self.relative_contact_number_value.place(x=50, y=350)
+
+        self.relative_complete_address_label = ctk.CTkLabel(self, text="Complete Address", font=("Merriweather", 14))
+        self.relative_complete_address_label.place(x=50, y=370)
+
+        self.relative_address_value = ctk.CTkLabel(self, text="456 Calle Nueva, Townsville", font=("Merriweather", 14))
+        self.relative_address_value.place(x=50, y=400)
+
+        self.exit_button = create_exit_button(self, command=self.exit_panel)
+        self.exit_button.place(x=900, y=15)
+
+    def exit_panel(self):
+        print("Contact and Relative Info closed")
+        self.place_forget()
+
+class FamilyHistory(ctk.CTkFrame):
+    def __init__(self, master=None, **kwargs):
+        super().__init__(master, width=600, height=250, fg_color="white", corner_radius=20, **kwargs)
+        self.pack_propagate(False)
+
+        self.left_bar = ctk.CTkFrame(
+            self,
+            width=20,
+            fg_color="#68EDC6",  
+            corner_radius=0
+        )
+        self.left_bar.pack(side="left", fill="y")
+
+        self.canvas, self.scrollbar, self.scrollable_frame = add_scrollable_frame(self)
+
+        self.title_label = ctk.CTkLabel(self.scrollable_frame, text="Family History", font=("Merriweather", 20, "bold"))
+        self.title_label.place(x=30, y=20)
+
+        self.disease_label = ctk.CTkLabel(self.scrollable_frame, text="Disease History", font=("Merriweather", 14))
+        self.disease_label.place(x=30, y=70)
+
+        self.father_history = ctk.CTkLabel(self.scrollable_frame, text="Father: Hypertension", font=("Merriweather", 14), text_color="black")
+        self.father_history.place(x=30, y=110)
+
+        self.mother_history = ctk.CTkLabel(self.scrollable_frame, text="Mother: Diabetes", font=("Merriweather", 14), text_color="black")
+        self.mother_history.place(x=30, y=150)
+
+class MedicalHistory(ctk.CTkFrame):
+    def __init__(self, master=None, **kwargs):
+        super().__init__(master, width=600, height=250, fg_color="white", corner_radius=20, **kwargs)
+        self.pack_propagate(False) 
+
+        self.left_bar = ctk.CTkFrame(
+            self,
+            width=20,
+            fg_color="#68EDC6",
+            corner_radius=0
+        )
+        self.left_bar.pack(side="left", fill="y")
+
+        self.canvas, self.scrollbar, self.scrollable_frame = add_scrollable_frame(self)
+
+        self.title_label = ctk.CTkLabel(self.scrollable_frame, text="Medical History", font=("Merriweather", 20, "bold"))
+        self.title_label.grid(row=0, column=0, pady=10, padx=30, sticky="w")
+
+        start_y = 1
+
+        self.surgery_label = ctk.CTkLabel(self.scrollable_frame, text="Previous Surgeries", font=("Merriweather", 14))
+        self.surgery_label.grid(row=start_y, column=0, sticky="w", padx=30)
+
+        start_y += 1  
+
+        self.appendectomy_surgery = ctk.CTkLabel(self.scrollable_frame, text="Appendectomy - 2018", font=("Merriweather", 14), text_color="black")
+        self.appendectomy_surgery.grid(row=start_y, column=0, sticky="w", padx=30)
+
+        start_y += 1
+
+        self.gallbladder_removal_surgery = ctk.CTkLabel(self.scrollable_frame, text="Gallbladder Removal - 2020", font=("Merriweather", 14), text_color="black")
+        self.gallbladder_removal_surgery.grid(row=start_y, column=0, sticky="w", padx=30)
+
+
+class OtherHistory(ctk.CTkFrame):
+    def __init__(self, master=None, **kwargs):
+        super().__init__(master, width=1255, height=474, fg_color="white", corner_radius=20, **kwargs)
+        self.pack_propagate(False)
+
+        self.left_bar = ctk.CTkFrame(
+            self,
+            width=20,
+            fg_color="#68EDC6",
+            corner_radius=0)
+        self.left_bar.pack(side="left", fill="y")
+
+        self.canvas, self.scrollbar, self.scrollable_frame = add_scrollable_frame(self)
+
+        self.title_label = ctk.CTkLabel(self.scrollable_frame, text="Other History", font=("Merriweather", 20, "bold"))
+        self.title_label.grid(row=0, column=0, pady=20, padx=30)
+
+        start_y = 1
+
+        self.hpi_label = ctk.CTkLabel(self.scrollable_frame, text="History of Present Illness", font=("Merriweather", 14))
+        self.hpi_label.grid(row=start_y, column=0, sticky="w", padx=30)
+        self.hpi_info = ctk.CTkLabel(self.scrollable_frame, text="Patient experienced persistent fatigue and swelling.", font=("Merriweather", 14), text_color="black")
+        self.hpi_info.grid(row=start_y+1, column=0, sticky="w", padx=30)
+
+        start_y += 2
+
+        self.pmh_label = ctk.CTkLabel(self.scrollable_frame, text="Pertinent Past Medical History", font=("Merriweather", 14))
+        self.pmh_label.grid(row=start_y, column=0, sticky="w", padx=30)
+        self.pmh_info = ctk.CTkLabel(self.scrollable_frame, text="History of hypertension and Type 2 diabetes.", font=("Merriweather", 14), text_color="black")
+        self.pmh_info.grid(row=start_y+1, column=0, sticky="w", padx=30)
+
+        start_y += 2
+
+        self.kidney_disease_date_label = ctk.CTkLabel(self.scrollable_frame, text="Date of first diagnosed having kidney disease", font=("Merriweather", 14))
+        self.kidney_disease_date_label.grid(row=start_y, column=0, sticky="w", padx=30)
+        self.kidney_disease_date_info = ctk.CTkLabel(self.scrollable_frame, text="March 2015", font=("Merriweather", 14), text_color="black")
+        self.kidney_disease_date_info.grid(row=start_y+1, column=0, sticky="w", padx=30)
+
+        start_y += 2
+
+        self.dialysis_date_label = ctk.CTkLabel(self.scrollable_frame, text="Date of first Dialysis", font=("Merriweather", 14))
+        self.dialysis_date_label.grid(row=start_y, column=0, sticky="w", padx=30)
+        self.dialysis_date_info = ctk.CTkLabel(self.scrollable_frame, text="January 2020", font=("Merriweather", 14), text_color="black")
+        self.dialysis_date_info.grid(row=start_y+1, column=0, sticky="w", padx=30)
+
+        self.mode_label = ctk.CTkLabel(self.scrollable_frame, text="Mode", font=("Merriweather", 14))
+        self.mode_label.grid(row=start_y, column=0, sticky="w", padx=30)
+        self.mode_info = ctk.CTkLabel(self.scrollable_frame, text="Hemodialysis", font=("Merriweather", 14), text_color="black")
+        self.mode_info.grid(row=start_y+1, column=0, sticky="w", padx=30)
+
+        start_y += 2
+
+        self.access_label = ctk.CTkLabel(self.scrollable_frame, text="Access", font=("Merriweather", 14))
+        self.access_label.grid(row=start_y, column=0, sticky="w", padx=30)
+        self.access_info = ctk.CTkLabel(self.scrollable_frame, text="Arteriovenous fistula (AVF)", font=("Merriweather", 14), text_color="black")
+        self.access_info.grid(row=start_y+1, column=0, sticky="w", padx=30)
+
+        start_y += 2
+
+        self.chronic_hemo_date_label = ctk.CTkLabel(self.scrollable_frame, text="Date of first Chronic Hemodialysis (* Leave NA if not)", font=("Merriweather", 14))
+        self.chronic_hemo_date_label.grid(row=start_y, column=0, sticky="w", padx=30)
+        self.chronic_hemo_date_info = ctk.CTkLabel(self.scrollable_frame, text="April 2021", font=("Merriweather", 14), text_color="black")
+        self.chronic_hemo_date_info.grid(row=start_y+1, column=0, sticky="w", padx=30)
+
+        start_y += 2
+
+        self.clinical_impression_label = ctk.CTkLabel(self.scrollable_frame, text="Clinical Impression", font=("Merriweather", 14))
+        self.clinical_impression_label.grid(row=start_y, column=0, sticky="w", padx=30)
+        self.clinical_impression_info = ctk.CTkLabel(self.scrollable_frame, text="End-stage renal disease secondary to diabetes.", font=("Merriweather", 14), text_color="black")
+        self.clinical_impression_info.grid(row=start_y+1, column=0, sticky="w", padx=30)
+
+def add_scrollable_frame(parent_frame, width=600, height=250):
+        canvas = tk.Canvas(parent_frame, bg="white", highlightthickness=0)
+        canvas.pack(side="left", fill="both", expand=True, padx=(0, 10), pady=10)
+
+        scrollbar = ctk.CTkScrollbar(parent_frame, orientation="vertical", command=canvas.yview, fg_color="white", button_color="#1A374D")
+        scrollbar.pack(side="right", fill="y", pady=10)
+
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        scrollable_frame = ctk.CTkFrame(canvas, fg_color="white")
+        scrollable_window = canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+
+        def configure_scroll_region(event):
+            canvas.configure(scrollregion=canvas.bbox("all"))
+
+        def resize_canvas(event):
+            canvas_width = event.width
+            canvas.itemconfig(scrollable_window, width=canvas_width)
+
+        scrollable_frame.bind("<Configure>", configure_scroll_region)
+        canvas.bind("<Configure>", resize_canvas)
+
+        return canvas, scrollbar, scrollable_frame
+
+def create_exit_button(parent, command=None):
+    image = Image.open("assets/exit.png")
+    exit_ctk_image = ctk.CTkImage(light_image=image, dark_image=image, size=(25, 25))
+
+    exit_button = ctk.CTkButton(
+        parent,
+        image=exit_ctk_image,
+        text="",
+        command=command,
+        width=40,
+        height=40,
+        fg_color="transparent"
+    )
+    exit_button.image = exit_ctk_image 
+    return exit_button
 
 class SupplyPage(ctk.CTkFrame):
     def __init__(self, parent):
@@ -447,3 +1008,4 @@ class SettingsPage(ctk.CTkFrame):
         finally:
             cursor.close()
             connect.close()
+            
