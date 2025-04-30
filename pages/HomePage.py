@@ -530,43 +530,23 @@ class PatientPage(ctk.CTkFrame):
     def on_row_click(self, event):
         item_id = self.tree.identify_row(event.y)
         if item_id:
-            patient_data = self.tree.item(item_id, 'values')
-            patient_id = patient_data[0]
-            threading.Thread(target=lambda: self.show_detailed_info(patient_id)).start()
+            threading.Thread(target=self.show_detailed_info).start()
 
-    def show_detailed_info(self, patient_id):
+    def show_detailed_info(self):
         self.table_frame.place_forget()
         self.button_frame.place_forget()
-        detailed_data = self.get_patient_details_from_db(patient_id)
-        if detailed_data:
-            self.display_patient_details(detailed_data)
+
+        self.display_patient_details()
         self.detailed_info_frame.place(x=20, y=20, relwidth=0.95, relheight=0.95)
 
-    def display_patient_details(self, patient_data):
+    def display_patient_details(self):
         self.photo_frame.place(x=50, y=80)
-        self.patient_id_value.configure(text=patient_data[0]) 
 
     def show_table_view(self):
         self.detailed_info_frame.place_forget()
         self.photo_frame.place_forget()
         self.button_frame.place(x=20, y=10, anchor="nw") 
         self.table_frame.place(x=20, y=60, relwidth=0.95, relheight=0.8)
-
-    def get_patient_details_from_db(self, patient_id):
-        try:
-            connect = db()
-            cursor = connect.cursor()
-            cursor.execute("""
-                SELECT * FROM patient_list WHERE patient_id = %s
-            """, (patient_id,))
-            result = cursor.fetchone()
-            return result
-        except Exception as e:
-            print("Error fetching patient details:", e)
-            return None
-        finally:
-            if connect:
-                connect.close()
 
     def open_input_window(self, window_class, data=None):
         input_window = window_class(self.master, data or {})
