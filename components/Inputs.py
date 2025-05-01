@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, PhotoImage
 from tkcalendar import DateEntry
-from datetime import date
+from datetime import date, datetime
 
 from components.buttons import CTkButtonSelectable
 from components.textfields_patients import TextField_Patients
@@ -118,9 +118,10 @@ class PatientInfoWindow(BaseWindow):
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=350)
 
         tk.Label(self, text="Birthdate *", font=("Merriweather Sans bold", 15), bg="white").place(x=720, y=270)
-        self.entry_birthdate = DateEntry(self, width=18, font=("Merriweather light", 12), bg="white", date_pattern="yyyy-MM-dd", state="readonly")
+        self.entry_birthdate = DateEntry(self, width=18, font=("Merriweather light", 12), bg="white", date_pattern="yyyy-MM-dd", state="normal")
         self.entry_birthdate.place(x=720, y=320, height=25)
-
+        
+        # Age field
         tk.Label(self, text="Age *", font=("Merriweather Sans bold", 15), bg="white").place(x=1020, y=270)
         self.entry_age = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         self.entry_age.place(x=1020, y=320, height=25)
@@ -137,7 +138,7 @@ class PatientInfoWindow(BaseWindow):
         self.entry_height.place(x=420, y=440, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=470)
 
-        tk.Label(self, text="Civil Status *", font=("Merriweather Sans bold",15), bg="white").place(x=720, y=390)
+        tk.Label(self, text="Civil Status *", font=("Merriweather Sans bold", 15), bg="white").place(x=720, y=390)
         self.entry_civil_status = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         self.entry_civil_status.place(x=720, y=440, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=720, y=470)
@@ -152,7 +153,19 @@ class PatientInfoWindow(BaseWindow):
         self.entry_address = TextField_Patients(self, width=50, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         self.entry_address.place(x=120, y=560, height=25)
         tk.Frame(self, bg="#979797", height=1, width=500).place(x=120, y=590)
-        
+
+        self.entry_birthdate.bind("<<DateEntrySelected>>", self.update_age)
+
+    def update_age(self, event):
+        try:
+            birthdate = self.entry_birthdate.get_date()
+            today = datetime.today()
+            age = today.year - birthdate.year - ((today.month, today.day) < (birthdate.month, birthdate.day))
+            self.entry_age.delete(0, tk.END)
+            self.entry_age.insert(0, str(age))  
+        except Exception as e:
+            print(f"Error calculating age: {e}")
+    
     def open_next(self, data=None):
         try:
             self.data["patient_last_name"] = self.entry_lastname.get().strip()
@@ -172,6 +185,7 @@ class PatientInfoWindow(BaseWindow):
 
         except Exception as e:
             print("Error with step 1 input: ", e)
+
 
 class ContactPersonWindow(BaseWindow):
     def __init__(self, parent, data=None):
@@ -297,25 +311,27 @@ class PhilHealthInfoWindow(BaseWindow):
         self.entry_membership = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         self.entry_membership.place(x=420, y=240, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=270)
-        
 
-        # PWD & PWD ID Number
+        # PWD
         tk.Label(self, text="PWD", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=310)
         self.pwd_var = tk.BooleanVar()
-        tk.Checkbutton(self, variable=self.pwd_var, bg="white").place(x=120, y=350)
-        tk.Label(self, text="Person with Disability", font=("Merriweather Sans bold", 12), bg="white").place(x=140, y=350)
 
+        tk.Radiobutton(self, text="Yes", variable=self.pwd_var, value="Yes", bg="white", font=("Merriweather Sans", 12)).place(x=120, y=350)
+        tk.Radiobutton(self, text="No", variable=self.pwd_var, value="No", bg="white", font=("Merriweather Sans", 12)).place(x=180, y=350)
+
+        # PWD ID Number
         tk.Label(self, text="PWD ID Number", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=310)
         self.entry_pwd_id = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         self.entry_pwd_id.place(x=420, y=360, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=390)
 
-        # Senior & Senior ID Number
+        # Senior 
         tk.Label(self, text="Senior", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=440)
         self.senior_var = tk.BooleanVar()
-        tk.Checkbutton(self, variable=self.senior_var, bg="white").place(x=120, y=480)
-        tk.Label(self, text="Senior Citizen", font=("Merriweather Sans bold", 12), bg="white").place(x=140, y=480)
+        tk.Radiobutton(self, text="Yes", variable=self.senior_var, value="Yes", bg="white", font=("Merriweather Sans", 12)).place(x=120, y=480)
+        tk.Radiobutton(self, text="No", variable=self.senior_var, value="No", bg="white", font=("Merriweather Sans", 12)).place(x=180, y=480)
 
+        # Senior ID Number
         tk.Label(self, text="Senior ID Number", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=430)
         self.entry_senior_id = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         self.entry_senior_id.place(x=420, y=480, height=25)
