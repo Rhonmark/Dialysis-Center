@@ -136,16 +136,20 @@ class NavbarTop(ctk.CTkFrame):
         self.pack_propagate(False)
         self.configure(border_width=0, border_color="black") 
 
-        self.welcome_label = ctk.CTkLabel(self, text="Welcome Back, !", text_color="black", font=("Arial", 30, "bold"))
+        self.welcome_label = ctk.CTkLabel(self, text="Welcome Back,", text_color="black", font=("Arial", 30, "bold"))
         self.welcome_label.place(relx=0.2, rely=0.5, anchor="e")
+
+        self.name_label = ctk.CTkLabel(self, text="Tristan!", text_color="black", font=("Arial", 30, "bold"))
+        self.name_label.place(relx=0.27, rely=0.5, anchor="e")
+
+        self.namev2_label = ctk.CTkLabel(self, text="Tristan lopez", text_color="black", font=("Arial", 30, "bold"))
+        self.namev2_label.place(relx=0.85, rely=0.5, anchor="e")
 
         profile_img = ctk.CTkImage(light_image=Image.open("assets/profile.png"), size=(42, 42))
         notif_img = ctk.CTkImage(light_image=Image.open("assets/notif.png"), size=(42, 42))
         settings_img = ctk.CTkImage(light_image=Image.open("assets/settingsv2.png"), size=(42, 42))
-        search_img = ctk.CTkImage(light_image=Image.open("assets/search.png"), size=(42, 42))
-        search_img = ctk.CTkImage(light_image=Image.open("assets/Calendar.png"), size=(42, 42))  
 
-        icon_y = 75 
+        icon_y = 62 
 
         profile_btn = ctk.CTkButton(self, image=profile_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5")
         profile_btn.place(relx=1.0, x=-60, y=icon_y, anchor="center")
@@ -233,6 +237,244 @@ class HomePageContent(ctk.CTkFrame):
         super().__init__(parent, fg_color="#E8FBFC")
 
         navbar = NavbarTop(self)
+
+        self.first_frame = ctk.CTkFrame(
+            self,
+            width=1050,
+            height=430,
+            fg_color="white",
+            corner_radius=20,   
+        )
+        self.first_frame.place(x=70, y=150)
+
+        top_bar = ctk.CTkFrame(
+            self.first_frame,
+            width=1050,
+            height=20,
+            fg_color="#68EDC6",
+            corner_radius=0
+        )
+        top_bar.place(x=0, y=0)
+
+        YItemUsage_label = ctk.CTkLabel(
+            self.first_frame,
+            text="Yesterday Item Usage",
+            font=("Merriweather", 20, "bold")
+        )
+        YItemUsage_label.place(x=400, y=40)
+
+        self.second_frame = ctk.CTkFrame(
+            self,
+            width=600,
+            height=435,
+            fg_color="white",
+            corner_radius=20
+        )
+        self.second_frame.place(x=70, y=610)
+
+        top_bar = ctk.CTkFrame(
+            self.second_frame,
+            width=600,
+            height=20,
+            fg_color="#68EDC6",
+            corner_radius=0
+        )
+        top_bar.place(x=0, y=0)
+
+        MUsedItems_label = ctk.CTkLabel(
+            self.second_frame,
+            text="Most Used Items",
+            font=("Merriweather", 20, "bold")
+        )
+
+        MUsedItems_label.place(x=210, y=40)
+
+        self.third_frame = ctk.CTkFrame(
+            self,
+            width=410,
+            height=200,
+            fg_color="white",
+            corner_radius=20
+        )
+        self.third_frame.place(x=710, y=610)
+
+        RecentManual_label = ctk.CTkLabel(
+            self.third_frame,
+            text="Recent Manual Backup:",
+            font=("Merriweather", 17)
+        )
+        RecentManual_label.place(x=30, y=45)
+
+        RecentSched_label = ctk.CTkLabel(
+            self.third_frame,
+            text="Recent Scheduled Backup:",
+            font=("Merriweather", 17)
+        )
+        RecentSched_label.place(x=30, y=75)
+
+        UpcomingSched_label = ctk.CTkLabel(
+            self.third_frame,
+            text="Upcoming Scheduled Backup:",
+            font=("Merriweather", 17)
+        )
+        UpcomingSched_label.place(x=30, y=105)
+
+        left_bar = ctk.CTkFrame(
+            self.third_frame,
+            width=20,
+            height=370,
+            fg_color="#68EDC6",
+            corner_radius=0
+        )
+        left_bar.place(x=0, y=0)
+
+        fourth_frame = ctk.CTkFrame(
+            self,
+            width=410,
+            height=200,
+            fg_color="white",
+            corner_radius=20
+        )
+        fourth_frame.place(x=710, y=845)
+
+        top_bar = ctk.CTkFrame(
+            fourth_frame,
+            width=410,
+            height=40,
+            fg_color="#68EDC6",
+            corner_radius=0
+        )
+        top_bar.place(x=0, y=0)
+
+        recent_label = ctk.CTkLabel(
+            top_bar,
+            text="RECENT PATIENT",
+            font=("Merriweather", 17, "bold"),
+            text_color="white"
+        )
+        recent_label.place(relx=0.27, rely=0.5, anchor="center")
+
+        first_box = ctk.CTkFrame(
+            fourth_frame,
+            width=100,
+            height=120,
+            fg_color="white",
+            border_width=2,
+            border_color="gray",
+            corner_radius=10
+        )
+        first_box.place(x=30, y=60)
+
+        second_box = ctk.CTkFrame(
+            fourth_frame,
+            width=100,
+            height=120,
+            fg_color="white",
+            border_width=2,
+            border_color="gray",
+            corner_radius=10
+        )
+        second_box.place(x=155, y=60)
+
+        third_box = ctk.CTkFrame(
+            fourth_frame,
+            width=100,
+            height=120,
+            fg_color="white",
+            border_width=2,
+            border_color="gray",
+            corner_radius=10
+        )
+        third_box.place(x=280, y=60)
+
+        fifth_frame = ctk.CTkFrame(
+            self,
+            width=350,
+            height=520,
+            fg_color="white",
+            corner_radius=20
+        )
+        fifth_frame.place(x=1200, y=150)
+
+        totalPatients_label = ctk.CTkLabel(
+            fifth_frame,
+            text="Total Patients",
+            font=("Merriweather", 20, "bold")
+        )
+        totalPatients_label.place(x=100, y=40)
+
+        active_icon_image = ctk.CTkImage(
+            light_image=Image.open("assets/active_patients.png"),
+            size=(40, 40)
+        )
+
+        inactive_icon_image = ctk.CTkImage(
+            light_image=Image.open("assets/inactive_patients.png"),
+            size=(40, 40)
+        )
+
+        active_patients = ctk.CTkFrame(
+            fifth_frame,
+            width=270,
+            height=80,
+            fg_color="white",
+            border_width=2,
+            border_color="gray",
+            corner_radius=10
+        )
+        active_patients.place(x=40, y=300)
+
+        active_icon_label = ctk.CTkLabel(
+            active_patients,
+            image=active_icon_image,
+            text="",
+        )
+        active_icon_label.place(x=15, y=20)
+
+        inactive_patients = ctk.CTkFrame(
+            fifth_frame,
+            width=270,
+            height=80,
+            fg_color="white",
+            border_width=2,
+            border_color="gray",
+            corner_radius=10
+        )
+        inactive_patients.place(x=40, y=400)
+
+        inactive_icon_label = ctk.CTkLabel(
+            inactive_patients,
+            image=inactive_icon_image,
+            text="",
+        )
+        inactive_icon_label.place(x=15, y=20)
+
+
+        sixth_frame = ctk.CTkFrame(
+            self,
+            width=350,
+            height=345,
+            fg_color="white",
+            corner_radius=20
+        )
+        sixth_frame.place(x=1200, y=700)
+
+        reminder_label = ctk.CTkLabel(
+            sixth_frame,
+            text="Reminder",
+            font=("Merriweather", 20, "bold")
+        )
+        reminder_label.place(x=120, y=40)
+
+        reminder_img = Image.open("assets/reminder.png")  
+        reminder_ctk_img = ctk.CTkImage(light_image=reminder_img, size=(110, 110))  
+
+        reminder_image_label = ctk.CTkLabel(
+            sixth_frame,
+            image=reminder_ctk_img,
+            text="",  
+        )
+        reminder_image_label.place(x=120, y=100)  
 
 class PatientPage(ctk.CTkFrame):
     def __init__(self, parent, shared_state):
