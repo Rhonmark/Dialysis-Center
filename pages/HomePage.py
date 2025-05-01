@@ -6,10 +6,79 @@ from tkinter import ttk, messagebox
 from components.Inputs import PatientInfoWindow
 from backend.connector import db_connection as db
 from components.state import shared_states
-from backend.crud import retrieve_form_data
+from backend.crud import retrieve_form_data, db_connection
 
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("blue")
+
+class DataRetrieval():
+
+    @staticmethod
+    def patient_info_data(patient_id):
+        return retrieve_form_data(patient_id, "*", table_name="patient_info")
+    
+    @staticmethod
+    def patient_philhealth_data(patient_id):
+        return retrieve_form_data(patient_id, "*", table_name="patient_benefits")
+    
+    @staticmethod
+    def patient_contact_data(patient_id):
+        return retrieve_form_data(patient_id, "*", table_name="patient_contact")
+    
+    @staticmethod
+    def patient_relative_data(patient_id):
+        return retrieve_form_data(patient_id, "*", table_name="patient_relative")
+
+    @staticmethod
+    def patient_family_history(patient_id):
+        return retrieve_form_data(patient_id, 
+                                  "has_hypertension, has_diabetes, has_malignancy, other_family_history",
+                                  table_name='patient_history')
+    
+    @staticmethod
+    def patient_medical_history(patient_id):
+        return retrieve_form_data(patient_id, 
+                                  "has_kidney_disease, has_urinary_stone, has_recurrent_uti, diabetes_type, other_medical_history",
+                                  table_name='patient_history')
+
+    @staticmethod
+    def patient_other_history(patient_id):
+        return retrieve_form_data(patient_id, 
+                                  """
+                                    present_illness_history, past_illness_history, first_diagnosis, first_dialysis, mode,
+                                    access_type, first_hemodialysis, clinical_impression
+                                    """,
+                                  table_name='patient_history')
+    
+    @staticmethod
+    def patient_medicines(patient_id):
+        try:
+            connect, cursor = db_connection()
+            cursor.execute(f"""
+                SELECT m.medication_name FROM patient_medications pm 
+                JOIN medicines m ON m.medication_id = pm.medication_id
+                JOIN patient_info pi ON pm.patient_id = pi.patient_id 
+                WHERE pi.patient_id = {patient_id}
+            """)
+            medication_result = cursor.fetchall()
+            print(medication_result)
+            return medication_result
+        except Exception as e:
+            print('Error with displaying patient medications found at DataRetrieval class: ', e)
+        finally:
+            cursor.close()
+            connect.close()
+
+    @staticmethod
+    def assign_retrieved_data(labels, data):
+        null_values = ('type here', 'na', 'n/a', '', ' ')
+        for i, label in enumerate(labels):
+            value = (
+                data[i] 
+                if (i < len(data) and 
+                    data[i] and 
+                    str(data[i]).strip().lower() not in null_values) else "Not Specified")
+            label.configure(text=str(value))
 
 class HomePage(ctk.CTkFrame):
     def __init__(self, parent, shared_state):
@@ -530,17 +599,73 @@ class PatientPage(ctk.CTkFrame):
     def on_row_click(self, event):
         item_id = self.tree.identify_row(event.y)
         if item_id:
-            threading.Thread(target=self.show_detailed_info).start()
+            patient_data = self.tree.item(item_id, 'values')
+            patient_id = patient_data[0]
+            print("patient id: ", patient_id)
+            threading.Thread(target=lambda: self.show_detailed_info(patient_id)).start()
 
-    def show_detailed_info(self):
+            FamilyHistory().family_history_info(patient_id)
+
+    def show_detailed_info(self, patient_id):
         self.table_frame.place_forget()
         self.button_frame.place_forget()
+        self.patient_id_value.configure(text=patient_id)
+        self.display_patient_id(patient_id)
+        
+        try:
+            get_patient_info_data = DataRetrieval.patient_info_data(patient_id)
 
-        self.display_patient_details()
+            get_patient_philhealth_data = DataRetrieval.patient_philhealth_data(patient_id)
+
+            if get_patient_info_data:
+                self.display_patient_basic_info(get_patient_info_data)
+                print(get_patient_info_data)
+            else:
+                messagebox.showwarning("No Data", "Patient record not found")
+
+            if get_patient_philhealth_data:
+                self.display_patient_philhealth_info(get_patient_philhealth_data)
+                print(get_patient_philhealth_data)
+            else:
+                messagebox.showwarning("No Data", "Patient record not found")
+                
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to load data: {str(e)}")
+
         self.detailed_info_frame.place(x=20, y=20, relwidth=0.95, relheight=0.95)
 
-    def display_patient_details(self):
+    def display_patient_id(self, patient_id):
         self.photo_frame.place(x=50, y=80)
+
+    def display_patient_basic_info(self, data):
+        labels = [
+            self.patient_id_value,
+            self.lastname_labelv,
+            self.firstname_labelv,
+            self.middlename_labelv,
+            self.status_labelv,
+            self.access_type_labelv,
+            self.birthdate_labelv,
+            self.age_labelv,
+            self.gender_labelv,
+            self.height_labelv,
+            self.civil_status_labelv,
+            self.religion_labelv,
+            self.address_labelv,
+        ]
+        DataRetrieval.assign_retrieved_data(labels, data)
+
+    def display_patient_philhealth_info(self, data):
+        labels = [  
+            self.patient_id_value,
+            self.senior_labelv,
+            self.pwd_labelv,
+            self.philhealth_number_labelv,
+            self.membership_labelv,
+            self.pwd_id_labelv,
+            self.senior_id_labelv
+        ]
+        DataRetrieval.assign_retrieved_data(labels, data)
 
     def show_table_view(self):
         self.detailed_info_frame.place_forget()
@@ -607,6 +732,7 @@ class PatientHistory(ctk.CTkFrame):
 
         self.exit_button = create_exit_button(self, command=self.exit_patienthistory)
         self.exit_button.place(x=1330, y=15)
+
 
     def exit_patienthistory(self):
         print("Patient History closed")
@@ -767,6 +893,25 @@ class FamilyHistory(ctk.CTkFrame):
 
         self.mother_history = ctk.CTkLabel(self.scrollable_frame, text="Mother: Diabetes", font=("Merriweather", 14), text_color="black")
         self.mother_history.place(x=30, y=150)
+
+    def family_history_info(self, patient_id):
+        try:
+            patient_family_history = DataRetrieval.patient_family_history(patient_id)
+            print(patient_family_history)
+
+            if patient_family_history:
+                self.display_family_history(patient_family_history)
+            else:
+                messagebox.showwarning("No Data", "Patient record not found")
+
+        except Exception as e:
+            print(e)
+
+    # def display_family_history(self, data):
+    #     labels = [
+
+    #     ]
+
 
 class MedicalHistory(ctk.CTkFrame):
     def __init__(self, master=None, **kwargs):

@@ -239,7 +239,7 @@ def update_changes(patient_id, column, row, table_name):
      cursor.close()
      connect.close()
 
-
+#mak code
 def get_full_patient_details(patient_id):
         try:
             connect, cursor = db_connection()
