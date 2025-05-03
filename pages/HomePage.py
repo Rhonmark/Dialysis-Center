@@ -1362,23 +1362,280 @@ def create_exit_button(parent, command=None):
 class SupplyPage(ctk.CTkFrame):
     def __init__(self, parent):
         super().__init__(parent, fg_color="#E8FBFC")
-        label = ctk.CTkLabel(self, text="Supply Page", font=("Arial", 24))
-        label.pack(pady=100)
+        
+        output_font = ("Merriweather", 15)
+        label_font = ("Merriweather Sans bold", 15)
+        button_font = ("Merriweather Bold",20)
+        title_font = ("Merriweather Bold",20)
 
+        style = ttk.Style()
+        style.configure("Treeview", font=label_font, rowheight=35)
+        style.configure("Treeview.Heading", font=label_font)
+        style.map("Treeview", background=[("selected", "#68EDC6")])
+
+        self.hovered_row = None
         self.button_frame = ctk.CTkFrame(self, fg_color="#E8FBFC")
         self.button_frame.pack(pady=10)
 
+          #Add Button
         self.add_button = ctk.CTkButton(
-            self.button_frame, text="Add", font=ctk.CTkFont("Arial", 16, "bold"),
+            self.button_frame, text="Add", font=button_font,
             width=120, command=self.open_add_window
         )
         self.add_button.pack(side="left", padx=5)
 
+        #Edit Button
         self.edit_button = ctk.CTkButton(
-            self.button_frame, text="Edit", font=ctk.CTkFont("Arial", 16, "bold"),
+            self.button_frame, text="Edit", font=button_font,
             width=120, command=self.open_edit_window
         )
         self.edit_button.pack(side="left", padx=5)
+
+        #Table
+        self.table_frame = ctk.CTkFrame(self, fg_color="#1A374D", border_width=2, border_color="black")
+        self.table_frame.place(x=20, y=60, relwidth=0.95, relheight=0.8)
+
+        tree_container = ctk.CTkFrame(self.table_frame, fg_color="black")
+        tree_container.pack(fill="both", expand=True, padx=1, pady=1)
+
+        columns = ("", "", "", "", "", "")
+        self.tree = ttk.Treeview(tree_container, columns=columns, show="headings", height=12)
+        self.tree.pack(side="left", fill="both", expand=True)
+
+        headers = [
+            ("ITEM ID", 140),
+            ("ITEM NAME", 200),
+            ("CATEGORY", 140),
+            ("DATE REGISTERED", 180),
+            ("DATE RESTOCKED", 180),
+            ("REMAINING STOCK", 140)
+        ]
+
+        
+        #Sample Data
+        self.tree.insert("" ,"end",values=("202512","Needle","Disposable","2025-12-05","2025-12-05","180"))
+        
+        for (text, width), col in zip(headers, columns):
+            self.tree.heading(col, text=text)
+            self.tree.column(col, width=width, anchor="center")
+
+        scrollbar = ctk.CTkScrollbar(tree_container, orientation="vertical", command=self.tree.yview)
+        self.tree.configure(yscrollcommand=scrollbar.set)
+        scrollbar.pack(side="right", fill="y")
+        self.tree.bind("<<TreeviewSelect>>", self.on_row_selected)
+
+        #Main Frame
+        self.Main_Supply_Frame= ctk.CTkFrame(self, fg_color="#E8FBFC")
+
+        self.back_button = ctk.CTkButton(self.Main_Supply_Frame, text="Back", font=button_font,
+            corner_radius=20,
+            width=200,
+            height=40,
+            fg_color="#01516D",
+            hover_color="#013B50",
+    
+            )
+        self.back_button.place(x=40, y=30)
+
+        self.upload_button = ctk.CTkButton(self.Main_Supply_Frame, text="Upload Photo", font=button_font,
+            corner_radius=20,
+            width=200,
+            height=40,
+            fg_color="#00C88D",
+            hover_color="#013B50")
+        self.upload_button.place(x=1100, y=30)
+
+        self.edit_button_detailed = ctk.CTkButton(self.Main_Supply_Frame, text="Edit Details", font=button_font,
+            corner_radius=20,
+            width=200,
+            height=40,
+            fg_color="#01516D",
+            hover_color="#013B50")
+        self.edit_button_detailed.place(x=1350, y=30)
+        
+        #PhotoFrame
+        self.Suppyphotoframe = ctk.CTkFrame(self.Main_Supply_Frame, 
+            width=400,
+            height=400,
+            fg_color="white",
+            corner_radius=20
+        )
+        self.Suppyphotoframe.place(x=50,y=120)
+
+        self.top_frame = ctk.CTkFrame(
+            self.Suppyphotoframe,
+            width=400,
+            height=250,
+            fg_color="#68EDC6",
+            corner_radius=0
+        )
+        self.top_frame.place(x=0, y=0)
+        
+        #Supply ID Label
+        self.supply_id_label = ctk.CTkLabel(
+            self.Suppyphotoframe,
+            text="Patient ID",
+            font=label_font,
+            text_color="black",
+        )
+        self.supply_id_label.place(relx=0.5, rely=0.70, anchor="center")
+
+        #Supply ID Output
+        self.supply_id_value = ctk.CTkLabel(
+            self.Suppyphotoframe,
+            text="",
+            font=output_font,
+            text_color="black"
+        )
+        self.supply_id_value.place(relx=0.5, rely=0.80, anchor="center")
+
+        #Supply Info Frame
+        supply_info_frame = ctk.CTkFrame(
+            self.Main_Supply_Frame,
+            width=950,
+            height=300,
+            fg_color="white",
+            corner_radius=20
+        )
+        supply_info_frame.place(x=600, y=120) 
+
+        left_bar = ctk.CTkFrame(
+            supply_info_frame,
+            width=20,
+            height=300,
+            fg_color="#68EDC6",
+            bg_color="white",
+            corner_radius=20
+        )
+        left_bar.place(x=0, y=0)
+
+        Supply_title_label = ctk.CTkLabel(supply_info_frame, text="Supply Info", font=title_font)
+        Supply_title_label.place(x=40, y=50)
+
+        #Supply Name Label  and Output
+        self.Supply_Name_Label = ctk.CTkLabel(supply_info_frame, text="Supply Name" , font=label_font)
+        self.Supply_Name_Label.place(x=80,y=100)
+        self.Supply_Name_Output = ctk.CTkLabel(supply_info_frame, text="Needle" , font=output_font)
+        self.Supply_Name_Output.place(x=80,y=130)
+
+        #Category Label and Output
+        self.Category_Label = ctk.CTkLabel(supply_info_frame, text="Category" , font=label_font)
+        self.Category_Label.place(x=300,y=100)
+        self.Category_Output = ctk.CTkLabel(supply_info_frame, text="Disposable" , font=output_font)
+        self.Category_Output.place(x=300,y=130)
+
+        #Last Restock Quantity Label and Output
+        self.LastRestock_Label = ctk.CTkLabel(supply_info_frame, text="Last Restock Qty." , font=label_font)
+        self.LastRestock_Label.place(x=520,y=100)
+        self.LastRestock_Output = ctk.CTkLabel(supply_info_frame, text="120" , font=output_font)
+        self.LastRestock_Output.place(x=520,y=130)
+
+        #Last Restocked Date Label and Output
+        self.LastRestock_Date_Label = ctk.CTkLabel(supply_info_frame, text="Last Restock Date" , font=label_font)
+        self.LastRestock_Date_Label.place(x=740,y=100)
+        self.LastRestock_Date_Output = ctk.CTkLabel(supply_info_frame, text="2025-12-12" , font=output_font)
+        self.LastRestock_Date_Output.place(x=740,y=130)
+
+        #Date Registered Label and Output
+        self.Registered_Date_Label = ctk.CTkLabel(supply_info_frame, text="Date Registered" , font=label_font)
+        self.Registered_Date_Label.place(x=80,y=200)
+        self.Registered_Date_Output = ctk.CTkLabel(supply_info_frame, text="2025-12-12" , font=output_font)
+        self.Registered_Date_Output.place(x=80,y=230)
+
+        #ON WORK 
+        storage_meter_frame = ctk.CTkFrame(
+            self.Main_Supply_Frame,
+            width=950,
+            height=250,
+            fg_color="white",
+            corner_radius=20
+        )
+        storage_meter_frame.place(x=600, y=430)
+
+        left_bar = ctk.CTkFrame(
+            storage_meter_frame,
+            width=20,
+            height=250,
+            fg_color="#68EDC6",
+            bg_color="white",
+            corner_radius=20
+        )
+        left_bar.place(x=0, y=0)
+
+        storageMeter_title_label = ctk.CTkLabel(storage_meter_frame, text="Inventory Quantity", font=title_font)
+        storageMeter_title_label.place(x=40, y=20)
+
+       
+        self.StorageMeter = ctk.CTkProgressBar(storage_meter_frame,width=800,height=40,fg_color="white",progress_color="green",border_width=1,border_color="black",)
+        self.StorageMeter.place(x=100,y=100)
+
+        self.Status_Label = ctk.CTkLabel(storage_meter_frame,text="Status :" , font=label_font)
+        self.Status_Label.place(x=100,y=180)
+
+        self.Status_Output = ctk.CTkLabel(storage_meter_frame,text="On Stock" , font=label_font)
+        self.Status_Output.place(x=180,y=180)
+
+        self.Available_Items_Label = ctk.CTkLabel(storage_meter_frame,text="Availalbe Items :" , font=label_font)
+        self.Available_Items_Label.place(x=650,y=180)
+
+        self.Remaining_Output = ctk.CTkLabel(storage_meter_frame,text="175" , font=label_font)
+        self.Remaining_Output.place(x=790,y=180)
+
+        self.Seperator_Output = ctk.CTkLabel(storage_meter_frame,text="/" , font=label_font)
+        self.Seperator_Output.place(x=830,y=180)
+
+        self.Capacity_Output = ctk.CTkLabel(storage_meter_frame,text="200" , font=label_font)
+        self.Capacity_Output.place(x=850,y=180)
+         
+        #Daily Usage Frame
+        self.Daily_Usage_Frame = ctk.CTkFrame(self.Main_Supply_Frame,
+                width=450,
+                height=350,
+                fg_color="white",
+                corner_radius=20  )
+        self.Daily_Usage_Frame.place(x=600,y=700)
+
+        self.Top_bar=ctk.CTkFrame(self.Daily_Usage_Frame,
+                width=450,
+                height=20,
+                fg_color="#68EDC6")
+        self.Top_bar.place(y=0)
+
+        Daily_Usage_Title = ctk.CTkLabel(self.Daily_Usage_Frame, text="Daily Usage", font=title_font)
+        Daily_Usage_Title.place(x=150, y=40)
+
+        #Weekly Usage Frame
+        self.Weekly_Usage_Frame = ctk.CTkFrame(self.Main_Supply_Frame,
+                width=450,
+                height=350,
+                fg_color="white",
+                corner_radius=20  )
+        self.Weekly_Usage_Frame.place(x=1100,y=700)
+
+        Daily_Usage_Title = ctk.CTkLabel(self.Weekly_Usage_Frame, text="Weekly Usage", font=title_font)
+        Daily_Usage_Title.place(x=150, y=40)
+
+        self.Top_bar=ctk.CTkFrame(self.Weekly_Usage_Frame,
+                width=450,
+                height=20,
+                fg_color="#68EDC6")
+        self.Top_bar.place(y=0)
+
+
+
+    #Not Permanent Add on lang  para once na click yung row mag pop up yung Output
+    def on_row_selected(self, event):
+        selected_item = self.tree.selection()
+        if selected_item:
+            values = self.tree.item(selected_item[0], "values")
+
+            self.supply_id_value.configure(text=values[0])
+            self.Supply_Name_Output.configure(text=values[1])
+            self.Category_Output.configure(text=values[2])
+            self.LastRestock_Output.configure(text=values[5])
+            self.LastRestock_Date_Output.configure(text=values[4])
+
+            self.Main_Supply_Frame.place(x=0, y=0, relwidth=1, relheight=1)
 
     def open_add_window(self):
         SupplyWindow(self)  
