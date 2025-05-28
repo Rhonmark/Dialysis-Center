@@ -16,7 +16,7 @@ def main():
         if page_name == "LoginPage":
             from pages.LoginPage import LoginPage
             root.attributes('-fullscreen', False)  
-            root.geometry("1280x720")
+            root.geometry("1280x720")   
             position_window(1280, 720)
             new_page = LoginPage(root, shared_state)
         elif page_name == "RegisterPage":
