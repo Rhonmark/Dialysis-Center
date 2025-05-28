@@ -5,7 +5,7 @@ from PIL import Image, ImageTk
 from backend.input_validator import login_validation
 from backend.crud import get_login_credentials, get_existing_credentials
 from backend.connector import db_connection as db
-from components.state import shared_states
+from components.state import login_shared_states
 import customtkinter as ctk
 from components.buttons import CTkButtonSelectable, apply_selected_state
 
@@ -206,12 +206,14 @@ class LoginPage(tk.Frame):
     def on_login_click(self):
 
         username = self.username_field.get().strip()
-        shared_states['logged_username'] = username    
+        login_shared_states['logged_username'] = username    
         password = self.password_field.get().strip()
         user_role = get_login_credentials(username, target_data="role")
         selected_role = self.shared_state.get("selected_role", None)  
         stored_user_password = get_login_credentials(username, target_data="password")
-        existing_username = get_existing_credentials(username, target_data="COUNT(*)")
+        existing_username = get_existing_credentials(username, 'username', table_name='users')
+
+        print(username)
 
         try:
             connect, cursor = self.db_connection()
@@ -243,7 +245,7 @@ class LoginPage(tk.Frame):
                 connect.commit()
 
                 self.display_error("You have successfully logged in")
-                print("This is your username state: ", shared_states)
+                print("This is your username state: ", login_shared_states)
                 self.after(2000, lambda: self.shared_state["navigate"]("HomePage"))
             else:
                 self.display_error("Invalid Password")

@@ -6,7 +6,7 @@ from tkinter import ttk, messagebox
 from components.Inputs import PatientInfoWindow
 from backend.connector import db_connection as db
 from components.input_supply import SupplyWindow
-from components.state import shared_states
+from components.state import login_shared_states
 from backend.crud import retrieve_form_data, db_connection
 
 ctk.set_appearance_mode("light")
@@ -1748,7 +1748,7 @@ class SettingsPage(ctk.CTkFrame):
     def logout(self):
         try:
             connect, cursor = self.db_connection()
-            username = shared_states.get('logged_username', None)
+            username = login_shared_states.get('logged_username', None)
 
             cursor.execute("""
                 UPDATE sessions

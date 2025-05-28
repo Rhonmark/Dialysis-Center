@@ -255,7 +255,7 @@ class RegisterPage(tk.Frame):
                 self.display_error("All fields are required!")
                 return
 
-            existing_username = get_existing_credentials(username, target_data="COUNT(*)")
+            existing_username = get_existing_credentials(username, 'username', table_name='users' )
             if existing_username:
                 self.display_error(existing_username)
                 return

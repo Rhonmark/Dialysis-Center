@@ -2,6 +2,7 @@ import customtkinter as ctk
 from tkinter import Toplevel
 from tkcalendar import Calendar
 from PIL import Image
+from backend.crud import submit_form_creation, submit_form_subcreation, get_existing_credentials
 
 class CTkMessageBox(ctk.CTkToplevel):
     def __init__(self, parent, title, message, box_type="info"):
@@ -138,25 +139,25 @@ class SupplyWindow(SupplyBaseWindow):
         create_underline(420, 230, 140)
 
         ctk.CTkLabel(self, text="Last Restock Quantity", font=label_font, fg_color="white", text_color="black").place(x=720, y=150)
-        entry_maxquantity = ctk.CTkEntry(self, width=150, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0,
+        entry_restock_quantity = ctk.CTkEntry(self, width=150, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0,
                                         bg_color="white")
-        entry_maxquantity.place(x=720, y=200)
+        entry_restock_quantity.place(x=720, y=200)
         ctk.CTkLabel(self, text="*Not Required", font=not_required_font, text_color="red", bg_color="white").place(x=890, y=145)
         create_underline(720, 230, 180)
-        add_placeholder(entry_maxquantity, "Type here")
+        add_placeholder(entry_restock_quantity, "Type here")
 
         ctk.CTkLabel(self, text="Last Restock Date", font=label_font, fg_color="white", text_color="black").place(x=1020, y=150)
-        entry_date = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0,
+        entry_restock_date = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0,
                                  bg_color="white")
-        entry_date.place(x=1020, y=200)
-        entry_date.bind("<Key>", lambda e: "break")
-        entry_date.bind("<Button-3>", lambda e: "break")
+        entry_restock_date.place(x=1020, y=200)
+        entry_restock_date.bind("<Key>", lambda e: "break")
+        entry_restock_date.bind("<Button-3>", lambda e: "break")
         ctk.CTkLabel(self, text="*Not Required", font=not_required_font, text_color="red", bg_color="white").place(x=1160, y=145)
         create_underline(1020, 230, 140)
-        add_placeholder(entry_date, "Select date")
+        add_placeholder(entry_restock_date, "Select date")
 
         dropdown_btn = ctk.CTkButton(self, text="▼", width=30, font=entry_font, height=30, corner_radius=8,
-                                     command=lambda: open_calendar(entry_date), bg_color="white",
+                                     command=lambda: open_calendar(entry_restock_date), bg_color="white",
                                      fg_color="#1A374D", hover_color="#68EDC6", text_color="black")
         dropdown_btn.place(x=1170, y=200)
 
@@ -172,15 +173,16 @@ class SupplyWindow(SupplyBaseWindow):
             top.grab_set()
             top.overrideredirect(True)
             top.geometry(f"+{self.winfo_rootx() + 1000}+{self.winfo_rooty() + 230}")
-            cal = Calendar(top, date_pattern='MM-dd-yyyy')
+            cal = Calendar(top, date_pattern='yyyy-mm-dd')
             cal.pack(padx=10, pady=10)
             cal.bind("<<CalendarSelected>>", on_date_select)
 
-        def on_save_click():
+        def on_save_click(data=None):
+
             item_name = entry_itemname.get()
             category = entry_category.get()
-            max_quantity = entry_maxquantity.get()
-            restock_date = entry_date.get()
+            restock_quantity = entry_restock_quantity.get()
+            restock_date = entry_restock_date.get()
 
             if item_name == "" or item_name == "Type here":
                 print("Save failed: Item Name is required.")
@@ -190,7 +192,39 @@ class SupplyWindow(SupplyBaseWindow):
                 print("Save failed: Category is required.")
                 CTkMessageBox.show_error("Input Error", "Category is required.", parent=self)
                 return
-            
+
+            try:
+                supply_information = {
+                    'item_name': item_name,
+                    'category': category,
+                    'restock_quantity': restock_quantity,
+                    'restock_date': restock_date
+                }
+
+                supply_column = ', '.join(supply_information.keys())
+                supply_row = [f"{entries}" for entries in supply_information.values()]
+
+                # print(item_name, category, restock_quantity, restock_date)
+                # print('supply column: ', supply_column)
+                # print('supply row: ', supply_row)
+
+                check_uniqueness = get_existing_credentials(item_name, 'item_name', table_name='supply')
+
+                if check_uniqueness:
+                    CTkMessageBox.show_error("Error", 'Items already exists ', parent=self)
+                    return
+                
+                item_id = submit_form_creation(supply_column, supply_row, table_name='supply')
+
+                if item_id: 
+                    print('Item ID: ', item_id)
+                else:
+                    print('Item ID creation error')
+                    return
+                
+            except Exception as e:
+                CTkMessageBox.show_error("Error", 'Something went wrong! ', e, parent=self)
+
             print("Supply information saved successfully!")
             CTkMessageBox.show_success("Success", "Supply information saved successfully!", parent=self)
             self.destroy()

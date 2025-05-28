@@ -16,7 +16,7 @@ def db_connection():
 def register_to_db(role, username, password, secret_question, secret_answer):
   try:
     connect, cursor = db_connection()
-    connect.start_transaction()
+    # connect.start_transaction()
     query = """
         INSERT INTO users (role, username, password, secret_question, secret_answer)
         VALUES (%s, %s, %s, %s, %s)
@@ -26,7 +26,7 @@ def register_to_db(role, username, password, secret_question, secret_answer):
     connect.commit()
     return "Registration Successful"
   except Exception as e:
-      connect.rollback()
+    #   connect.rollback()
       print("Error with register user...", e)
   finally:
       cursor.close()
@@ -59,23 +59,21 @@ def set_new_password(password, username):
     cursor.close()
     connect.close()
 
-def get_existing_credentials(username, target_data):
+def get_existing_credentials(username, target_field, table_name):
   try:
     connect, cursor = db_connection()
 
-    column_name = ['users']
-
-    query = f"SELECT {target_data} FROM users WHERE username = %s"
+    query = f"SELECT COUNT(*) FROM {table_name} WHERE {target_field} = %s"
     cursor.execute(query, [username])
     result = cursor.fetchone()[0]
 
     if result > 0:
-       return "Username already taken"
+       return "Field already exist"
     else:
        return None
 
   except Exception as e:
-    print(f"Error fetching {target_data} ", e)
+    print(f"Error fetching unique count (get_existing_credentials function) ", e)
   finally:
      cursor.close()
      connect.close()
@@ -93,10 +91,10 @@ def submit_form_creation(column, row, table_name):
                 VALUES({values_placeholder})
             """
             cursor.execute(query, tuple(row))
-            pk_patient_id = cursor.lastrowid  
+            unique_id = cursor.lastrowid  
             connect.commit()  
             
-            return pk_patient_id 
+            return unique_id 
         
         except Exception as e:
             print("Patient info creation error: ", e)
