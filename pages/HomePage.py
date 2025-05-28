@@ -481,6 +481,7 @@ class PatientPage(ctk.CTkFrame):
     def __init__(self, parent, shared_state):
         super().__init__(parent, fg_color="#E8FBFC")
         self.shared_state = shared_state
+        self.patient_id = None 
 
         style = ttk.Style()
         style.configure("Treeview", font=("Arial", 14), rowheight=35)
@@ -800,13 +801,25 @@ class PatientPage(ctk.CTkFrame):
         self.patient_history_window = PatientHistory(self.master)
         self.patient_history_window.place(x=60, y=10)
 
+        patient_id = self.patient_id_value.cget("text")
+
+        patient_family_history = DataRetrieval.patient_family_history(patient_id)
+        patient_medical_history = DataRetrieval.patient_medical_history(patient_id)
+        patient_other_history = DataRetrieval.patient_other_history(patient_id)
+
+        self.patient_history_window.family_history.display_family_history(patient_family_history)
+        self.patient_history_window.medical_history.display_medical_history(patient_medical_history)
+        self.patient_history_window.other_history.display_other_history(patient_other_history)
+
     def open_medication(self):
         self.medication_window = Medication(self.master)
         self.medication_window.place(x=60, y=10)
+        self.medication_window.medication_info(self.patient_id_value.cget("text"))
 
     def open_contact_info(self):
         self.contact_info_window = ContactInfoRelativeInfo(self.master)
         self.contact_info_window.place(x=60, y=10)
+        self.contact_info_window.contact_relative_info(self.patient_id_value.cget("text"))
 
     def fetch_patient_data(self):
         try:
@@ -845,10 +858,14 @@ class PatientPage(ctk.CTkFrame):
             patient_data = self.tree.item(item_id, 'values')
             patient_id = patient_data[0]
             print("patient id: ", patient_id)
-            threading.Thread(target=lambda: self.show_detailed_info(patient_id)).start()
 
+            """ContactInfoRelativeInfo().contact_relative_info(patient_id)
             FamilyHistory().family_history_info(patient_id)
             MedicalHistory().medical_history_info(patient_id)
+            OtherHistory().other_history_info(patient_id)
+            Medication().medication_info(patient_id)"""
+
+            threading.Thread(target=lambda: self.show_detailed_info(patient_id)).start()
 
     def show_detailed_info(self, patient_id):
         self.table_frame.place_forget()
@@ -858,18 +875,17 @@ class PatientPage(ctk.CTkFrame):
         
         try:
             get_patient_info_data = DataRetrieval.patient_info_data(patient_id)
-
             get_patient_philhealth_data = DataRetrieval.patient_philhealth_data(patient_id)
 
             if get_patient_info_data:
                 self.display_patient_basic_info(get_patient_info_data)
-                print(get_patient_info_data)
+                print("patient info: ", get_patient_info_data)
             else:
                 messagebox.showwarning("No Data", "Patient record not found")
 
             if get_patient_philhealth_data:
                 self.display_patient_philhealth_info(get_patient_philhealth_data)
-                print(get_patient_philhealth_data)
+                print("patient philhealth info: ", get_patient_philhealth_data)
             else:
                 messagebox.showwarning("No Data", "Patient record not found")
                 
@@ -956,7 +972,7 @@ class PatientPage(ctk.CTkFrame):
 
 class PatientHistory(ctk.CTkFrame):
     def __init__(self, master=None, **kwargs):
-        super().__init__(master, width=1443, height=1100, fg_color="white", corner_radius=20, **kwargs)
+        super().__init__(master, width=1443, height=1000, fg_color="white", corner_radius=20, **kwargs)
         self.pack_propagate(False)
 
         self.left_bar = ctk.CTkFrame(self, width=20, fg_color="#1A374D", corner_radius=0)
@@ -977,47 +993,58 @@ class PatientHistory(ctk.CTkFrame):
         self.exit_button = create_exit_button(self, command=self.exit_patienthistory)
         self.exit_button.place(x=1330, y=15)
 
-
     def exit_patienthistory(self):
         print("Patient History closed")
         self.place_forget()
 
 class Medication(ctk.CTkFrame):
     def __init__(self, master=None, **kwargs):
-        super().__init__(master, width=1400, height=650, fg_color="white", corner_radius=20, **kwargs)
+        super().__init__(master, width=980, height=400, fg_color="white", corner_radius=20, **kwargs)
         self.pack_propagate(False)
 
         self.left_bar = ctk.CTkFrame(self, width=20, fg_color="#1A374D", corner_radius=0)
         self.left_bar.pack(side="left", fill="y")
 
-        self.canvas, self.scrollbar, self.scrollable_frame = add_scrollable_frame(self)
-
         self.title_label = ctk.CTkLabel(self, text="Medication", font=("Merriweather", 20, "bold"))
-        self.title_label.place(x=50, y=20)
+        self.title_label.place(x=40, y=20)
 
-        self.exit_button = create_exit_button(self, command=self.exit_medication)
-        self.exit_button.place(x=1330, y=15)
+        self.medication_header = ctk.CTkLabel(self, text="Drugs Taken", font=("Merriweather", 16))
+        self.medication_header.place(x=60, y=70)
 
-        self.medication_label = ctk.CTkLabel(self.scrollable_frame, text="Drugs Taken", font=("Merriweather", 16))
-        self.medication_label.place(x=30, y=35)
-
-        meds = [
-            "Amlodipine 10mg",
-            "Metformin 500mg",
-            "Erythropoietin Injection",
-            "Sevelamer 800mg",
-            "Calcium Carbonate 500mg"
-        ]
-
-        y_position = 60
-        for med in meds:
-            med_label = ctk.CTkLabel(self.scrollable_frame, text=med, font=("Merriweather", 13), text_color="black")
-            med_label.place(x=30, y=y_position)
+        self.medication_labels = []
+        y_position = 100
+        for _ in range(10):
+            label = ctk.CTkLabel(self, text="", font=("Merriweather", 13), text_color="black")
+            label.place(x=60, y=y_position)
+            self.medication_labels.append(label)
             y_position += 30
 
-    def exit_medication(self):
-        print("Medication closed")
+        self.exit_button = create_exit_button(self, command=self.exit_panel)
+        self.exit_button.place(x=900, y=15)
+
+    def exit_panel(self):
+        print("Contact and Relative Info closed")
         self.place_forget()
+
+    def medication_info(self, patient_id):
+        try:
+            medication_data = DataRetrieval.patient_medicines(patient_id)
+            print("Medications: ", medication_data)
+
+            if medication_data:
+                self.display_medications(medication_data)
+            else:
+                print("No Data", "No medications found for this patient.")
+        except Exception as e:
+            print(f"[Error] Failed to retrieve medication info: {e}")
+
+    def display_medications(self, meds):
+        for label in self.medication_labels:
+            label.configure(text="")
+
+        for i, med in enumerate(meds):
+            if i < len(self.medication_labels):
+                self.medication_labels[i].configure(text=f"• {med[0]}")
 
 class ContactInfoRelativeInfo(ctk.CTkFrame):
     def __init__(self, master=None, **kwargs):
@@ -1111,6 +1138,46 @@ class ContactInfoRelativeInfo(ctk.CTkFrame):
         print("Contact and Relative Info closed")
         self.place_forget()
 
+    def contact_relative_info(self, patient_id):
+        try:
+            contact_data = DataRetrieval.patient_contact_data(patient_id)
+            relative_data = DataRetrieval.patient_relative_data(patient_id)
+            print("contact: ", contact_data)
+            print("relative: ", relative_data)
+
+            if contact_data:
+                contact_labels = [
+                    self.last_name_value,
+                    self.first_name_value,
+                    self.middle_name_value,
+                    self.contact_number_value,
+                    self.relationship_value,
+                    self.address_value
+                ]
+                DataRetrieval.assign_retrieved_data(contact_labels, contact_data)
+            else:
+                messagebox.showwarning("No Data", "Contact information not found.")
+
+            if relative_data:
+                relative_labels = [
+                    self.relative_last_name_value,
+                    self.relative_first_name_value,
+                    self.relative_middle_name_value,
+                    self.relative_contact_number_value,
+                    self.relative_address_value
+                ]
+                DataRetrieval.assign_retrieved_data(relative_labels, relative_data)
+            else:
+                messagebox.showwarning("No Data", "Relative information not found.")
+
+        except Exception as e:
+            print(f"[Error] Failed to retrieve contact/relative info: {e}")
+
+    def exit_panel(self):
+        print("Contact and Relative Info closed")
+        self.place_forget()
+
+
 class FamilyHistory(ctk.CTkFrame):
     def __init__(self, master=None, **kwargs):
         super().__init__(master, width=600, height=250, fg_color="white", corner_radius=20, **kwargs)
@@ -1154,7 +1221,7 @@ class FamilyHistory(ctk.CTkFrame):
     def family_history_info(self, patient_id):
         try:
             patient_family_history = DataRetrieval.patient_family_history(patient_id)
-            print(patient_family_history)
+            print("patient family history: ", patient_family_history)
 
             if patient_family_history:
                 self.display_family_history(patient_family_history)
@@ -1186,7 +1253,6 @@ class MedicalHistory(ctk.CTkFrame):
         )
         self.left_bar.pack(side="left", fill="y")
 
-        # Add scrollable frame here
         self.canvas, self.scrollbar, self.scrollable_frame = add_scrollable_frame(self)
 
         self.title_label = ctk.CTkLabel(
@@ -1228,7 +1294,7 @@ class MedicalHistory(ctk.CTkFrame):
     def medical_history_info(self, patient_id):
         try:
             patient_medical_history = DataRetrieval.patient_medical_history(patient_id)
-            print(patient_medical_history)
+            print("patient medical history: ", patient_medical_history)
             if patient_medical_history:
                 self.display_medical_history(patient_medical_history)
             else:
@@ -1247,77 +1313,85 @@ class MedicalHistory(ctk.CTkFrame):
         ]
         DataRetrieval.assign_retrieved_data(labels, data)
 
-
 class OtherHistory(ctk.CTkFrame):
     def __init__(self, master=None, **kwargs):
         super().__init__(master, width=1255, height=474, fg_color="white", corner_radius=20, **kwargs)
         self.pack_propagate(False)
 
-        self.left_bar = ctk.CTkFrame(
-            self,
-            width=20,
-            fg_color="#68EDC6",
-            corner_radius=0)
+        self.left_bar = ctk.CTkFrame(self, width=20, fg_color="#68EDC6", corner_radius=0)
         self.left_bar.pack(side="left", fill="y")
 
-        self.canvas, self.scrollbar, self.scrollable_frame = add_scrollable_frame(self)
+        y_offset = 20
+        spacing = 40
 
-        self.title_label = ctk.CTkLabel(self.scrollable_frame, text="Other History", font=("Merriweather", 20, "bold"))
-        self.title_label.grid(row=0, column=0, pady=20, padx=30)
+        def add_label_pair(text, y):
+            label = ctk.CTkLabel(self, text=text, font=("Merriweather", 14))
+            label.place(x=30, y=y)
+            info = ctk.CTkLabel(self, text="", font=("Merriweather", 14), text_color="black")
+            info.place(x=50, y=y + 25)
+            return info
 
-        start_y = 1
+        self.hpi_info = add_label_pair("History of Present Illness", y_offset)
+        y_offset += 70
 
-        self.hpi_label = ctk.CTkLabel(self.scrollable_frame, text="History of Present Illness", font=("Merriweather", 14))
-        self.hpi_label.grid(row=start_y, column=0, sticky="w", padx=30)
-        self.hpi_info = ctk.CTkLabel(self.scrollable_frame, text="Patient experienced persistent fatigue and swelling.", font=("Merriweather", 14), text_color="black")
-        self.hpi_info.grid(row=start_y+1, column=0, sticky="w", padx=30)
+        self.pmh_info = add_label_pair("Pertinent Past Medical History", y_offset)
+        y_offset += 70
 
-        start_y += 2
+        labels = ["Date first diagnosed having kidney disease", "Date of First Dialysis", "Mode", "Access Type"]
+        x_positions = [30, 360, 660, 900]
 
-        self.pmh_label = ctk.CTkLabel(self.scrollable_frame, text="Pertinent Past Medical History", font=("Merriweather", 14))
-        self.pmh_label.grid(row=start_y, column=0, sticky="w", padx=30)
-        self.pmh_info = ctk.CTkLabel(self.scrollable_frame, text="History of hypertension and Type 2 diabetes.", font=("Merriweather", 14), text_color="black")
-        self.pmh_info.grid(row=start_y+1, column=0, sticky="w", padx=30)
+        for i, text in enumerate(labels):
+            label = ctk.CTkLabel(self, text=text, font=("Merriweather", 14))
+            label.place(x=x_positions[i], y=y_offset)
 
-        start_y += 2
+        y_offset += 25
 
-        self.kidney_disease_date_label = ctk.CTkLabel(self.scrollable_frame, text="Date of first diagnosed having kidney disease", font=("Merriweather", 14))
-        self.kidney_disease_date_label.grid(row=start_y, column=0, sticky="w", padx=30)
-        self.kidney_disease_date_info = ctk.CTkLabel(self.scrollable_frame, text="March 2015", font=("Merriweather", 14), text_color="black")
-        self.kidney_disease_date_info.grid(row=start_y+1, column=0, sticky="w", padx=30)
+        self.kidney_disease_date_info = ctk.CTkLabel(self, text="", font=("Merriweather", 14), text_color="black")
+        self.kidney_disease_date_info.place(x=x_positions[0], y=y_offset)
+        self.dialysis_date_info = ctk.CTkLabel(self, text="", font=("Merriweather", 14), text_color="black")
+        self.dialysis_date_info.place(x=x_positions[1], y=y_offset)
+        self.mode_info = ctk.CTkLabel(self, text="", font=("Merriweather", 14), text_color="black")
+        self.mode_info.place(x=x_positions[2], y=y_offset)
+        self.access_info = ctk.CTkLabel(self, text="", font=("Merriweather", 14), text_color="black")
+        self.access_info.place(x=x_positions[3], y=y_offset)
 
-        start_y += 2
+        y_offset += 60
 
-        self.dialysis_date_label = ctk.CTkLabel(self.scrollable_frame, text="Date of first Dialysis", font=("Merriweather", 14))
-        self.dialysis_date_label.grid(row=start_y, column=0, sticky="w", padx=30)
-        self.dialysis_date_info = ctk.CTkLabel(self.scrollable_frame, text="January 2020", font=("Merriweather", 14), text_color="black")
-        self.dialysis_date_info.grid(row=start_y+1, column=0, sticky="w", padx=30)
+        chd_label = ctk.CTkLabel(self, text="Date of First Chronic Hemodialysis (*Leave NA if not)", font=("Merriweather", 14))
+        chd_label.place(x=30, y=y_offset)
+        clinical_label = ctk.CTkLabel(self, text="Clinical Impression", font=("Merriweather", 14))
+        clinical_label.place(x=660, y=y_offset)
 
-        self.mode_label = ctk.CTkLabel(self.scrollable_frame, text="Mode", font=("Merriweather", 14))
-        self.mode_label.grid(row=start_y, column=0, sticky="w", padx=30)
-        self.mode_info = ctk.CTkLabel(self.scrollable_frame, text="Hemodialysis", font=("Merriweather", 14), text_color="black")
-        self.mode_info.grid(row=start_y+1, column=0, sticky="w", padx=30)
+        y_offset += 25
 
-        start_y += 2
+        self.chronic_hemo_date_info = ctk.CTkLabel(self, text="", font=("Merriweather", 14), text_color="black")
+        self.chronic_hemo_date_info.place(x=30, y=y_offset)
+        self.clinical_impression_info = ctk.CTkLabel(self, text="", font=("Merriweather", 14), text_color="black")
+        self.clinical_impression_info.place(x=660, y=y_offset)
 
-        self.access_label = ctk.CTkLabel(self.scrollable_frame, text="Access", font=("Merriweather", 14))
-        self.access_label.grid(row=start_y, column=0, sticky="w", padx=30)
-        self.access_info = ctk.CTkLabel(self.scrollable_frame, text="Arteriovenous fistula (AVF)", font=("Merriweather", 14), text_color="black")
-        self.access_info.grid(row=start_y+1, column=0, sticky="w", padx=30)
+    def other_history_info(self, patient_id):
+        try:
+            other_history = DataRetrieval.patient_other_history(patient_id)
+            print("patient other history: ", other_history)
+            if other_history:
+                self.display_other_history(other_history)
+            else:
+                messagebox.showwarning("No Data", "Patient record not found")
+        except Exception as e:
+            print(e)
 
-        start_y += 2
-
-        self.chronic_hemo_date_label = ctk.CTkLabel(self.scrollable_frame, text="Date of first Chronic Hemodialysis (* Leave NA if not)", font=("Merriweather", 14))
-        self.chronic_hemo_date_label.grid(row=start_y, column=0, sticky="w", padx=30)
-        self.chronic_hemo_date_info = ctk.CTkLabel(self.scrollable_frame, text="April 2021", font=("Merriweather", 14), text_color="black")
-        self.chronic_hemo_date_info.grid(row=start_y+1, column=0, sticky="w", padx=30)
-
-        start_y += 2
-
-        self.clinical_impression_label = ctk.CTkLabel(self.scrollable_frame, text="Clinical Impression", font=("Merriweather", 14))
-        self.clinical_impression_label.grid(row=start_y, column=0, sticky="w", padx=30)
-        self.clinical_impression_info = ctk.CTkLabel(self.scrollable_frame, text="End-stage renal disease secondary to diabetes.", font=("Merriweather", 14), text_color="black")
-        self.clinical_impression_info.grid(row=start_y+1, column=0, sticky="w", padx=30)
+    def display_other_history(self, data):
+        labels = [
+            self.hpi_info,
+            self.pmh_info,
+            self.kidney_disease_date_info,
+            self.dialysis_date_info,
+            self.mode_info,
+            self.access_info,
+            self.chronic_hemo_date_info,
+            self.clinical_impression_info
+        ]
+        DataRetrieval.assign_retrieved_data(labels, data)
 
 def add_scrollable_frame(parent_frame, width=600, height=250):
         canvas = tk.Canvas(parent_frame, bg="white", highlightthickness=0)
