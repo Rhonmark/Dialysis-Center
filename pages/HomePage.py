@@ -14,37 +14,39 @@ ctk.set_default_color_theme("blue")
 
 class DataRetrieval():
 
+    # =========== FOR PATIENT DATA RETRIEVAL =========== #
+
     @staticmethod
     def patient_info_data(patient_id):
-        return retrieve_form_data(patient_id, "*", table_name="patient_info")
-    
+        return retrieve_form_data(patient_id, 'patient_id', "*", table_name="patient_info")
+
     @staticmethod
     def patient_philhealth_data(patient_id):
-        return retrieve_form_data(patient_id, "*", table_name="patient_benefits")
+        return retrieve_form_data(patient_id, 'patient_id', "*", table_name="patient_benefits")
     
     @staticmethod
     def patient_contact_data(patient_id):
-        return retrieve_form_data(patient_id, "*", table_name="patient_contact")
+        return retrieve_form_data(patient_id, 'patient_id', "*", table_name="patient_contact")
     
     @staticmethod
     def patient_relative_data(patient_id):
-        return retrieve_form_data(patient_id, "*", table_name="patient_relative")
+        return retrieve_form_data(patient_id, 'patient_id', "*", table_name="patient_relative")
 
     @staticmethod
     def patient_family_history(patient_id):
-        return retrieve_form_data(patient_id, 
+        return retrieve_form_data(patient_id, 'patient_id',
                                   "has_hypertension, has_diabetes, has_malignancy, other_family_history",
                                   table_name='patient_history')
     
     @staticmethod
     def patient_medical_history(patient_id):
-        return retrieve_form_data(patient_id, 
+        return retrieve_form_data(patient_id, 'patient_id',
                                   "has_kidney_disease, has_urinary_stone, has_recurrent_uti, diabetes_type, other_medical_history",
                                   table_name='patient_history')
 
     @staticmethod
     def patient_other_history(patient_id):
-        return retrieve_form_data(patient_id, 
+        return retrieve_form_data(patient_id, 'patient_id',
                                   """
                                     present_illness_history, past_illness_history, first_diagnosis, first_dialysis, mode,
                                     access_type, first_hemodialysis, clinical_impression
@@ -70,6 +72,9 @@ class DataRetrieval():
             cursor.close()
             connect.close()
 
+    # =========== FOR PATIENT DATA RETRIEVAL =========== #
+
+    # FOR NULL CHECK
     @staticmethod
     def assign_retrieved_data(labels, data):
         null_values = ('type here', 'na', 'n/a', '', ' ')
@@ -80,6 +85,14 @@ class DataRetrieval():
                     data[i] and 
                     str(data[i]).strip().lower() not in null_values) else "Not Specified")
             label.configure(text=str(value))
+
+    # =========== FOR SUPPLY DATA RETRIEVAL =========== #
+
+    @staticmethod
+    def supply_information(item_id):
+        return retrieve_form_data(item_id, 'item_id', '*', table_name='supply')
+
+    # =========== FOR SUPPLY DATA RETRIEVAL =========== #
 
 class HomePage(ctk.CTkFrame):
     def __init__(self, parent, shared_state):
@@ -1177,7 +1190,6 @@ class ContactInfoRelativeInfo(ctk.CTkFrame):
         print("Contact and Relative Info closed")
         self.place_forget()
 
-
 class FamilyHistory(ctk.CTkFrame):
     def __init__(self, master=None, **kwargs):
         super().__init__(master, width=600, height=250, fg_color="white", corner_radius=20, **kwargs)
@@ -1694,8 +1706,6 @@ class SupplyPage(ctk.CTkFrame):
                 height=20,
                 fg_color="#68EDC6")
         self.Top_bar.place(y=0)
-
-
 
     #Not Permanent Add on lang  para once na click yung row mag pop up yung Output
     def on_row_selected(self, event):

@@ -2,7 +2,8 @@ import customtkinter as ctk
 from tkinter import Toplevel
 from tkcalendar import Calendar
 from PIL import Image
-from backend.crud import submit_form_creation, submit_form_subcreation, get_existing_credentials
+from backend.crud import submit_form_creation, get_existing_credentials
+from backend.connector import db_connection as db
 
 class CTkMessageBox(ctk.CTkToplevel):
     def __init__(self, parent, title, message, box_type="info"):
@@ -52,7 +53,6 @@ class CTkMessageBox(ctk.CTkToplevel):
         parent = parent or ctk._default_root
         msgbox = cls(parent, title, message, box_type="success")
         parent.wait_window(msgbox)
-
 
 class SupplyBaseWindow(ctk.CTkToplevel):
     def __init__(self, parent, title):
@@ -177,7 +177,7 @@ class SupplyWindow(SupplyBaseWindow):
             cal.pack(padx=10, pady=10)
             cal.bind("<<CalendarSelected>>", on_date_select)
 
-        def on_save_click(data=None):
+        def on_save_click():
 
             item_name = entry_itemname.get()
             category = entry_category.get()
@@ -194,6 +194,9 @@ class SupplyWindow(SupplyBaseWindow):
                 return
 
             try:
+                connect = db()
+                cursor = connect.cursor()
+
                 supply_information = {
                     'item_name': item_name,
                     'category': category,
@@ -215,19 +218,30 @@ class SupplyWindow(SupplyBaseWindow):
                     return
                 
                 item_id = submit_form_creation(supply_column, supply_row, table_name='supply')
-
+        
                 if item_id: 
                     print('Item ID: ', item_id)
                 else:
                     print('Item ID creation error')
                     return
                 
+                cursor.execute("SELECT * FROM supply")
+                query_result = cursor.fetchall()
+                
+                for result in query_result:
+                    print(result)   
+
             except Exception as e:
                 CTkMessageBox.show_error("Error", 'Something went wrong! ', e, parent=self)
 
-            print("Supply information saved successfully!")
-            CTkMessageBox.show_success("Success", "Supply information saved successfully!", parent=self)
-            self.destroy()
+            finally:
+                print("Supply information saved successfully!")
+                CTkMessageBox.show_success("Success", "Supply information saved successfully!", parent=self)
+                cursor.close()
+                connect.close() 
+                self.destroy()
+
+
         self.btn_save = ctk.CTkButton(self, text="Save", fg_color="#1A374D", hover_color="#16C79A", text_color="white",
                                       bg_color="white", corner_radius=20, font=button_font, width=200, height=50,
                                       command=on_save_click)

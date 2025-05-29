@@ -172,7 +172,7 @@ def submit_form_extra(patient_id, medication_entries):
         cursor.close()
         connect.close()
 
-def retrieve_form_data(patient_id, column, table_name):
+def retrieve_form_data(patient_id, target_column, column, table_name):
   try:
     data_retrieval = []
     connect, cursor = db_connection()
@@ -181,7 +181,7 @@ def retrieve_form_data(patient_id, column, table_name):
 
     cursor.execute(f"""
         SELECT {column} FROM {table_name}
-        WHERE patient_id = {patient_id}
+        WHERE {target_column} = {patient_id}
     """)
     
     result = cursor.fetchone()
