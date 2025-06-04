@@ -1,4 +1,4 @@
-from connector import db_connection as db
+from .connector import db_connection as db
 import math
 #running as relative import since no ui yet
 # cursor.lastrowid to retrieve recent patient
@@ -266,7 +266,7 @@ def supply_creation_id(column, row, table_name):
 
 #EDIT PROTOTYPE
 
-sample_column = ['first_name', 'second_name', 'age']
+"""sample_column = ['first_name', 'second_name', 'age']
 sample_row = ['tristan', 'joe', 21]
 
 def update_changes_sample (column, row):
@@ -304,4 +304,4 @@ def define_stock_levels():
   return low_stock_level, critical_stock_level
 
 stock_levels = define_stock_levels()
-print(stock_levels)
+print(stock_levels)"""

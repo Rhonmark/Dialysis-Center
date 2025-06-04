@@ -82,10 +82,14 @@ class SupplyBaseWindow(ctk.CTkToplevel):
 
 
 class SupplyWindow(SupplyBaseWindow):
-    def __init__(self, parent):
+    def __init__(self, parent, edit_data=None):
         super().__init__(parent, "Supply Information")
+        
+        self.edit_data = edit_data
+        self.is_editing = edit_data is not None
 
-        ctk.CTkLabel(self, text="Supply Information", font=("Merriweather bold", 25), text_color="black", bg_color="white").place(x=90, y=60)
+        title_text = "Edit Supply Information" if self.is_editing else "Supply Information"
+        ctk.CTkLabel(self, text=title_text, font=("Merriweather bold", 25), text_color="black", bg_color="white").place(x=90, y=60)
 
         def create_underline(x, y, width):
             ctk.CTkFrame(self, height=1, width=width, fg_color="black").place(x=x, y=y)
@@ -117,47 +121,54 @@ class SupplyWindow(SupplyBaseWindow):
         required_font = ("Merriweather Sans bold", 10)
         not_required_font = ("Merriweather Sans bold", 10)
 
+        # Item Name
         ctk.CTkLabel(self, text="Item Name", font=label_font, fg_color="white", text_color="black").place(x=120, y=150)
-        entry_itemname = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0,
+        self.entry_itemname = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0,
                                       bg_color="white")
-        entry_itemname.place(x=120, y=200)
+        self.entry_itemname.place(x=120, y=200)
         ctk.CTkLabel(self, text="*Required", font=not_required_font, text_color="#008400", bg_color="white").place(x=210, y=145)
         create_underline(120, 230, 180)
-        add_placeholder(entry_itemname, "Type here")
+        if not self.is_editing:
+            add_placeholder(self.entry_itemname, "Type here")
 
+        # Category
         ctk.CTkLabel(self, text="Category", font=label_font, fg_color="white", text_color="black").place(x=420, y=150)
-        entry_category = ctk.CTkComboBox(
+        self.entry_category = ctk.CTkComboBox(
             self, width=180, height=30, font=entry_font, text_color="black",
             fg_color="white", border_width=0, bg_color="white",
             values=["Disposable Material", "Medication", "Cleaning Material", "Other Material"],
             dropdown_fg_color="white", dropdown_hover_color="#68EDC6",
             dropdown_text_color="black", button_color="#1A374D", button_hover_color="#68EDC6"
         )
-        entry_category.configure(state="readonly")
-        entry_category.place(x=420, y=200)
+        self.entry_category.configure(state="readonly")
+        self.entry_category.place(x=420, y=200)
         ctk.CTkLabel(self, text="*Required", font=not_required_font, text_color="#008400", bg_color="white").place(x=495, y=145)
         create_underline(420, 230, 140)
 
+        # Restock Quantity
         ctk.CTkLabel(self, text="Last Restock Quantity", font=label_font, fg_color="white", text_color="black").place(x=720, y=150)
-        entry_restock_quantity = ctk.CTkEntry(self, width=150, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0,
+        self.entry_restock_quantity = ctk.CTkEntry(self, width=150, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0,
                                         bg_color="white")
-        entry_restock_quantity.place(x=720, y=200)
+        self.entry_restock_quantity.place(x=720, y=200)
         ctk.CTkLabel(self, text="*Not Required", font=not_required_font, text_color="red", bg_color="white").place(x=890, y=145)
         create_underline(720, 230, 180)
-        add_placeholder(entry_restock_quantity, "Type here")
+        if not self.is_editing:
+            add_placeholder(self.entry_restock_quantity, "Type here")
 
+        # Restock Date
         ctk.CTkLabel(self, text="Last Restock Date", font=label_font, fg_color="white", text_color="black").place(x=1020, y=150)
-        entry_restock_date = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0,
+        self.entry_restock_date = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0,
                                  bg_color="white")
-        entry_restock_date.place(x=1020, y=200)
-        entry_restock_date.bind("<Key>", lambda e: "break")
-        entry_restock_date.bind("<Button-3>", lambda e: "break")
+        self.entry_restock_date.place(x=1020, y=200)
+        self.entry_restock_date.bind("<Key>", lambda e: "break")
+        self.entry_restock_date.bind("<Button-3>", lambda e: "break")
         ctk.CTkLabel(self, text="*Not Required", font=not_required_font, text_color="red", bg_color="white").place(x=1160, y=145)
         create_underline(1020, 230, 140)
-        add_placeholder(entry_restock_date, "Select date")
+        if not self.is_editing:
+            add_placeholder(self.entry_restock_date, "Select date")
 
         dropdown_btn = ctk.CTkButton(self, text="▼", width=30, font=entry_font, height=30, corner_radius=8,
-                                     command=lambda: open_calendar(entry_restock_date), bg_color="white",
+                                     command=lambda: open_calendar(self.entry_restock_date), bg_color="white",
                                      fg_color="#1A374D", hover_color="#68EDC6", text_color="black")
         dropdown_btn.place(x=1170, y=200)
 
@@ -177,123 +188,136 @@ class SupplyWindow(SupplyBaseWindow):
             cal.pack(padx=10, pady=10)
             cal.bind("<<CalendarSelected>>", on_date_select)
 
-        def on_save_click():
+        # Second Row - Average Weekly Usage
+        ctk.CTkLabel(self, text="Average Weekly Usage", font=label_font, fg_color="white", text_color="black").place(x=120, y=300)
+        self.entry_averageuse = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0,
+                                      bg_color="white")
+        self.entry_averageuse.place(x=120, y=350)
+        ctk.CTkLabel(self, text="*Not Required", font=not_required_font, text_color="red", bg_color="white").place(x=300, y=295)
+        create_underline(120, 380, 180)
+        if not self.is_editing:
+            add_placeholder(self.entry_averageuse, "Type here")
 
-            item_name = entry_itemname.get()
-            category = entry_category.get()
-            restock_quantity = int(entry_restock_quantity.get())
-            restock_date = entry_restock_date.get()
-            
+        # Delivery Date
+        ctk.CTkLabel(self, text="Delivery Date", font=label_font, fg_color="white", text_color="black").place(x=420, y=300)
+        self.entry_delivery_date = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0,
+                                 bg_color="white")
+        self.entry_delivery_date.place(x=420, y=350)
+        self.entry_delivery_date.bind("<Key>", lambda e: "break")
+        self.entry_delivery_date.bind("<Button-3>", lambda e: "break")
+        ctk.CTkLabel(self, text="*Not Required", font=not_required_font, text_color="red", bg_color="white").place(x=530, y=295)
+        create_underline(420, 380, 140)
+        if not self.is_editing:
+            add_placeholder(self.entry_delivery_date, "Select date")
+
+        dropdown_btn2 = ctk.CTkButton(self, text="▼", width=30, font=entry_font, height=30, corner_radius=8,
+                                     command=lambda: open_calendar(self.entry_delivery_date), bg_color="white",
+                                     fg_color="#1A374D", hover_color="#68EDC6", text_color="black")
+        dropdown_btn2.place(x=570, y=350)
+
+        # Populate fields if editing
+        if self.is_editing:
+            self.populate_fields()
+
+        def on_save_click():
+            item_name = self.entry_itemname.get()
+            category = self.entry_category.get()
+            restock_quantity_str = self.entry_restock_quantity.get()
+            restock_date = self.entry_restock_date.get()
 
             if item_name == "" or item_name == "Type here":
-                print("Save failed: Item Name is required.")
                 CTkMessageBox.show_error("Input Error", "Item Name is required.", parent=self)
                 return
             if category == "":
-                print("Save failed: Category is required.")
                 CTkMessageBox.show_error("Input Error", "Category is required.", parent=self)
+                return
+
+            # Handle restock quantity
+            try:
+                restock_quantity = int(restock_quantity_str) if restock_quantity_str and restock_quantity_str != "Type here" else 0
+            except ValueError:
+                CTkMessageBox.show_error("Input Error", "Restock quantity must be a valid number.", parent=self)
                 return
 
             try:
                 connect = db()
                 cursor = connect.cursor()
 
-                supply_information = {
-                    'item_name': item_name,
-                    'category': category,
-                    'restock_quantity': restock_quantity,
-                    'restock_date': restock_date,
-                }
-
-                supply_column = ', '.join(supply_information.keys())
-                supply_row = [f"{entries}" for entries in supply_information.values()]
-
-                # supply_row = []
-                # for value in supply_information.values():
-                #     if isinstance(value, int) or value == 'CURDATE()':
-                #         supply_row.append(f"{value}")
-                #     else:
-                #         supply_row.append(f"'{value}'")
-
-                # print(item_name, category, restock_quantity, restock_date)
-                # print('supply column: ', supply_column)
-                # print('supply row: ', supply_row)
-
-                check_uniqueness = get_existing_credentials(item_name, 'item_name', table_name='supply')
-
-                if check_uniqueness:
-                    CTkMessageBox.show_error("Error", 'Items already exists ', parent=self)
-                    return
-                
-                item_id = supply_creation_id(supply_column, supply_row, table_name='supply')
-
-                print(repr(restock_date))
-                print(supply_column)
-        
-                if item_id: 
-                    print('Item ID: ', item_id)
+                if self.is_editing:
+                    # Update existing record
+                    cursor.execute("""
+                        UPDATE supply 
+                        SET item_name = %s, category = %s, restock_quantity = %s, restock_date = %s
+                        WHERE item_id = %s
+                    """, (item_name, category, restock_quantity, restock_date, self.edit_data['item_id']))
+                    
+                    print(f"Updated supply item with ID: {self.edit_data['item_id']}")
+                    CTkMessageBox.show_success("Success", "Supply information updated successfully!", parent=self)
                 else:
-                    print('Item ID creation error')
-                    return
-                
-                cursor.execute("SELECT * FROM supply")
-                query_result = cursor.fetchall()
-                
-                for result in query_result:
-                    print(result)   
+                    # Create new record
+                    supply_information = {
+                        'item_name': item_name,
+                        'category': category,
+                        'restock_quantity': restock_quantity,
+                        'restock_date': restock_date,
+                    }
+
+                    supply_column = ', '.join(supply_information.keys())
+                    supply_row = [f"{entries}" for entries in supply_information.values()]
+
+                    check_uniqueness = get_existing_credentials(item_name, 'item_name', table_name='supply')
+
+                    if check_uniqueness:
+                        CTkMessageBox.show_error("Error", 'Items already exists ', parent=self)
+                        return
+                    
+                    item_id = supply_creation_id(supply_column, supply_row, table_name='supply')
+                    
+                    if item_id: 
+                        print('Item ID: ', item_id)
+                        CTkMessageBox.show_success("Success", "Supply information saved successfully!", parent=self)
+                    else:
+                        print('Item ID creation error')
+                        return
+
+                connect.commit()
 
             except Exception as e:
-                CTkMessageBox.show_error("Error", 'Something went wrong! ', e, parent=self)
+                print(f"Error saving supply: {e}")
+                CTkMessageBox.show_error("Error", 'Something went wrong! ', parent=self)
+                return
 
             finally:
-                print("Supply information saved successfully!")
-                CTkMessageBox.show_success("Success", "Supply information saved successfully!", parent=self)
                 cursor.close()
                 connect.close() 
                 self.destroy()
 
-        #Second Row
-        ctk.CTkLabel(self, text="Average Weekly Usage", font=label_font, fg_color="white", text_color="black").place(x=120, y=300)
-        entry_averageuse = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0,
-                                      bg_color="white")
-        entry_averageuse.place(x=120, y=350)
-        ctk.CTkLabel(self, text="*Not Required", font=not_required_font, text_color="red", bg_color="white").place(x=300, y=295)
-        create_underline(120, 380, 180)
-        add_placeholder(entry_averageuse, "Type here")
-
-
-        ctk.CTkLabel(self, text="Delivery Date", font=label_font, fg_color="white", text_color="black").place(x=420, y=300)
-        entry_delivery_date = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0,
-                                 bg_color="white")
-        entry_delivery_date.place(x=420, y=350)
-        entry_delivery_date.bind("<Key>", lambda e: "break")
-        entry_delivery_date.bind("<Button-3>", lambda e: "break")
-        ctk.CTkLabel(self, text="*Not Required", font=not_required_font, text_color="red", bg_color="white").place(x=530, y=295)
-        create_underline(420, 380, 140)
-        add_placeholder(entry_delivery_date, "Select date")
-
-        dropdown_btn = ctk.CTkButton(self, text="▼", width=30, font=entry_font, height=30, corner_radius=8,
-                                     command=lambda: open_calendar(entry_delivery_date), bg_color="white",
-                                     fg_color="#1A374D", hover_color="#68EDC6", text_color="black")
-        dropdown_btn.place(x=570, y=350)
-
-        def open_calendar(entry_widget):
-            def on_date_select(event):
-                selected_date = cal.get_date()
-                entry_widget.delete(0, "end")
-                entry_widget.insert(0, selected_date)
-                entry_widget.configure(text_color="black")
-                top.destroy()
-
-            top = Toplevel(self)
-            top.grab_set()
-            top.overrideredirect(True)
-            top.geometry(f"+{self.winfo_rootx() + 1000}+{self.winfo_rooty() + 230}")
-            cal = Calendar(top, date_pattern='yyyy-mm-dd')
-            cal.pack(padx=10, pady=10)
-            cal.bind("<<CalendarSelected>>", on_date_select)
-
-        self.btn_save = ctk.CTkButton(self, text="Save", fg_color="#1A374D", hover_color="#16C79A", text_color="white",
+        # Save button
+        button_text = "Update" if self.is_editing else "Save"
+        self.btn_save = ctk.CTkButton(self, text=button_text, fg_color="#1A374D", hover_color="#16C79A", text_color="white",
                                       bg_color="white", corner_radius=20, font=button_font, width=200, height=50,
                                       command=on_save_click)
         self.btn_save.place(x=1020, y=420)
+
+    def populate_fields(self):
+        """Populate fields with edit data"""
+        if not self.edit_data:
+            return
+        
+        # Clear and set item name
+        self.entry_itemname.delete(0, "end")
+        self.entry_itemname.insert(0, self.edit_data['item_name'])
+        self.entry_itemname.configure(text_color="black")
+        
+        # Set category
+        self.entry_category.set(self.edit_data['category'])
+        
+        # Clear and set restock quantity
+        self.entry_restock_quantity.delete(0, "end")
+        self.entry_restock_quantity.insert(0, str(self.edit_data['restock_quantity']))
+        self.entry_restock_quantity.configure(text_color="black")
+        
+        # Clear and set restock date
+        self.entry_restock_date.delete(0, "end")
+        self.entry_restock_date.insert(0, self.edit_data['restock_date'])
+        self.entry_restock_date.configure(text_color="black")

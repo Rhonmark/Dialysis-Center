@@ -6,7 +6,7 @@ from PIL import Image
 from tkinter import ttk, messagebox
 from components.Inputs import PatientInfoWindow
 from backend.connector import db_connection as db
-from components.input_supply import SupplyWindow
+from components.input_supply import CTkMessageBox, SupplyWindow
 from components.state import login_shared_states
 from backend.crud import retrieve_form_data, db_connection
 import datetime
@@ -115,7 +115,7 @@ class HomePage(ctk.CTkFrame):
         self.pages = {
             "Home": HomePageContent(self.main_frame),
             "Patient": PatientPage(self.main_frame, shared_state),
-            "Supply": SupplyPage(self.main_frame),
+            "Supply": SupplyPage(self.main_frame, shared_state),
             "Report": ReportPage(self.main_frame),
             "Maintenance": MaintenancePage(self.main_frame),
             "Settings": SettingsPage(self.main_frame, self.shared_state),
@@ -144,72 +144,6 @@ class HomePage(ctk.CTkFrame):
 
         if page_name == "Patient":
             self.pages["Patient"].show_table_view()
-
-class NavbarTop(ctk.CTkFrame): #NOT YET DONE ON THE WORKS
-    def __init__(self, parent):
-        super().__init__(parent, fg_color="white", height=130)
-        self.pack(fill="x", side="top")
-        self.pack_propagate(False)
-        self.configure(border_width=0, border_color="black") 
-
-        self.dropdown_visible = False  # state of dropdown menu
-
-
-        self.dropdown_frame = ctk.CTkFrame(self, fg_color="#f0f0f0", corner_radius=8, width=150, height=100)
-        self.dropdown_frame.configure(border_width=1, border_color="gray")
-        self.dropdown_frame.place_forget()
-
-        self.welcome_label = ctk.CTkLabel(self, text="Welcome Back,", text_color="black", font=("Arial", 30, "bold"))
-        self.welcome_label.place(relx=0.2, rely=0.5, anchor="e")
-
-        self.name_label = ctk.CTkLabel(self, text="Tristan!", text_color="black", font=("Arial", 30, "bold"))
-        self.name_label.place(relx=0.27, rely=0.5, anchor="e")
-
-        self.namev2_label = ctk.CTkLabel(self, text="Tristan", text_color="black", font=("Arial", 30, "bold"))
-        self.namev2_label.place(relx=0.85, rely=0.5, anchor="e")
-
-        profile_img = ctk.CTkImage(light_image=Image.open("assets/profile.png"), size=(42, 42))
-        notif_img = ctk.CTkImage(light_image=Image.open("assets/notif.png"), size=(42, 42))
-        settings_img = ctk.CTkImage(light_image=Image.open("assets/settingsv2.png"), size=(42, 42))
-
-        icon_y = 62
-
-        profile_btn = ctk.CTkButton(self, image=profile_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5")
-        profile_btn.place(relx=1.0, x=-60, y=icon_y, anchor="center")
-
-        notif_btn = ctk.CTkButton(self, image=notif_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5")
-        notif_btn.place(relx=1.0, x=-110, y=icon_y, anchor="center")
-
-       
-        settings_btn = ctk.CTkButton(self, image=settings_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5", command=self.toggle_dropdown)
-        settings_btn.place(relx=1.0, x=-160, y=icon_y, anchor="center")
-
-
-        # Add items to dropdown menu
-        ctk.CTkButton(self.dropdown_frame, text="Account Settings", width=140, command=self.open_settings).pack(pady=5)
-        ctk.CTkButton(self.dropdown_frame, text="Log Out", width=140, command=self.logout).pack(pady=5)
-
-        self.bottom_line = ctk.CTkFrame(self, height=1.5, fg_color="black")
-        self.bottom_line.place(relx=0, rely=1.0, relwidth=1.0, anchor="sw")
-       
-
-    def toggle_dropdown(self):
-        if self.dropdown_visible:
-            self.dropdown_frame.place_forget()
-        else:
-            # Get global position of the settings icon
-            x = self.winfo_rootx() + self.winfo_width() - 180
-            y = self.winfo_rooty() + 90
-
-            self.dropdown_frame.place(x=x, y=y)
-            self.dropdown_frame.lift()  # bring it above all other widgets
-        self.dropdown_visible = not self.dropdown_visible
-
-    def open_settings(self):
-        print("Opening account settings...")
-
-    def logout(self):
-        print("Logging out...")
 
 class Sidebar(ctk.CTkFrame):
     def __init__(self, parent, shared_state):
@@ -284,7 +218,46 @@ class HomePageContent(ctk.CTkFrame):
     def __init__(self, parent):
         super().__init__(parent, fg_color="#E8FBFC")
 
-        navbar = NavbarTop(self)
+        self.navbar = ctk.CTkFrame(self, fg_color="white", height=130)
+        self.navbar.pack(fill="x", side="top")
+        self.navbar.pack_propagate(False)
+        self.navbar.configure(border_width=0, border_color="black")
+
+        self.dropdown_visible = False 
+
+        self.dropdown_frame = ctk.CTkFrame(self.navbar, fg_color="#f0f0f0", corner_radius=8, width=150, height=100)
+        self.dropdown_frame.configure(border_width=1, border_color="gray")
+        self.dropdown_frame.place_forget()
+
+        self.welcome_label = ctk.CTkLabel(self.navbar, text="Welcome Back,", text_color="black", font=("Arial", 30, "bold"))
+        self.welcome_label.place(relx=0.2, rely=0.5, anchor="e")
+
+        self.name_label = ctk.CTkLabel(self.navbar, text="Tristan!", text_color="black", font=("Arial", 30, "bold"))
+        self.name_label.place(relx=0.27, rely=0.5, anchor="e")
+
+        self.namev2_label = ctk.CTkLabel(self.navbar, text="Tristan", text_color="black", font=("Arial", 30, "bold"))
+        self.namev2_label.place(relx=0.85, rely=0.5, anchor="e")
+
+        profile_img = ctk.CTkImage(light_image=Image.open("assets/profile.png"), size=(42, 42))
+        notif_img = ctk.CTkImage(light_image=Image.open("assets/notif.png"), size=(42, 42))
+        settings_img = ctk.CTkImage(light_image=Image.open("assets/settingsv2.png"), size=(42, 42))
+
+        icon_y = 62
+
+        profile_btn = ctk.CTkButton(self.navbar, image=profile_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5")
+        profile_btn.place(relx=1.0, x=-60, y=icon_y, anchor="center")
+
+        notif_btn = ctk.CTkButton(self.navbar, image=notif_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5")
+        notif_btn.place(relx=1.0, x=-110, y=icon_y, anchor="center")
+
+        settings_btn = ctk.CTkButton(self.navbar, image=settings_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5", command=self.toggle_dropdown)
+        settings_btn.place(relx=1.0, x=-160, y=icon_y, anchor="center")
+
+        ctk.CTkButton(self.dropdown_frame, text="Account Settings", width=140, command=self.open_settings).pack(pady=5)
+        ctk.CTkButton(self.dropdown_frame, text="Log Out", width=140, command=self.logout).pack(pady=5)
+
+        self.bottom_line = ctk.CTkFrame(self.navbar, height=1.5, fg_color="black")
+        self.bottom_line.place(relx=0, rely=1.0, relwidth=1.0, anchor="sw")
 
         self.first_frame = ctk.CTkFrame(
             self,
@@ -334,7 +307,6 @@ class HomePageContent(ctk.CTkFrame):
             text="Most Used Items",
             font=("Merriweather", 20, "bold")
         )
-
         MUsedItems_label.place(x=210, y=40)
 
         self.third_frame = ctk.CTkFrame(
@@ -497,7 +469,6 @@ class HomePageContent(ctk.CTkFrame):
         )
         inactive_icon_label.place(x=15, y=20)
 
-
         sixth_frame = ctk.CTkFrame(
             self,
             width=350,
@@ -522,7 +493,25 @@ class HomePageContent(ctk.CTkFrame):
             image=reminder_ctk_img,
             text="",  
         )
-        reminder_image_label.place(x=120, y=100)  
+        reminder_image_label.place(x=120, y=100)
+
+    def toggle_dropdown(self):
+        if self.dropdown_visible:
+            self.dropdown_frame.place_forget()
+        else:
+
+            x = self.winfo_rootx() + self.winfo_width() - 180
+            y = self.winfo_rooty() + 90
+
+            self.dropdown_frame.place(x=x, y=y)
+            self.dropdown_frame.lift() 
+        self.dropdown_visible = not self.dropdown_visible
+
+    def open_settings(self):
+        print("Opening account settings...")
+
+    def logout(self):
+        print("Logging out...")
 
 class PatientPage(ctk.CTkFrame):
     def __init__(self, parent, shared_state):
@@ -1480,8 +1469,9 @@ def create_exit_button(parent, command=None):
     return exit_button
 
 class SupplyPage(ctk.CTkFrame):
-    def __init__(self, parent):
+    def __init__(self, parent, shared_state):
         super().__init__(parent, fg_color="#E8FBFC")
+        self.shared_state = shared_state
         
         output_font = ("Merriweather", 15)
         label_font = ("Merriweather Sans bold", 15)
@@ -1494,46 +1484,39 @@ class SupplyPage(ctk.CTkFrame):
         style.map("Treeview", background=[("selected", "#68EDC6")])
 
         self.hovered_row = None
+        self.selected_supply_id = None
+        self.selected_supply_data = None  
+        
+        # Button Frame
         self.button_frame = ctk.CTkFrame(self, fg_color="#E8FBFC")
-        self.button_frame.pack(pady=10)
+        self.button_frame.place(x=20, y=10, anchor="nw")
 
-          #Add Button
+        # Add Button
         self.add_button = ctk.CTkButton(
             self.button_frame, text="Add", font=button_font,
             width=120, command=self.open_add_window
         )
         self.add_button.pack(side="left", padx=5)
 
-        #Edit Button
-        self.edit_button = ctk.CTkButton(
-            self.button_frame, text="Edit", font=button_font,
-            width=120, command=self.open_edit_window
-        )
-        self.edit_button.pack(side="left", padx=5)
-
-        #Table
+        # Table Frame
         self.table_frame = ctk.CTkFrame(self, fg_color="#1A374D", border_width=2, border_color="black")
         self.table_frame.place(x=20, y=60, relwidth=0.95, relheight=0.8)
 
         tree_container = ctk.CTkFrame(self.table_frame, fg_color="black")
         tree_container.pack(fill="both", expand=True, padx=1, pady=1)
 
-        columns = ("", "", "", "", "", "")
+        columns = ("item_id", "item_name", "category", "restock_quantity", "restock_date", "date_registered")
         self.tree = ttk.Treeview(tree_container, columns=columns, show="headings", height=12)
         self.tree.pack(side="left", fill="both", expand=True)
 
         headers = [
-            ("ITEM ID", 140),
-            ("ITEM NAME", 200),
+            ("ITEM ID", 120),
+            ("ITEM NAME", 180),
             ("CATEGORY", 140),
-            ("DATE REGISTERED", 180),
-            ("DATE RESTOCKED", 180),
-            ("REMAINING STOCK", 140)
+            ("REMAINING STOCK", 150),
+            ("DATE RESTOCKED", 150),
+            ("DATE REGISTERED", 150),
         ]
-
-        
-        #Sample Data
-        self.tree.insert("" ,"end",values=("202512","Needle","Disposable","2025-12-05","2025-12-05","180"))
         
         for (text, width), col in zip(headers, columns):
             self.tree.heading(col, text=text)
@@ -1542,10 +1525,12 @@ class SupplyPage(ctk.CTkFrame):
         scrollbar = ctk.CTkScrollbar(tree_container, orientation="vertical", command=self.tree.yview)
         self.tree.configure(yscrollcommand=scrollbar.set)
         scrollbar.pack(side="right", fill="y")
-        self.tree.bind("<<TreeviewSelect>>", self.on_row_selected)
-
-        #Main Frame
-        self.Main_Supply_Frame= ctk.CTkFrame(self, fg_color="#E8FBFC")
+        
+        # Bind selection event
+        self.tree.bind("<<TreeviewSelect>>", self.on_row_select)
+        self.tree.bind("<ButtonRelease-1>", self.on_row_click)
+        self.populate_table(self.fetch_supply_data())
+        self.Main_Supply_Frame = ctk.CTkFrame(self, fg_color="#E8FBFC")
 
         self.back_button = ctk.CTkButton(self.Main_Supply_Frame, text="Back", font=button_font,
             corner_radius=20,
@@ -1553,9 +1538,23 @@ class SupplyPage(ctk.CTkFrame):
             height=40,
             fg_color="#01516D",
             hover_color="#013B50",
-    
-            )
+            command=self.show_table_view
+        )
         self.back_button.place(x=40, y=30)
+
+        # Edit Button
+        self.output_edit_button = ctk.CTkButton(
+            self.Main_Supply_Frame,
+            text="Edit",
+            font=button_font,
+            corner_radius=20,
+            width=200,
+            height=40,
+            fg_color="#FF8C00",
+            hover_color="#FF7F00",
+            command=self.open_edit_window 
+        )
+        self.output_edit_button.place(x=260, y=30)
 
         self.upload_button = ctk.CTkButton(self.Main_Supply_Frame, text="Upload Photo", font=button_font,
             corner_radius=20,
@@ -1565,15 +1564,7 @@ class SupplyPage(ctk.CTkFrame):
             hover_color="#013B50")
         self.upload_button.place(x=1100, y=30)
 
-        self.edit_button_detailed = ctk.CTkButton(self.Main_Supply_Frame, text="Edit Details", font=button_font,
-            corner_radius=20,
-            width=200,
-            height=40,
-            fg_color="#01516D",
-            hover_color="#013B50")
-        self.edit_button_detailed.place(x=1350, y=30)
-        
-        #PhotoFrame
+        # Photo Frame
         self.Suppyphotoframe = ctk.CTkFrame(self.Main_Supply_Frame, 
             width=400,
             height=400,
@@ -1591,16 +1582,16 @@ class SupplyPage(ctk.CTkFrame):
         )
         self.top_frame.place(x=0, y=0)
         
-        #Supply ID Label
+        # Supply ID Label
         self.supply_id_label = ctk.CTkLabel(
             self.Suppyphotoframe,
-            text="Patient ID",
+            text="Supply ID",
             font=label_font,
             text_color="black",
         )
         self.supply_id_label.place(relx=0.5, rely=0.70, anchor="center")
 
-        #Supply ID Output
+        # Supply ID Output
         self.supply_id_value = ctk.CTkLabel(
             self.Suppyphotoframe,
             text="",
@@ -1609,7 +1600,7 @@ class SupplyPage(ctk.CTkFrame):
         )
         self.supply_id_value.place(relx=0.5, rely=0.80, anchor="center")
 
-        #Supply Info Frame
+        # Supply Info Frame
         supply_info_frame = ctk.CTkFrame(
             self.Main_Supply_Frame,
             width=950,
@@ -1632,42 +1623,37 @@ class SupplyPage(ctk.CTkFrame):
         Supply_title_label = ctk.CTkLabel(supply_info_frame, text="Supply Info", font=title_font)
         Supply_title_label.place(x=40, y=50)
 
-        #Supply Name Label  and Output
-        self.Supply_Name_Label = ctk.CTkLabel(supply_info_frame, text="Supply Name" , font=label_font)
+        # Supply Name Label and Output
+        self.Supply_Name_Label = ctk.CTkLabel(supply_info_frame, text="Supply Name", font=label_font)
         self.Supply_Name_Label.place(x=80,y=100)
-        self.Supply_Name_Output = ctk.CTkLabel(supply_info_frame, text="Needle" , font=output_font)
+        self.Supply_Name_Output = ctk.CTkLabel(supply_info_frame, text="", font=output_font)
         self.Supply_Name_Output.place(x=80,y=130)
 
-        #Category Label and Output
-        self.Category_Label = ctk.CTkLabel(supply_info_frame, text="Category" , font=label_font)
+        # Category Label and Output
+        self.Category_Label = ctk.CTkLabel(supply_info_frame, text="Category", font=label_font)
         self.Category_Label.place(x=300,y=100)
-        self.Category_Output = ctk.CTkLabel(supply_info_frame, text="Disposable" , font=output_font)
+        self.Category_Output = ctk.CTkLabel(supply_info_frame, text="", font=output_font)
         self.Category_Output.place(x=300,y=130)
 
-        #Last Restock Quantity Label and Output
-        self.LastRestock_Label = ctk.CTkLabel(supply_info_frame, text="Last Restock Qty." , font=label_font)
+        # Last Restock Quantity Label and Output
+        self.LastRestock_Label = ctk.CTkLabel(supply_info_frame, text="Remaining Stock", font=label_font)
         self.LastRestock_Label.place(x=520,y=100)
-        self.LastRestock_Output = ctk.CTkLabel(supply_info_frame, text="120" , font=output_font)
+        self.LastRestock_Output = ctk.CTkLabel(supply_info_frame, text="", font=output_font)
         self.LastRestock_Output.place(x=520,y=130)
 
-        #Last Restocked Date Label and Output
-        self.LastRestock_Date_Label = ctk.CTkLabel(supply_info_frame, text="Last Restock Date" , font=label_font)
+        # Last Restocked Date Label and Output
+        self.LastRestock_Date_Label = ctk.CTkLabel(supply_info_frame, text="Last Restock Date", font=label_font)
         self.LastRestock_Date_Label.place(x=740,y=100)
-        self.LastRestock_Date_Output = ctk.CTkLabel(supply_info_frame, text="2025-12-12" , font=output_font)
+        self.LastRestock_Date_Output = ctk.CTkLabel(supply_info_frame, text="", font=output_font)
         self.LastRestock_Date_Output.place(x=740,y=130)
 
-        #Date Registered Label and Output
-        self.Registered_Date_Label = ctk.CTkLabel(supply_info_frame, text="Date Registered" , font=label_font)
+        # Date Registered Label and Output
+        self.Registered_Date_Label = ctk.CTkLabel(supply_info_frame, text="Date Registered", font=label_font)
         self.Registered_Date_Label.place(x=80,y=200)
-        self.Registered_Date_Output = ctk.CTkLabel(supply_info_frame, text="2025-12-12" , font=output_font)
+        self.Registered_Date_Output = ctk.CTkLabel(supply_info_frame, text="", font=output_font)
         self.Registered_Date_Output.place(x=80,y=230)
 
-        #Storage Meter Current stock and Max Stock
-        current_stock = 0
-        max_stock = 200
-        progress_value = current_stock / max_stock
-
-        # Frame container
+        # Storage Meter Frame
         storage_meter_frame = ctk.CTkFrame(
             self.Main_Supply_Frame,
             width=950,
@@ -1677,7 +1663,6 @@ class SupplyPage(ctk.CTkFrame):
         )
         storage_meter_frame.place(x=600, y=430)
 
-        # Left color bar
         left_bar = ctk.CTkFrame(
             storage_meter_frame,
             width=20,
@@ -1688,79 +1673,146 @@ class SupplyPage(ctk.CTkFrame):
         )
         left_bar.place(x=0, y=0)
 
-        # Title
-        storageMeter_title_label = ctk.CTkLabel(
-            storage_meter_frame,
-            text="Inventory Quantity",
-            font=title_font
-        )
+        storageMeter_title_label = ctk.CTkLabel(storage_meter_frame, text="Inventory Quantity", font=title_font)
         storageMeter_title_label.place(x=40, y=20)
 
-
-        # Progress Bar----------------------------
-        self.StorageMeter = ctk.CTkProgressBar(
-            storage_meter_frame,
-            width=800,
-            height=40,
-            fg_color="#DDDDDD",
-            progress_color="Green",
-            bg_color="transparent"
-        )
+        self.StorageMeter = ctk.CTkProgressBar(storage_meter_frame, width=800, height=40, fg_color="white", progress_color="green", border_width=1, border_color="black")
         self.StorageMeter.place(x=100,y=100)
 
-        # Status label
-        self.Status_Label = ctk.CTkLabel(
-            storage_meter_frame,
-            text="Status :",
-            font=label_font
-        )
-        self.Status_Label.place(x=100, y=180)
+        self.Status_Label = ctk.CTkLabel(storage_meter_frame, text="Status :", font=label_font)
+        self.Status_Label.place(x=100,y=180)
 
-        self.Status_Output = ctk.CTkLabel(
-            storage_meter_frame,
-            text="",
-            font=title_font
-        )
-        self.Status_Output.place(x=180, y=180)
+        self.Status_Output = ctk.CTkLabel(storage_meter_frame, text="", font=label_font)
+        self.Status_Output.place(x=180,y=180)
 
-        # Available items label
-        self.Available_Items_Label = ctk.CTkLabel(
-            storage_meter_frame,
-            text="Available Items :",
-            font=label_font
-        )
-        self.Available_Items_Label.place(x=650, y=180)
+        self.Available_Items_Label = ctk.CTkLabel(storage_meter_frame, text="Available Items :", font=label_font)
+        self.Available_Items_Label.place(x=650,y=180)
 
-        self.Remaining_Output = ctk.CTkLabel(
-            storage_meter_frame,
-            text="",
-            font=title_font
-        )
-        self.Remaining_Output.place(x=790, y=180)
+        self.Remaining_Output = ctk.CTkLabel(storage_meter_frame, text="", font=label_font)
+        self.Remaining_Output.place(x=790,y=180)
 
-        self.Seperator_Output = ctk.CTkLabel(
-            storage_meter_frame,
-            text="/",
-            font=label_font
-        )
-        self.Seperator_Output.place(x=830, y=180)
+        self.Seperator_Output = ctk.CTkLabel(storage_meter_frame, text="/", font=label_font)
+        self.Seperator_Output.place(x=830,y=180)
 
-        self.Capacity_Output = ctk.CTkLabel(
-            storage_meter_frame,
-            text="",
-            font=title_font
-        )
-        self.Capacity_Output.place(x=850, y=180)
+        self.Capacity_Output = ctk.CTkLabel(storage_meter_frame, text="200", font=label_font)
+        self.Capacity_Output.place(x=850,y=180)
+         
+        # Daily Usage Frame
+        self.Daily_Usage_Frame = ctk.CTkFrame(self.Main_Supply_Frame,
+                width=450,
+                height=350,
+                fg_color="white",
+                corner_radius=20)
+        self.Daily_Usage_Frame.place(x=600,y=700)
 
-        #Function
-        self.StorageMeter.set(progress_value)
+        self.Top_bar = ctk.CTkFrame(self.Daily_Usage_Frame,
+                width=450,
+                height=20,
+                fg_color="#68EDC6")
+        self.Top_bar.place(y=0)
+
+        Daily_Usage_Title = ctk.CTkLabel(self.Daily_Usage_Frame, text="Daily Usage", font=title_font)
+        Daily_Usage_Title.place(x=150, y=40)
+
+        # Weekly Usage Frame
+        self.Weekly_Usage_Frame = ctk.CTkFrame(self.Main_Supply_Frame,
+                width=450,
+                height=350,
+                fg_color="white",
+                corner_radius=20)
+        self.Weekly_Usage_Frame.place(x=1100,y=700)
+
+        Weekly_Usage_Title = ctk.CTkLabel(self.Weekly_Usage_Frame, text="Weekly Usage", font=title_font)
+        Weekly_Usage_Title.place(x=150, y=40)
+
+        self.Top_bar2 = ctk.CTkFrame(self.Weekly_Usage_Frame,
+                width=450,
+                height=20,
+                fg_color="#68EDC6")
+        self.Top_bar2.place(y=0)
+
+    def fetch_supply_data(self):
+        """Fetch supply data from database including date_registered"""
+        try:
+            connect = db()
+            cursor = connect.cursor()
+            cursor.execute("""
+                SELECT item_id, item_name, category, restock_quantity, restock_date, date_registered
+                FROM supply
+            """)
+            return cursor.fetchall()
+        except Exception as e:
+            print("Error fetching supply data:", e)
+            return []
+
+    def populate_table(self, data):
+        """Populate the table with supply data"""
+        # Clear existing data
+        for row in self.tree.get_children():
+            self.tree.delete(row)
+        
+        # Insert new data
+        for row in data:
+            self.tree.insert("", "end", values=row)
+
+    def on_row_select(self, event):
+        """Handle row selection"""
+        selection = self.tree.selection()
+        if selection:
+            item = selection[0]
+            supply_data = self.tree.item(item, 'values')
+            self.selected_supply_data = {
+                'item_id': supply_data[0],
+                'item_name': supply_data[1],
+                'category': supply_data[2],
+                'restock_quantity': supply_data[3],
+                'restock_date': supply_data[4],
+                'date_registered': supply_data[5]
+            }
+
+    def on_row_click(self, event):
+        """Handle row click to show detailed info"""
+        item_id = self.tree.identify_row(event.y)
+        if item_id:
+            supply_data = self.tree.item(item_id, 'values')
+            supply_id = supply_data[0]
+            print("Supply ID:", supply_id)
+            
+            self.selected_supply_id = supply_id
+            self.show_detailed_info(supply_data)
+
+    def show_detailed_info(self, supply_data):
+        self.table_frame.place_forget()
+        self.button_frame.place_forget()
+        
+        # Update supply ID display
+        self.supply_id_value.configure(text=supply_data[0])
+        
+        # Update supply info
+        self.Supply_Name_Output.configure(text=supply_data[1])
+        self.Category_Output.configure(text=supply_data[2])
+        
+        restock_quantity = supply_data[3]
+        restock_date = supply_data[4]
+        date_registered = supply_data[5] if len(supply_data) > 5 else "N/A"
+        
+        self.LastRestock_Output.configure(text=str(restock_quantity))
+        self.LastRestock_Date_Output.configure(text=restock_date)
+        self.Registered_Date_Output.configure(text=date_registered)
+        
+        current_stock = int(restock_quantity) if restock_quantity else 0
+        max_stock = 200
+        
         self.Remaining_Output.configure(text=str(current_stock))
         self.Capacity_Output.configure(text=str(max_stock))
+        
+        progress_value = current_stock / max_stock if max_stock > 0 else 0
+        self.StorageMeter.set(progress_value)
 
-        stock_percentage = current_stock / max_stock
-
+        stock_percentage = current_stock / max_stock if max_stock > 0 else 0
+        
         if stock_percentage == 0:
-            self.Status_Output.configure(text="Out of Stock", text_color="#8B0000")  # Dark Red
+            self.Status_Output.configure(text="Out of Stock", text_color="#8B0000") 
             self.Remaining_Output.configure(text_color="#8B0000")
             self.StorageMeter.configure(progress_color="#8B0000")
         elif stock_percentage <= 0.25:
@@ -1775,62 +1827,108 @@ class SupplyPage(ctk.CTkFrame):
             self.Status_Output.configure(text="On Stocks", text_color="green")
             self.Remaining_Output.configure(text_color="green")
             self.StorageMeter.configure(progress_color="green")
-        # Progress Bar----------------------------
-                
 
-        #Daily Usage Frame
-        self.Daily_Usage_Frame = ctk.CTkFrame(self.Main_Supply_Frame,
-                        width=450,
-                        height=350,
-                        fg_color="white",
-                        corner_radius=20  )
-        self.Daily_Usage_Frame.place(x=600,y=700)
-        
-        self.Top_bar=ctk.CTkFrame(self.Daily_Usage_Frame,
-                        width=450,
-                        height=20,
-                        fg_color="#68EDC6")
-        self.Top_bar.place(y=0)
+        self.Main_Supply_Frame.place(x=0, y=0, relwidth=1, relheight=1)
 
-        Daily_Usage_Title = ctk.CTkLabel(self.Daily_Usage_Frame, text="Daily Usage", font=title_font)
-        Daily_Usage_Title.place(x=150, y=40)
+    def show_table_view(self):
+        """Return to table view"""
+        self.Main_Supply_Frame.place_forget()
+        self.button_frame.place(x=20, y=10, anchor="nw")
+        self.table_frame.place(x=20, y=60, relwidth=0.95, relheight=0.8)
 
-        #Weekly Usage Frame
-        self.Weekly_Usage_Frame = ctk.CTkFrame(self.Main_Supply_Frame,
-                        width=450,
-                        height=350,
-                        fg_color="white",
-                        corner_radius=20  )
-        self.Weekly_Usage_Frame.place(x=1100,y=700)
-
-        Daily_Usage_Title = ctk.CTkLabel(self.Weekly_Usage_Frame, text="Weekly Usage", font=title_font)
-        Daily_Usage_Title.place(x=150, y=40)
-
-        self.Top_bar=ctk.CTkFrame(self.Weekly_Usage_Frame,
-                        width=450,
-                        height=20,
-                        fg_color="#68EDC6")
-        self.Top_bar.place(y=0)
-
-    #Not Permanent Add on lang  para once na click yung row mag pop up yung Output
-    def on_row_selected(self, event):
-        selected_item = self.tree.selection()
-        if selected_item:
-            values = self.tree.item(selected_item[0], "values")
-
-            self.supply_id_value.configure(text=values[0])
-            self.Supply_Name_Output.configure(text=values[1])
-            self.Category_Output.configure(text=values[2])
-            self.LastRestock_Output.configure(text=values[5])
-            self.LastRestock_Date_Output.configure(text=values[4])
-
-            self.Main_Supply_Frame.place(x=0, y=0, relwidth=1, relheight=1)
+    def refresh_table(self):
+        """Refresh the table with updated data"""
+        self.table_frame.place(x=20, y=60, relwidth=0.95, relheight=0.8)
+        self.button_frame.place(x=20, y=10, anchor="nw")
+        self.populate_table(self.fetch_supply_data())
 
     def open_add_window(self):
-        SupplyWindow(self)  
+        add_window = SupplyWindow(self)
+        add_window.grab_set()
+        add_window.focus_force()
+        self.wait_window(add_window)
+        self.refresh_table()
+
+    # FOR TESTING
+    def clear_supply_table(self):
+        """Clear all supply data from the table and reset ID to start from 1"""
+        try:
+            connect = db()
+            cursor = connect.cursor()
+            
+            # Delete all records from supply table
+            cursor.execute("DELETE FROM supply")
+ 
+            cursor.execute("ALTER TABLE supply AUTO_INCREMENT = 1")
+
+            connect.commit()
+            
+            print("Supply table cleared successfully. Next ID will start from 1.")
+
+            self.populate_table([])
+            if hasattr(self, 'Main_Supply_Frame'):
+                self.show_table_view()
+                
+            cursor.close()
+            connect.close()
+            
+            return True
+            
+        except Exception as e:
+            print(f"Error clearing supply table: {e}")
+            return False
 
     def open_edit_window(self):
-        pass  
+        """Open edit window with current detailed supply data"""
+        if not self.selected_supply_data:
+            CTkMessageBox.show_error("Edit Error", "No supply data available to edit.", parent=self)
+            return
+
+        edit_window = SupplyWindow(self, edit_data=self.selected_supply_data)
+        edit_window.grab_set()
+        edit_window.focus_force()
+        self.wait_window(edit_window)
+        
+        # Refresh both table and detailed view
+        self.refresh_table()
+        
+        if hasattr(self, 'selected_supply_id') and self.selected_supply_id:
+            self.refresh_detailed_view()
+
+    def refresh_detailed_view(self):
+        """Refresh the detailed view with updated data from database"""
+        if not self.selected_supply_id:
+            return
+        
+        try:
+            connect = db()
+            cursor = connect.cursor()
+            cursor.execute("""
+                SELECT item_id, item_name, category, restock_quantity, restock_date, date_registered
+                FROM supply
+                WHERE item_id = %s
+            """, (self.selected_supply_id,))
+            
+            updated_data = cursor.fetchone()
+            if updated_data:
+                # Update the selected_supply_data with fresh data
+                self.selected_supply_data = {
+                    'item_id': updated_data[0],
+                    'item_name': updated_data[1],
+                    'category': updated_data[2],
+                    'restock_quantity': updated_data[3],
+                    'restock_date': updated_data[4],
+                    'date_registered': updated_data[5]
+                }
+                
+                # Refresh the detailed view display
+                self.show_detailed_info(updated_data)
+                
+            cursor.close()
+            connect.close()
+            
+        except Exception as e:
+            print("Error refreshing detailed view:", e)
 
 class ReportPage(ctk.CTkFrame):
     def __init__(self, parent):
