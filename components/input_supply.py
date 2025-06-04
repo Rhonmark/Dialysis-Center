@@ -242,12 +242,14 @@ class SupplyWindow(SupplyBaseWindow):
                     # Update existing record
                     cursor.execute("""
                         UPDATE supply 
-                        SET item_name = %s, category = %s, restock_quantity = %s, restock_date = %s 
+                        SET item_name = %s, category = %s, restock_quantity = %s, 
+                        restock_date = %s, average_weekly_usage = %s, delivery_time_days = %s 
                         WHERE item_id = %s 
                     """, (item_name, category, restock_quantity, restock_date, avg_weekly_usage, delivery_time, self.edit_data['item_id']))
 
                     print(f"Updated supply item with ID: {self.edit_data['item_id']}")
                     CTkMessageBox.show_success("Success", "Supply information updated successfully!", parent=self)
+                
                 else:
                     # Create new record
                     supply_information = {
