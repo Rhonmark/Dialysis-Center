@@ -1,4 +1,5 @@
-from .connector import db_connection as db
+from connector import db_connection as db
+import math
 #running as relative import since no ui yet
 # cursor.lastrowid to retrieve recent patient
 
@@ -211,20 +212,19 @@ def wag_galawin():
 
   pass
 
-def update_changes(patient_id, column, row, table_name):
+def update_changes(unique_id, column, row, table_name):
   try:
     connect, cursor = db_connection()
-
-    # set_values = ', '.join(f"{col} = {val}" for col, val in zip(column, row))
-    set_values = ', '.join(f"{col} = %s" for col in column)
+    merged = [f"{col} = {val}" for col, val in zip(column, row)]
+    data = ', '.join(merged)
 
     query = f"""
         UPDATE {table_name}
-        SET {set_values}
-        WHERE patient_id = %s
+        SET {data} 
+        WHERE {unique_id} = %s
     """
 
-    cursor.execute(query, (*row, patient_id))
+    cursor.execute(query, (*row, unique_id))
 
     connect.commit()
     return True
@@ -237,47 +237,71 @@ def update_changes(patient_id, column, row, table_name):
      cursor.close()
      connect.close()
 
-#mak code
-def get_full_patient_details(patient_id):
+def supply_creation_id(column, row, table_name):
+        
         try:
-            connect, cursor = db_connection()
+            connect = db()
+            cursor = connect.cursor()
 
-            # Fetch from patient_list
-            cursor.execute("""
-                SELECT patient_name, age, gender 
-                FROM patient_list 
-                WHERE patient_id = %s
-            """, (patient_id,))
-            patient_basic = cursor.fetchone()
+            # column_names = ', '.join(column)
+            values_placeholder = ', '.join(['%s'] * len(row))
 
-            # Fetch from patient_info (address, diagnosis, etc.)
-            cursor.execute("""
-                SELECT address, diagnosis, allergies
-                FROM patient_info
-                WHERE patient_id = %s
-            """, (patient_id,))
-            patient_info = cursor.fetchone()
-
-            # Fetch medications
-            cursor.execute("""
-                SELECT m.medication_name
-                FROM patient_medications pm
-                JOIN medicines m ON pm.medication_id = m.medication_id
-                WHERE pm.patient_id = %s
-            """, (patient_id,))
-            medications = cursor.fetchall()
-
-            full_details = {
-                "basic_info": patient_basic,
-                "extra_info": patient_info,
-                "medications": [med[0] for med in medications]  # List of medication names
-            }
-
-            return full_details
-
+            query = f"""
+                INSERT INTO {table_name}({column}, date_registered)
+                VALUES({values_placeholder}, CURDATE())
+            """
+            cursor.execute(query, tuple(row))
+            unique_id = cursor.lastrowid  
+            connect.commit()  
+            
+            return unique_id 
+        
         except Exception as e:
-            print("Error fetching full patient details: ", e)
-            return None
+            print("Patient info creation error: ", e)
+            return False
+        
         finally:
             cursor.close()
             connect.close()
+
+#EDIT PROTOTYPE
+
+sample_column = ['first_name', 'second_name', 'age']
+sample_row = ['tristan', 'joe', 21]
+
+def update_changes_sample (column, row):
+  merged = [f"{col} = {val}" for col, val in zip(column, row)]
+  data = ', '.join(merged)
+  return data
+
+# current_changes = update_changes_sample(sample_column, sample_row)
+# print(current_changes)
+
+#FOR STOCK LEVELS
+average_weekly_usage = int(input("Average Weekly Usage: "))
+delivery_time = int(input("Delivery Time(days): "))
+z_score = 2.33
+
+#FORMULA
+def define_stock_levels():
+  average_daily_usage = float(average_weekly_usage / 7)
+  # print(average_daily_usage)
+  estimated_standard_dev = average_daily_usage * 0.2
+  # print("Estimated Standard Deviation Daily", estimated_standard_dev)
+
+  safety_stock = math.ceil(z_score * estimated_standard_dev * math.sqrt(delivery_time))
+  print('Safety Stock: ', safety_stock)
+
+  reorder_point = math.ceil((average_daily_usage * delivery_time) + safety_stock)
+  print("Reorder Point: ", reorder_point)
+
+  low_stock_level = math.ceil(reorder_point + safety_stock)
+  print("Low Stock Level: ", low_stock_level)
+
+  critical_stock_level = math.ceil(reorder_point * 0.5)
+  print("Critical Stock Level: ", critical_stock_level)
+
+  return low_stock_level, critical_stock_level
+
+stock_levels = define_stock_levels()
+print(stock_levels)
