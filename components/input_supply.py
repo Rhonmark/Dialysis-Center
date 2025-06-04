@@ -2,7 +2,7 @@ import customtkinter as ctk
 from tkinter import Toplevel
 from tkcalendar import Calendar
 from PIL import Image
-from backend.crud import submit_form_creation, get_existing_credentials
+from backend.crud import supply_creation_id, get_existing_credentials
 from backend.connector import db_connection as db
 
 class CTkMessageBox(ctk.CTkToplevel):
@@ -181,8 +181,9 @@ class SupplyWindow(SupplyBaseWindow):
 
             item_name = entry_itemname.get()
             category = entry_category.get()
-            restock_quantity = entry_restock_quantity.get()
+            restock_quantity = int(entry_restock_quantity.get())
             restock_date = entry_restock_date.get()
+            
 
             if item_name == "" or item_name == "Type here":
                 print("Save failed: Item Name is required.")
@@ -201,11 +202,18 @@ class SupplyWindow(SupplyBaseWindow):
                     'item_name': item_name,
                     'category': category,
                     'restock_quantity': restock_quantity,
-                    'restock_date': restock_date
+                    'restock_date': restock_date,
                 }
 
                 supply_column = ', '.join(supply_information.keys())
                 supply_row = [f"{entries}" for entries in supply_information.values()]
+
+                # supply_row = []
+                # for value in supply_information.values():
+                #     if isinstance(value, int) or value == 'CURDATE()':
+                #         supply_row.append(f"{value}")
+                #     else:
+                #         supply_row.append(f"'{value}'")
 
                 # print(item_name, category, restock_quantity, restock_date)
                 # print('supply column: ', supply_column)
@@ -217,7 +225,10 @@ class SupplyWindow(SupplyBaseWindow):
                     CTkMessageBox.show_error("Error", 'Items already exists ', parent=self)
                     return
                 
-                item_id = submit_form_creation(supply_column, supply_row, table_name='supply')
+                item_id = supply_creation_id(supply_column, supply_row, table_name='supply')
+
+                print(repr(restock_date))
+                print(supply_column)
         
                 if item_id: 
                     print('Item ID: ', item_id)

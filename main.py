@@ -60,5 +60,5 @@ def main():
     navigate_to("HomePage")
     root.mainloop()
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()
