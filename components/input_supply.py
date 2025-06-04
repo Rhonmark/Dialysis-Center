@@ -198,7 +198,7 @@ class SupplyWindow(SupplyBaseWindow):
         if not self.is_editing:
             add_placeholder(self.entry_averageuse, "Type here")
 
-        # Delivery Date
+        # Delivery Time in Days
         ctk.CTkLabel(self, text="Delivery Time in Days", font=label_font, fg_color="white", text_color="black").place(x=420, y=300)
         self.entry_delivery_date = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0,
                                  bg_color="white")
@@ -206,33 +206,71 @@ class SupplyWindow(SupplyBaseWindow):
         ctk.CTkLabel(self, text="*Not Required", font=not_required_font, text_color="red", bg_color="white").place(x=580, y=295)
         create_underline(420, 380, 140)
         if not self.is_editing:
-            add_placeholder(self.entry_delivery_date, "Select date")
+            add_placeholder(self.entry_delivery_date, "Type here")
 
         # Populate fields if editing
         if self.is_editing:
             self.populate_fields()
 
         def on_save_click():
-            item_name = self.entry_itemname.get()
-            category = self.entry_category.get()
-            restock_quantity_str = self.entry_restock_quantity.get()
-            restock_date = self.entry_restock_date.get()
-            avg_weekly_usage = self.entry_averageuse.get()
-            delivery_time = int(self.entry_delivery_date.get())
+            item_name = self.entry_itemname.get().strip()
+            category = self.entry_category.get().strip()
+            restock_quantity_str = self.entry_restock_quantity.get().strip()
+            restock_date = self.entry_restock_date.get().strip()
+            avg_weekly_usage_str = self.entry_averageuse.get().strip()
+            delivery_time_str = self.entry_delivery_date.get().strip()
 
-            if item_name == "" or item_name == "Type here":
+            # Validate required fields
+            if not item_name or item_name == "Type here":
                 CTkMessageBox.show_error("Input Error", "Item Name is required.", parent=self)
                 return
-            if category == "":
+            if not category:
                 CTkMessageBox.show_error("Input Error", "Category is required.", parent=self)
                 return
 
-            # Handle restock quantity
+            # Handle optional numeric fields with proper validation
             try:
-                restock_quantity = int(restock_quantity_str) if restock_quantity_str and restock_quantity_str != "Type here" else 0
+                # Restock quantity - allow empty or placeholder for optional field
+                if restock_quantity_str and restock_quantity_str != "Type here":
+                    restock_quantity = int(restock_quantity_str)
+                    if restock_quantity < 0:
+                        CTkMessageBox.show_error("Input Error", "Restock quantity cannot be negative.", parent=self)
+                        return
+                else:
+                    restock_quantity = 0
             except ValueError:
                 CTkMessageBox.show_error("Input Error", "Restock quantity must be a valid number.", parent=self)
                 return
+
+            try:
+                # Average weekly usage - allow empty or placeholder for optional field
+                if avg_weekly_usage_str and avg_weekly_usage_str != "Type here":
+                    avg_weekly_usage = float(avg_weekly_usage_str)
+                    if avg_weekly_usage < 0:
+                        CTkMessageBox.show_error("Input Error", "Average weekly usage cannot be negative.", parent=self)
+                        return
+                else:
+                    avg_weekly_usage = 0.0
+            except ValueError:
+                CTkMessageBox.show_error("Input Error", "Average weekly usage must be a valid number.", parent=self)
+                return
+
+            try:
+                # Delivery time - allow empty or placeholder for optional field
+                if delivery_time_str and delivery_time_str != "Type here":
+                    delivery_time = int(delivery_time_str)
+                    if delivery_time < 0:
+                        CTkMessageBox.show_error("Input Error", "Delivery time cannot be negative.", parent=self)
+                        return
+                else:
+                    delivery_time = 0
+            except ValueError:
+                CTkMessageBox.show_error("Input Error", "Delivery time must be a valid number.", parent=self)
+                return
+
+            # Handle date field - set to None if empty or placeholder
+            if not restock_date or restock_date == "Select date":
+                restock_date = None
 
             try:
                 connect = db()
@@ -267,7 +305,7 @@ class SupplyWindow(SupplyBaseWindow):
                     check_uniqueness = get_existing_credentials(item_name, 'item_name', table_name='supply')
 
                     if check_uniqueness:
-                        CTkMessageBox.show_error("Error", 'Items already exists ', parent=self)
+                        CTkMessageBox.show_error("Error", 'Item already exists', parent=self)
                         return
 
                     item_id = supply_creation_id(supply_column, supply_row, table_name='supply')
@@ -283,7 +321,7 @@ class SupplyWindow(SupplyBaseWindow):
 
             except Exception as e:
                 print(f"Error saving supply: {e}")
-                CTkMessageBox.show_error("Error", 'Something went wrong! ', parent=self)
+                CTkMessageBox.show_error("Error", f'Database error: {str(e)}', parent=self)
                 return
 
             finally:
@@ -313,10 +351,37 @@ class SupplyWindow(SupplyBaseWindow):
         
         # Clear and set restock quantity
         self.entry_restock_quantity.delete(0, "end")
-        self.entry_restock_quantity.insert(0, str(self.edit_data['restock_quantity']))
+        restock_qty = self.edit_data.get('restock_quantity')
+
+        # Check if it's None or 0
+        if restock_qty is None or restock_qty == 0:
+            self.entry_restock_quantity.insert(0, "0")
+        else:
+            self.entry_restock_quantity.insert(0, str(restock_qty))
         self.entry_restock_quantity.configure(text_color="black")
         
         # Clear and set restock date
         self.entry_restock_date.delete(0, "end")
-        self.entry_restock_date.insert(0, self.edit_data['restock_date'])
-        self.entry_restock_date.configure(text_color="black")
+        restock_date = self.edit_data.get('restock_date')
+        if restock_date:
+            self.entry_restock_date.insert(0, str(restock_date))
+            self.entry_restock_date.configure(text_color="black")
+        
+        # Clear and set average weekly usage
+        self.entry_averageuse.delete(0, "end")
+        avg_usage = self.edit_data.get('average_weekly_usage')
+        if avg_usage is None or avg_usage == 0:
+            self.entry_averageuse.insert(0, "0")
+        else:
+            self.entry_averageuse.insert(0, str(avg_usage))
+        self.entry_averageuse.configure(text_color="black")
+        
+        # Clear and set delivery time
+        self.entry_delivery_date.delete(0, "end")
+        delivery_time = self.edit_data.get('delivery_time_days')
+
+        if delivery_time is None or delivery_time == 0:
+            self.entry_delivery_date.insert(0, "0")
+        else:
+            self.entry_delivery_date.insert(0, str(delivery_time))
+        self.entry_delivery_date.configure(text_color="black")

@@ -1653,6 +1653,18 @@ class SupplyPage(ctk.CTkFrame):
         self.Registered_Date_Output = ctk.CTkLabel(supply_info_frame, text="", font=output_font)
         self.Registered_Date_Output.place(x=80,y=230)
 
+        # Average Weekly Usage Label and Output
+        self.Average_Weekly_Usage_Label = ctk.CTkLabel(supply_info_frame, text="Average Weekly Usage", font=label_font)
+        self.Average_Weekly_Usage_Label.place(x=300,y=200)
+        self.Average_Weekly_Usage_Output = ctk.CTkLabel(supply_info_frame, text="", font=output_font)
+        self.Average_Weekly_Usage_Output.place(x=300,y=230)
+
+        # Delivery Time Label and Output
+        self.Delivery_Time_Label = ctk.CTkLabel(supply_info_frame, text="Delivery Time", font=label_font)
+        self.Delivery_Time_Label.place(x=520,y=200)
+        self.Delivery_Time_Output = ctk.CTkLabel(supply_info_frame, text="", font=output_font)
+        self.Delivery_Time_Output.place(x=520,y=230)
+
         # Storage Meter Frame
         storage_meter_frame = ctk.CTkFrame(
             self.Main_Supply_Frame,
@@ -1732,12 +1744,13 @@ class SupplyPage(ctk.CTkFrame):
         self.Top_bar2.place(y=0)
 
     def fetch_supply_data(self):
-        """Fetch supply data from database including date_registered"""
+        """Fetch supply data from database including all fields"""
         try:
             connect = db()
             cursor = connect.cursor()
             cursor.execute("""
-                SELECT item_id, item_name, category, restock_quantity, restock_date, date_registered
+                SELECT item_id, item_name, category, restock_quantity, restock_date, 
+                    date_registered, average_weekly_usage, delivery_time_days
                 FROM supply
             """)
             return cursor.fetchall()
@@ -1767,7 +1780,9 @@ class SupplyPage(ctk.CTkFrame):
                 'category': supply_data[2],
                 'restock_quantity': supply_data[3],
                 'restock_date': supply_data[4],
-                'date_registered': supply_data[5]
+                'date_registered': supply_data[5],
+                'average_weekly_usage': supply_data[6] if len(supply_data) > 6 else 0,
+                'delivery_time_days': supply_data[7] if len(supply_data) > 7 else 0
             }
 
     def on_row_click(self, event):
@@ -1795,10 +1810,14 @@ class SupplyPage(ctk.CTkFrame):
         restock_quantity = supply_data[3]
         restock_date = supply_data[4]
         date_registered = supply_data[5] if len(supply_data) > 5 else "N/A"
+        average_weekly_usage = supply_data[6] if len(supply_data) > 6 else "N/A"
+        delivery_time_days = supply_data[7] if len(supply_data) > 7 else "N/A"
         
         self.LastRestock_Output.configure(text=str(restock_quantity))
         self.LastRestock_Date_Output.configure(text=restock_date)
         self.Registered_Date_Output.configure(text=date_registered)
+        self.Average_Weekly_Usage_Output.configure(text=str(average_weekly_usage))
+        self.Delivery_Time_Output.configure(text=str(delivery_time_days))
         
         current_stock = int(restock_quantity) if restock_quantity else 0
         max_stock = 200
@@ -1904,21 +1923,23 @@ class SupplyPage(ctk.CTkFrame):
             connect = db()
             cursor = connect.cursor()
             cursor.execute("""
-                SELECT item_id, item_name, category, restock_quantity, restock_date, date_registered
+                SELECT item_id, item_name, category, restock_quantity, restock_date, 
+                    date_registered, average_weekly_usage, delivery_time_days
                 FROM supply
                 WHERE item_id = %s
             """, (self.selected_supply_id,))
             
             updated_data = cursor.fetchone()
             if updated_data:
-                # Update the selected_supply_data with fresh data
                 self.selected_supply_data = {
                     'item_id': updated_data[0],
                     'item_name': updated_data[1],
                     'category': updated_data[2],
                     'restock_quantity': updated_data[3],
                     'restock_date': updated_data[4],
-                    'date_registered': updated_data[5]
+                    'date_registered': updated_data[5],
+                    'average_weekly_usage': updated_data[6] if updated_data[6] else 0,
+                    'delivery_time_days': updated_data[7] if updated_data[7] else 0
                 }
                 
                 # Refresh the detailed view display
