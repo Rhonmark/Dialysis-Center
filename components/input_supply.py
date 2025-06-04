@@ -241,8 +241,48 @@ class SupplyWindow(SupplyBaseWindow):
                 connect.close() 
                 self.destroy()
 
+        #Second Row
+        ctk.CTkLabel(self, text="Average Weekly Usage", font=label_font, fg_color="white", text_color="black").place(x=120, y=300)
+        entry_averageuse = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0,
+                                      bg_color="white")
+        entry_averageuse.place(x=120, y=350)
+        ctk.CTkLabel(self, text="*Not Required", font=not_required_font, text_color="red", bg_color="white").place(x=300, y=295)
+        create_underline(120, 380, 180)
+        add_placeholder(entry_averageuse, "Type here")
+
+
+        ctk.CTkLabel(self, text="Delivery Date", font=label_font, fg_color="white", text_color="black").place(x=420, y=300)
+        entry_delivery_date = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0,
+                                 bg_color="white")
+        entry_delivery_date.place(x=420, y=350)
+        entry_delivery_date.bind("<Key>", lambda e: "break")
+        entry_delivery_date.bind("<Button-3>", lambda e: "break")
+        ctk.CTkLabel(self, text="*Not Required", font=not_required_font, text_color="red", bg_color="white").place(x=530, y=295)
+        create_underline(420, 380, 140)
+        add_placeholder(entry_delivery_date, "Select date")
+
+        dropdown_btn = ctk.CTkButton(self, text="▼", width=30, font=entry_font, height=30, corner_radius=8,
+                                     command=lambda: open_calendar(entry_delivery_date), bg_color="white",
+                                     fg_color="#1A374D", hover_color="#68EDC6", text_color="black")
+        dropdown_btn.place(x=570, y=350)
+
+        def open_calendar(entry_widget):
+            def on_date_select(event):
+                selected_date = cal.get_date()
+                entry_widget.delete(0, "end")
+                entry_widget.insert(0, selected_date)
+                entry_widget.configure(text_color="black")
+                top.destroy()
+
+            top = Toplevel(self)
+            top.grab_set()
+            top.overrideredirect(True)
+            top.geometry(f"+{self.winfo_rootx() + 1000}+{self.winfo_rooty() + 230}")
+            cal = Calendar(top, date_pattern='yyyy-mm-dd')
+            cal.pack(padx=10, pady=10)
+            cal.bind("<<CalendarSelected>>", on_date_select)
 
         self.btn_save = ctk.CTkButton(self, text="Save", fg_color="#1A374D", hover_color="#16C79A", text_color="white",
                                       bg_color="white", corner_radius=20, font=button_font, width=200, height=50,
                                       command=on_save_click)
-        self.btn_save.place(x=1020, y=400)
+        self.btn_save.place(x=1020, y=420)

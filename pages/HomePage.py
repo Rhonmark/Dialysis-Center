@@ -1,5 +1,6 @@
 import threading
 import customtkinter as ctk
+from CTkMessagebox import CTkMessagebox
 import tkinter as tk
 from PIL import Image
 from tkinter import ttk, messagebox
@@ -8,6 +9,7 @@ from backend.connector import db_connection as db
 from components.input_supply import SupplyWindow
 from components.state import login_shared_states
 from backend.crud import retrieve_form_data, db_connection
+import datetime
 
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("blue")
@@ -115,7 +117,7 @@ class HomePage(ctk.CTkFrame):
             "Patient": PatientPage(self.main_frame, shared_state),
             "Supply": SupplyPage(self.main_frame),
             "Report": ReportPage(self.main_frame),
-            "About": AboutPage(self.main_frame),
+            "Maintenance": MaintenancePage(self.main_frame),
             "Settings": SettingsPage(self.main_frame, self.shared_state),
         }
 
@@ -143,12 +145,19 @@ class HomePage(ctk.CTkFrame):
         if page_name == "Patient":
             self.pages["Patient"].show_table_view()
 
-class NavbarTop(ctk.CTkFrame):
+class NavbarTop(ctk.CTkFrame): #NOT YET DONE ON THE WORKS
     def __init__(self, parent):
         super().__init__(parent, fg_color="white", height=130)
         self.pack(fill="x", side="top")
         self.pack_propagate(False)
         self.configure(border_width=0, border_color="black") 
+
+        self.dropdown_visible = False  # state of dropdown menu
+
+
+        self.dropdown_frame = ctk.CTkFrame(self, fg_color="#f0f0f0", corner_radius=8, width=150, height=100)
+        self.dropdown_frame.configure(border_width=1, border_color="gray")
+        self.dropdown_frame.place_forget()
 
         self.welcome_label = ctk.CTkLabel(self, text="Welcome Back,", text_color="black", font=("Arial", 30, "bold"))
         self.welcome_label.place(relx=0.2, rely=0.5, anchor="e")
@@ -163,7 +172,7 @@ class NavbarTop(ctk.CTkFrame):
         notif_img = ctk.CTkImage(light_image=Image.open("assets/notif.png"), size=(42, 42))
         settings_img = ctk.CTkImage(light_image=Image.open("assets/settingsv2.png"), size=(42, 42))
 
-        icon_y = 62 
+        icon_y = 62
 
         profile_btn = ctk.CTkButton(self, image=profile_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5")
         profile_btn.place(relx=1.0, x=-60, y=icon_y, anchor="center")
@@ -171,11 +180,36 @@ class NavbarTop(ctk.CTkFrame):
         notif_btn = ctk.CTkButton(self, image=notif_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5")
         notif_btn.place(relx=1.0, x=-110, y=icon_y, anchor="center")
 
-        settings_btn = ctk.CTkButton(self, image=settings_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5")
+       
+        settings_btn = ctk.CTkButton(self, image=settings_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5", command=self.toggle_dropdown)
         settings_btn.place(relx=1.0, x=-160, y=icon_y, anchor="center")
+
+
+        # Add items to dropdown menu
+        ctk.CTkButton(self.dropdown_frame, text="Account Settings", width=140, command=self.open_settings).pack(pady=5)
+        ctk.CTkButton(self.dropdown_frame, text="Log Out", width=140, command=self.logout).pack(pady=5)
 
         self.bottom_line = ctk.CTkFrame(self, height=1.5, fg_color="black")
         self.bottom_line.place(relx=0, rely=1.0, relwidth=1.0, anchor="sw")
+       
+
+    def toggle_dropdown(self):
+        if self.dropdown_visible:
+            self.dropdown_frame.place_forget()
+        else:
+            # Get global position of the settings icon
+            x = self.winfo_rootx() + self.winfo_width() - 180
+            y = self.winfo_rooty() + 90
+
+            self.dropdown_frame.place(x=x, y=y)
+            self.dropdown_frame.lift()  # bring it above all other widgets
+        self.dropdown_visible = not self.dropdown_visible
+
+    def open_settings(self):
+        print("Opening account settings...")
+
+    def logout(self):
+        print("Logging out...")
 
 class Sidebar(ctk.CTkFrame):
     def __init__(self, parent, shared_state):
@@ -203,7 +237,7 @@ class Sidebar(ctk.CTkFrame):
             "Patient": "assets/patient.png",
             "Supply": "assets/supply.png",
             "Report": "assets/report.png",
-            "About": "assets/about.png",
+            "Maintenance": "assets/about.png",
             "Settings": "assets/settings.png"
         }
         self.buttons = {}
@@ -1628,7 +1662,12 @@ class SupplyPage(ctk.CTkFrame):
         self.Registered_Date_Output = ctk.CTkLabel(supply_info_frame, text="2025-12-12" , font=output_font)
         self.Registered_Date_Output.place(x=80,y=230)
 
-        #ON WORK 
+        #Storage Meter Current stock and Max Stock
+        current_stock = 0
+        max_stock = 200
+        progress_value = current_stock / max_stock
+
+        # Frame container
         storage_meter_frame = ctk.CTkFrame(
             self.Main_Supply_Frame,
             width=950,
@@ -1638,6 +1677,7 @@ class SupplyPage(ctk.CTkFrame):
         )
         storage_meter_frame.place(x=600, y=430)
 
+        # Left color bar
         left_bar = ctk.CTkFrame(
             storage_meter_frame,
             width=20,
@@ -1648,43 +1688,108 @@ class SupplyPage(ctk.CTkFrame):
         )
         left_bar.place(x=0, y=0)
 
-        storageMeter_title_label = ctk.CTkLabel(storage_meter_frame, text="Inventory Quantity", font=title_font)
+        # Title
+        storageMeter_title_label = ctk.CTkLabel(
+            storage_meter_frame,
+            text="Inventory Quantity",
+            font=title_font
+        )
         storageMeter_title_label.place(x=40, y=20)
 
-       
-        self.StorageMeter = ctk.CTkProgressBar(storage_meter_frame,width=800,height=40,fg_color="white",progress_color="green",border_width=1,border_color="black",)
+
+        # Progress Bar----------------------------
+        self.StorageMeter = ctk.CTkProgressBar(
+            storage_meter_frame,
+            width=800,
+            height=40,
+            fg_color="#DDDDDD",
+            progress_color="Green",
+            bg_color="transparent"
+        )
         self.StorageMeter.place(x=100,y=100)
 
-        self.Status_Label = ctk.CTkLabel(storage_meter_frame,text="Status :" , font=label_font)
-        self.Status_Label.place(x=100,y=180)
+        # Status label
+        self.Status_Label = ctk.CTkLabel(
+            storage_meter_frame,
+            text="Status :",
+            font=label_font
+        )
+        self.Status_Label.place(x=100, y=180)
 
-        self.Status_Output = ctk.CTkLabel(storage_meter_frame,text="On Stock" , font=label_font)
-        self.Status_Output.place(x=180,y=180)
+        self.Status_Output = ctk.CTkLabel(
+            storage_meter_frame,
+            text="",
+            font=title_font
+        )
+        self.Status_Output.place(x=180, y=180)
 
-        self.Available_Items_Label = ctk.CTkLabel(storage_meter_frame,text="Availalbe Items :" , font=label_font)
-        self.Available_Items_Label.place(x=650,y=180)
+        # Available items label
+        self.Available_Items_Label = ctk.CTkLabel(
+            storage_meter_frame,
+            text="Available Items :",
+            font=label_font
+        )
+        self.Available_Items_Label.place(x=650, y=180)
 
-        self.Remaining_Output = ctk.CTkLabel(storage_meter_frame,text="175" , font=label_font)
-        self.Remaining_Output.place(x=790,y=180)
+        self.Remaining_Output = ctk.CTkLabel(
+            storage_meter_frame,
+            text="",
+            font=title_font
+        )
+        self.Remaining_Output.place(x=790, y=180)
 
-        self.Seperator_Output = ctk.CTkLabel(storage_meter_frame,text="/" , font=label_font)
-        self.Seperator_Output.place(x=830,y=180)
+        self.Seperator_Output = ctk.CTkLabel(
+            storage_meter_frame,
+            text="/",
+            font=label_font
+        )
+        self.Seperator_Output.place(x=830, y=180)
 
-        self.Capacity_Output = ctk.CTkLabel(storage_meter_frame,text="200" , font=label_font)
-        self.Capacity_Output.place(x=850,y=180)
-         
+        self.Capacity_Output = ctk.CTkLabel(
+            storage_meter_frame,
+            text="",
+            font=title_font
+        )
+        self.Capacity_Output.place(x=850, y=180)
+
+        #Function
+        self.StorageMeter.set(progress_value)
+        self.Remaining_Output.configure(text=str(current_stock))
+        self.Capacity_Output.configure(text=str(max_stock))
+
+        stock_percentage = current_stock / max_stock
+
+        if stock_percentage == 0:
+            self.Status_Output.configure(text="Out of Stock", text_color="#8B0000")  # Dark Red
+            self.Remaining_Output.configure(text_color="#8B0000")
+            self.StorageMeter.configure(progress_color="#8B0000")
+        elif stock_percentage <= 0.25:
+            self.Status_Output.configure(text="Very Low Stocks", text_color="red")
+            self.Remaining_Output.configure(text_color="red")
+            self.StorageMeter.configure(progress_color="red")
+        elif stock_percentage <= 0.50:
+            self.Status_Output.configure(text="Low Stocks", text_color="orange")
+            self.Remaining_Output.configure(text_color="orange")
+            self.StorageMeter.configure(progress_color="orange")
+        else:
+            self.Status_Output.configure(text="On Stocks", text_color="green")
+            self.Remaining_Output.configure(text_color="green")
+            self.StorageMeter.configure(progress_color="green")
+        # Progress Bar----------------------------
+                
+
         #Daily Usage Frame
         self.Daily_Usage_Frame = ctk.CTkFrame(self.Main_Supply_Frame,
-                width=450,
-                height=350,
-                fg_color="white",
-                corner_radius=20  )
+                        width=450,
+                        height=350,
+                        fg_color="white",
+                        corner_radius=20  )
         self.Daily_Usage_Frame.place(x=600,y=700)
-
+        
         self.Top_bar=ctk.CTkFrame(self.Daily_Usage_Frame,
-                width=450,
-                height=20,
-                fg_color="#68EDC6")
+                        width=450,
+                        height=20,
+                        fg_color="#68EDC6")
         self.Top_bar.place(y=0)
 
         Daily_Usage_Title = ctk.CTkLabel(self.Daily_Usage_Frame, text="Daily Usage", font=title_font)
@@ -1692,19 +1797,19 @@ class SupplyPage(ctk.CTkFrame):
 
         #Weekly Usage Frame
         self.Weekly_Usage_Frame = ctk.CTkFrame(self.Main_Supply_Frame,
-                width=450,
-                height=350,
-                fg_color="white",
-                corner_radius=20  )
+                        width=450,
+                        height=350,
+                        fg_color="white",
+                        corner_radius=20  )
         self.Weekly_Usage_Frame.place(x=1100,y=700)
 
         Daily_Usage_Title = ctk.CTkLabel(self.Weekly_Usage_Frame, text="Weekly Usage", font=title_font)
         Daily_Usage_Title.place(x=150, y=40)
 
         self.Top_bar=ctk.CTkFrame(self.Weekly_Usage_Frame,
-                width=450,
-                height=20,
-                fg_color="#68EDC6")
+                        width=450,
+                        height=20,
+                        fg_color="#68EDC6")
         self.Top_bar.place(y=0)
 
     #Not Permanent Add on lang  para once na click yung row mag pop up yung Output
@@ -1733,11 +1838,224 @@ class ReportPage(ctk.CTkFrame):
         label = ctk.CTkLabel(self, text="Report Page", font=("Arial", 24))
         label.pack(pady=100)
 
-class AboutPage(ctk.CTkFrame):
+class MaintenancePage(ctk.CTkFrame):
     def __init__(self, parent):
         super().__init__(parent, fg_color="#E8FBFC")
-        label = ctk.CTkLabel(self, text="About Page", font=("Arial", 24))
-        label.pack(pady=100)
+
+        output_font = ("Merriweather Sans Bold", 15)
+        label_font = ("Merriweather", 15)
+        button_font = ("Merriweather Bold",15)
+        SubTitle_font = ("Merriweather Bold",20)
+        Title_font = ("Merriweather Bold",25)
+        Messagebox_font=("Merriweather Sans Bold",15)
+
+        Maintenance_MainFrame = ctk.CTkFrame (self,
+                                            bg_color="transparent", 
+                                            fg_color='#FFFFFF',
+                                            width=1100,
+                                            height=500,
+                                            corner_radius=20
+                                            )
+        Maintenance_MainFrame.place(x=150,y=180)
+
+        leftbar_frame = ctk.CTkFrame(Maintenance_MainFrame,
+                                     bg_color="transparent",
+                                     fg_color="#1A374D" ,
+                                     width=25,
+                                     height=500,
+                                     corner_radius=20 )
+        leftbar_frame.place(x=0)
+
+        #Title
+        label_Title = ctk.CTkLabel(Maintenance_MainFrame, bg_color="transparent",text="Maintenance",text_color="black",font=Title_font)
+        label_Title.place(x=100,y=80)
+
+
+        #Option Frame -----------------------
+        option_frame = ctk.CTkFrame(Maintenance_MainFrame,
+                                    bg_color="transparent" ,
+                                    fg_color="#E8FBFC", 
+                                    width=800, 
+                                    height=200, 
+                                    corner_radius=20)
+        option_frame.place(x=200,y=250)
+
+        leftbar_frame = ctk.CTkFrame(option_frame,
+                                     bg_color="transparent",
+                                     fg_color="#68EDC6" ,
+                                     width=15,
+                                     height=200,
+                                     corner_radius=20 )
+        leftbar_frame.place(x=0)
+
+        Options_label = ctk.CTkLabel(option_frame,
+                                     text="Options",
+                                     text_color="black",
+                                     bg_color="#FFFFFF",
+                                     font=SubTitle_font)
+        Options_label.place(x=75,y=40)
+
+        
+        def manual_backup_action():
+            CTkMessagebox(
+                title="Backup Status",
+                message="Manual backup was successful.",
+                icon="check",
+                option_1="OK",
+                header=False,
+                width=400,
+                height=200,
+                button_color="#68EDC6",
+                button_text_color="white",
+                button_hover_color="#1A374D",
+                fg_color="white",
+                bg_color="white",
+                text_color="black",
+                font=Messagebox_font
+            )
+            print("Manual Back-up was successful")
+
+        ManualBackup_Button = ctk.CTkButton(option_frame,
+                                            bg_color="transparent",
+                                            fg_color="#00C88D",
+                                            hover_color="#1A374D",
+                                            width=180,
+                                            height=70,
+                                            corner_radius=20,
+                                            text="Manual Backup",
+                                            text_color="white",
+                                            cursor="hand2",
+                                            command=manual_backup_action,
+                                            font=button_font)
+        ManualBackup_Button.place(x=50,y=100)
+
+        
+
+        ScheduleBackup_Button = ctk.CTkButton(option_frame,
+                                            bg_color="transparent",
+                                            fg_color="#00C88D",
+                                            hover_color="#1A374D",
+                                            width=180,
+                                            height=70,
+                                            corner_radius=20,
+                                            text="Schedule Backup",
+                                            text_color="white",
+                                            cursor="hand2",
+                                            font=button_font,
+                                            )
+        ScheduleBackup_Button.place(x=300,y=100)
+
+        BackupLogs_Button = ctk.CTkButton(option_frame,
+                                            bg_color="transparent",
+                                            fg_color="#00C88D",
+                                            hover_color="#1A374D",
+                                            width=180,
+                                            height=70,
+                                            corner_radius=20,
+                                            text="History Log",
+                                            text_color="white",
+                                            cursor="hand2",
+                                            font=button_font)
+        BackupLogs_Button.place(x=550,y=100)
+        #-------------------------------------
+
+        #Current Date-------------------------
+        current_date_frame = ctk.CTkFrame(Maintenance_MainFrame,bg_color="transparent" ,fg_color="#E8FBFC", width=250, height=100, corner_radius=20)
+        current_date_frame.place(x=1050,y=170)
+
+        leftbar_frame = ctk.CTkFrame(current_date_frame,
+                                     bg_color="transparent",
+                                     fg_color="#68EDC6",
+                                     width=25,
+                                     height=100,
+                                     corner_radius=20 )
+        leftbar_frame.place(x=0)
+
+        Current_date_label = ctk.CTkLabel(current_date_frame,bg_color="#E8FBFC",text="Current Date :",text_color="black",font=label_font)
+        Current_date_label.place(x=50,y=20)
+
+        Current_date_output = ctk.CTkLabel(current_date_frame,bg_color="#E8FBFC",text="06/01/25",text_color="black",font=output_font)
+        Current_date_output.place(x=175,y=20)
+
+        Current_time_label = ctk.CTkLabel(current_date_frame,bg_color="#E8FBFC",text="Current time :",text_color="black",font=label_font)
+        Current_time_label.place(x=50,y=50)
+
+        Current_time_output = ctk.CTkLabel(current_date_frame,bg_color="#E8FBFC",text="20 : 00",text_color="black",font=output_font)
+        Current_time_output.place(x=175,y=50)
+
+        def update_time():
+            now = datetime.datetime.now()
+            Current_date_output.configure(text=now.strftime("%m/%d/%y"))
+            Current_time_output.configure(text=now.strftime("%H : %M"))
+            self.after(1000, update_time)
+
+        update_time() 
+        #-------------------------------------
+
+        #Last Backup--------------------------
+        lastBackup_date_frame = ctk.CTkFrame(Maintenance_MainFrame,bg_color="transparent" ,fg_color="#E8FBFC", width=300, height=100, corner_radius=20,)
+        lastBackup_date_frame.place(x=150,y=650)
+
+        leftbar_frame = ctk.CTkFrame(lastBackup_date_frame,
+                                     bg_color="transparent",
+                                     fg_color="#68EDC6",
+                                     width=15,
+                                     height=100,
+                                     corner_radius=20 )
+        leftbar_frame.place(x=0)
+
+        LastBackup_date_label = ctk.CTkLabel(lastBackup_date_frame,bg_color="#E8FBFC",text="Last Backup Date :",text_color="black",font=label_font)
+        LastBackup_date_label.place(x=75,y=40)
+
+        LastBackup_date_output = ctk.CTkLabel(lastBackup_date_frame,bg_color="#E8FBFC",text="06/01/25",text_color="black",font=output_font)
+        LastBackup_date_output.place(x=130,y=40)
+
+        LastBackup_time_label = ctk.CTkLabel(lastBackup_date_frame,bg_color="#E8FBFC",text="Time :",text_color="black",font=label_font)
+        LastBackup_time_label.place(x=325,y=40)
+
+        LastBackup_time_output = ctk.CTkLabel(lastBackup_date_frame,bg_color="#E8FBFC",text="20 : 00",text_color="black",font=output_font)
+        LastBackup_time_output.place(x=400,y=40)
+        #-------------------------------------
+
+        #Next Backup ------------------------
+        NextBackup_date_frame = ctk.CTkFrame(Maintenance_MainFrame,bg_color="transparent" ,fg_color="#E8FBFC", width=300, height=100, corner_radius=20)
+        NextBackup_date_frame.place(x=850,y=650)
+
+        leftbar_frame = ctk.CTkFrame(NextBackup_date_frame,
+                                     bg_color="transparent",
+                                     fg_color="#68EDC6",
+                                     width=15,
+                                     height=100,
+                                     corner_radius=20 )
+        leftbar_frame.place(x=0)
+
+        NextBackup_date_label = ctk.CTkLabel(NextBackup_date_frame,bg_color="#E8FBFC",text="Next Backup Date :",text_color="black",font=label_font)
+        NextBackup_date_label.place(x=75,y=40)
+
+        NextBackup_date_output = ctk.CTkLabel(NextBackup_date_frame,bg_color="#E8FBFC",text="06/01/25",text_color="black",font=output_font)
+        NextBackup_date_output.place(x=130,y=40)
+
+        NextBackup_time_label = ctk.CTkLabel(NextBackup_date_frame,bg_color="#E8FBFC",text="Time :",text_color="black",font=label_font)
+        NextBackup_time_label.place(x=325,y=40)
+
+        NextBackup_time_output = ctk.CTkLabel(NextBackup_date_frame,bg_color="#E8FBFC",text="20 : 00",text_color="black",font=output_font)
+        NextBackup_time_output.place(x=400,y=40)
+        #-----------------------------------
+        BackupTable_frame = ctk.CTkFrame(self,
+                                    bg_color="transparent" ,
+                                    fg_color="#E8FBFC", 
+                                    width=800, 
+                                    height=300, 
+                                    corner_radius=20)
+        BackupTable_frame.place(x=200,y=500)\
+        
+        leftbar_frame = ctk.CTkFrame(BackupTable_frame,
+                                     bg_color="transparent",
+                                     fg_color="#1A374D" ,
+                                     width=25,
+                                     height=500,
+                                     corner_radius=20 )
+        leftbar_frame.place(x=0)
 
 class SettingsPage(ctk.CTkFrame):
     def __init__(self, parent, shared_state):
