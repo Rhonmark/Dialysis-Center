@@ -128,6 +128,7 @@ class SupplyWindow(SupplyBaseWindow):
         self.entry_itemname.place(x=120, y=200)
         ctk.CTkLabel(self, text="*Required", font=not_required_font, text_color="#008400", bg_color="white").place(x=210, y=145)
         create_underline(120, 230, 180)
+
         if not self.is_editing:
             add_placeholder(self.entry_itemname, "Type here")
 
@@ -147,11 +148,11 @@ class SupplyWindow(SupplyBaseWindow):
 
         # Restock Quantity
         ctk.CTkLabel(self, text="Last Restock Quantity", font=label_font, fg_color="white", text_color="black").place(x=720, y=150)
-        self.entry_restock_quantity = ctk.CTkEntry(self, width=150, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0,
-                                        bg_color="white")
+        self.entry_restock_quantity = ctk.CTkEntry(self, width=150, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white")
         self.entry_restock_quantity.place(x=720, y=200)
         ctk.CTkLabel(self, text="*Not Required", font=not_required_font, text_color="red", bg_color="white").place(x=890, y=145)
         create_underline(720, 230, 180)
+
         if not self.is_editing:
             add_placeholder(self.entry_restock_quantity, "Type here")
 
@@ -160,10 +161,9 @@ class SupplyWindow(SupplyBaseWindow):
         self.entry_restock_date = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0,
                                  bg_color="white")
         self.entry_restock_date.place(x=1020, y=200)
-        self.entry_restock_date.bind("<Key>", lambda e: "break")
-        self.entry_restock_date.bind("<Button-3>", lambda e: "break")
         ctk.CTkLabel(self, text="*Not Required", font=not_required_font, text_color="red", bg_color="white").place(x=1160, y=145)
         create_underline(1020, 230, 140)
+
         if not self.is_editing:
             add_placeholder(self.entry_restock_date, "Select date")
 
@@ -199,21 +199,14 @@ class SupplyWindow(SupplyBaseWindow):
             add_placeholder(self.entry_averageuse, "Type here")
 
         # Delivery Date
-        ctk.CTkLabel(self, text="Delivery Date", font=label_font, fg_color="white", text_color="black").place(x=420, y=300)
+        ctk.CTkLabel(self, text="Delivery Time in Days", font=label_font, fg_color="white", text_color="black").place(x=420, y=300)
         self.entry_delivery_date = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0,
                                  bg_color="white")
         self.entry_delivery_date.place(x=420, y=350)
-        self.entry_delivery_date.bind("<Key>", lambda e: "break")
-        self.entry_delivery_date.bind("<Button-3>", lambda e: "break")
-        ctk.CTkLabel(self, text="*Not Required", font=not_required_font, text_color="red", bg_color="white").place(x=530, y=295)
+        ctk.CTkLabel(self, text="*Not Required", font=not_required_font, text_color="red", bg_color="white").place(x=580, y=295)
         create_underline(420, 380, 140)
         if not self.is_editing:
             add_placeholder(self.entry_delivery_date, "Select date")
-
-        dropdown_btn2 = ctk.CTkButton(self, text="▼", width=30, font=entry_font, height=30, corner_radius=8,
-                                     command=lambda: open_calendar(self.entry_delivery_date), bg_color="white",
-                                     fg_color="#1A374D", hover_color="#68EDC6", text_color="black")
-        dropdown_btn2.place(x=570, y=350)
 
         # Populate fields if editing
         if self.is_editing:
@@ -224,6 +217,8 @@ class SupplyWindow(SupplyBaseWindow):
             category = self.entry_category.get()
             restock_quantity_str = self.entry_restock_quantity.get()
             restock_date = self.entry_restock_date.get()
+            avg_weekly_usage = self.entry_averageuse.get()
+            delivery_time = int(self.entry_delivery_date.get())
 
             if item_name == "" or item_name == "Type here":
                 CTkMessageBox.show_error("Input Error", "Item Name is required.", parent=self)
@@ -247,10 +242,10 @@ class SupplyWindow(SupplyBaseWindow):
                     # Update existing record
                     cursor.execute("""
                         UPDATE supply 
-                        SET item_name = %s, category = %s, restock_quantity = %s, restock_date = %s
-                        WHERE item_id = %s
-                    """, (item_name, category, restock_quantity, restock_date, self.edit_data['item_id']))
-                    
+                        SET item_name = %s, category = %s, restock_quantity = %s, restock_date = %s 
+                        WHERE item_id = %s 
+                    """, (item_name, category, restock_quantity, restock_date, avg_weekly_usage, delivery_time, self.edit_data['item_id']))
+
                     print(f"Updated supply item with ID: {self.edit_data['item_id']}")
                     CTkMessageBox.show_success("Success", "Supply information updated successfully!", parent=self)
                 else:
@@ -260,6 +255,8 @@ class SupplyWindow(SupplyBaseWindow):
                         'category': category,
                         'restock_quantity': restock_quantity,
                         'restock_date': restock_date,
+                        'average_weekly_usage': avg_weekly_usage,
+                        'delivery_time_days': delivery_time
                     }
 
                     supply_column = ', '.join(supply_information.keys())
@@ -270,9 +267,9 @@ class SupplyWindow(SupplyBaseWindow):
                     if check_uniqueness:
                         CTkMessageBox.show_error("Error", 'Items already exists ', parent=self)
                         return
-                    
+
                     item_id = supply_creation_id(supply_column, supply_row, table_name='supply')
-                    
+
                     if item_id: 
                         print('Item ID: ', item_id)
                         CTkMessageBox.show_success("Success", "Supply information saved successfully!", parent=self)

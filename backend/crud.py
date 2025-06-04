@@ -215,8 +215,18 @@ def wag_galawin():
 def update_changes(unique_id, column, row, table_name):
   try:
     connect, cursor = db_connection()
-    merged = [f"{col} = {val}" for col, val in zip(column, row)]
-    data = ', '.join(merged)
+
+    # merged = [f"{col} = {val}" for col, val in zip(column, row)]
+    # data = ', '.join(merged)
+    data = ', '.join([f"{col} = %s" for col in column])
+
+    allowed_table = {"supply", "item_stock_levels"}
+    allowed_column = {"item_name", "category", "restock_quantity", "restock_date"}
+
+    if table_name not in allowed_table:
+       raise ValueError("Invalid Table Name")
+    if not set(column).issubset(allowed_column):
+       raise ValueError("Invalid Column Name")
 
     query = f"""
         UPDATE {table_name}
@@ -224,7 +234,7 @@ def update_changes(unique_id, column, row, table_name):
         WHERE {unique_id} = %s
     """
 
-    cursor.execute(query, (*row, unique_id))
+    cursor.execute(query, row + (unique_id))
 
     connect.commit()
     return True
@@ -266,42 +276,42 @@ def supply_creation_id(column, row, table_name):
 
 #EDIT PROTOTYPE
 
-"""sample_column = ['first_name', 'second_name', 'age']
-sample_row = ['tristan', 'joe', 21]
+# """sample_column = ['first_name', 'second_name', 'age']
+# sample_row = ['tristan', 'joe', 21]
 
-def update_changes_sample (column, row):
-  merged = [f"{col} = {val}" for col, val in zip(column, row)]
-  data = ', '.join(merged)
-  return data
+# def update_changes_sample (column, row):
+#   merged = [f"{col} = {val}" for col, val in zip(column, row)]
+#   data = ', '.join(merged)
+#   return data
 
-# current_changes = update_changes_sample(sample_column, sample_row)
-# print(current_changes)
+# # current_changes = update_changes_sample(sample_column, sample_row)
+# # print(current_changes)
 
-#FOR STOCK LEVELS
-average_weekly_usage = int(input("Average Weekly Usage: "))
-delivery_time = int(input("Delivery Time(days): "))
-z_score = 2.33
+# #FOR STOCK LEVELS
+# average_weekly_usage = int(input("Average Weekly Usage: "))
+# delivery_time = int(input("Delivery Time(days): "))
+# z_score = 2.33
 
-#FORMULA
-def define_stock_levels():
-  average_daily_usage = float(average_weekly_usage / 7)
-  # print(average_daily_usage)
-  estimated_standard_dev = average_daily_usage * 0.2
-  # print("Estimated Standard Deviation Daily", estimated_standard_dev)
+# #FORMULA
+# def define_stock_levels():
+#   average_daily_usage = float(average_weekly_usage / 7)
+#   # print(average_daily_usage)
+#   estimated_standard_dev = average_daily_usage * 0.2
+#   # print("Estimated Standard Deviation Daily", estimated_standard_dev)
 
-  safety_stock = math.ceil(z_score * estimated_standard_dev * math.sqrt(delivery_time))
-  print('Safety Stock: ', safety_stock)
+#   safety_stock = math.ceil(z_score * estimated_standard_dev * math.sqrt(delivery_time))
+#   print('Safety Stock: ', safety_stock)
 
-  reorder_point = math.ceil((average_daily_usage * delivery_time) + safety_stock)
-  print("Reorder Point: ", reorder_point)
+#   reorder_point = math.ceil((average_daily_usage * delivery_time) + safety_stock)
+#   print("Reorder Point: ", reorder_point)
 
-  low_stock_level = math.ceil(reorder_point + safety_stock)
-  print("Low Stock Level: ", low_stock_level)
+#   low_stock_level = math.ceil(reorder_point + safety_stock)
+#   print("Low Stock Level: ", low_stock_level)
 
-  critical_stock_level = math.ceil(reorder_point * 0.5)
-  print("Critical Stock Level: ", critical_stock_level)
+#   critical_stock_level = math.ceil(reorder_point * 0.5)
+#   print("Critical Stock Level: ", critical_stock_level)
 
-  return low_stock_level, critical_stock_level
+#   return low_stock_level, critical_stock_level
 
-stock_levels = define_stock_levels()
-print(stock_levels)"""
+# stock_levels = define_stock_levels()
+# print(stock_levels)"""
