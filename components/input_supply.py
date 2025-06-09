@@ -4,6 +4,7 @@ from tkcalendar import Calendar
 from PIL import Image
 from backend.crud import supply_creation_id, get_existing_credentials
 from backend.connector import db_connection as db
+import math
 
 class CTkMessageBox(ctk.CTkToplevel):
     def __init__(self, parent, title, message, box_type="info"):
@@ -146,8 +147,10 @@ class SupplyWindow(SupplyBaseWindow):
         ctk.CTkLabel(self, text="*Required", font=not_required_font, text_color="#008400", bg_color="white").place(x=495, y=145)
         create_underline(420, 230, 140)
 
+        
+
         # Restock Quantity
-        ctk.CTkLabel(self, text="Last Restock Quantity", font=label_font, fg_color="white", text_color="black").place(x=720, y=150)
+        ctk.CTkLabel(self, text="Restock Quantity", font=label_font, fg_color="white", text_color="black").place(x=720, y=150)
         self.entry_restock_quantity = ctk.CTkEntry(self, width=150, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white")
         self.entry_restock_quantity.place(x=720, y=200)
         ctk.CTkLabel(self, text="*Not Required", font=not_required_font, text_color="red", bg_color="white").place(x=890, y=145)
@@ -157,7 +160,7 @@ class SupplyWindow(SupplyBaseWindow):
             add_placeholder(self.entry_restock_quantity, "Type here")
 
         # Restock Date
-        ctk.CTkLabel(self, text="Last Restock Date", font=label_font, fg_color="white", text_color="black").place(x=1020, y=150)
+        ctk.CTkLabel(self, text="Restock Date", font=label_font, fg_color="white", text_color="black").place(x=1020, y=150)
         self.entry_restock_date = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0,
                                  bg_color="white")
         self.entry_restock_date.place(x=1020, y=200)
@@ -212,6 +215,26 @@ class SupplyWindow(SupplyBaseWindow):
         if self.is_editing:
             self.populate_fields()
 
+        def retrieve_supply_data(column, identifier, unique_id, table_name):
+
+            try:
+                connect = db()
+                cursor = connect.cursor()
+
+                query = f"SELECT {column} FROM {table_name} WHERE {identifier} = %s"
+                
+                cursor.execute(query, [unique_id])
+
+                result = cursor.fetchone()[0]
+
+                return result
+
+            except Exception as e:
+                print('error retrieving data', e)
+            finally:
+                connect.close()
+                cursor.close()
+
         def on_save_click():
             item_name = self.entry_itemname.get().strip()
             category = self.entry_category.get().strip()
@@ -219,6 +242,8 @@ class SupplyWindow(SupplyBaseWindow):
             restock_date = self.entry_restock_date.get().strip()
             avg_weekly_usage_str = self.entry_averageuse.get().strip()
             delivery_time_str = self.entry_delivery_date.get().strip()
+
+            item_id_store = []
 
             # Validate required fields
             if not item_name or item_name == "Type here":
@@ -243,14 +268,13 @@ class SupplyWindow(SupplyBaseWindow):
                 return
 
             try:
-                # Average weekly usage - allow empty or placeholder for optional field
                 if avg_weekly_usage_str and avg_weekly_usage_str != "Type here":
                     avg_weekly_usage = float(avg_weekly_usage_str)
                     if avg_weekly_usage < 0:
                         CTkMessageBox.show_error("Input Error", "Average weekly usage cannot be negative.", parent=self)
                         return
                 else:
-                    avg_weekly_usage = 0.0
+                    avg_weekly_usage = 0
             except ValueError:
                 CTkMessageBox.show_error("Input Error", "Average weekly usage must be a valid number.", parent=self)
                 return
@@ -272,35 +296,90 @@ class SupplyWindow(SupplyBaseWindow):
             if not restock_date or restock_date == "Select date":
                 restock_date = None
 
+            supply_information = {
+                'item_name': item_name,
+                'category': category,
+                'restock_quantity': restock_quantity,
+                'restock_date': restock_date,
+                'average_weekly_usage': avg_weekly_usage,
+                'delivery_time_days': delivery_time
+            }
+
+            supply_column = ', '.join(supply_information.keys())
+            supply_row = [f"{entries}" for entries in supply_information.values()]
+            # dynamic_column = [f"{entries}" for entries in supply_information.keys()]
+            # dynamic_values = [f"{col} = %s" for col in dynamic_column]
+
+            current_stock = 0
+
             try:
                 connect = db()
                 cursor = connect.cursor()
 
                 if self.is_editing:
-                    # Update existing record
+
+                    # edit/update information
+                    # updatin       g_changes(dynamic_values, supply_column, table_name='supply')
                     cursor.execute("""
                         UPDATE supply 
                         SET item_name = %s, category = %s, restock_quantity = %s, 
-                        restock_date = %s, average_weekly_usage = %s, delivery_time_days = %s 
+                        restock_date = %s, average_weekly_usage = %s, delivery_time_days = %s
                         WHERE item_id = %s 
                     """, (item_name, category, restock_quantity, restock_date, avg_weekly_usage, delivery_time, self.edit_data['item_id']))
 
                     print(f"Updated supply item with ID: {self.edit_data['item_id']}")
                     CTkMessageBox.show_success("Success", "Supply information updated successfully!", parent=self)
-                
-                else:
-                    # Create new record
-                    supply_information = {
-                        'item_name': item_name,
-                        'category': category,
-                        'restock_quantity': restock_quantity,
-                        'restock_date': restock_date,
-                        'average_weekly_usage': avg_weekly_usage,
-                        'delivery_time_days': delivery_time
-                    }
 
-                    supply_column = ', '.join(supply_information.keys())
-                    supply_row = [f"{entries}" for entries in supply_information.values()]
+                    #column, identifier, unique_id, table_name
+                    restock_quantity_result = retrieve_supply_data('restock_quantity', 'item_id', self.edit_data['item_id'], table_name='supply')
+                    
+                    if restock_quantity_result:
+                        current_stock += restock_quantity_result
+                    else:
+                        return
+
+
+                    cursor.execute("""
+                        UPDATE supply
+                        SET current_stock = %s
+                        WHERE item_id = %s
+                    """, (current_stock, self.edit_data['item_id']))
+
+                    connect.commit()
+
+                    current_stock_result = retrieve_supply_data('current_stock', 'item_id', self.edit_data['item_id'], table_name='supply')
+                    avg_weekly_usage_result = retrieve_supply_data('average_weekly_usage', 'item_id', self.edit_data['item_id'], table_name='supply')
+                    delivery_time_result = retrieve_supply_data('delivery_time_days', 'item_id', self.edit_data['item_id'], table_name='supply')
+
+                    # print('current stock result: ', current_stock_result)
+                    # print('avg weekly result: ', avg_weekly_usage_result)
+                    # print('delivery time result: ', delivery_time_result)
+
+                    #daily usage for standard dev
+                    avg_daily_usage = avg_weekly_usage_result / 7 
+                        
+                    #standard 20% 
+                    daily_standard_dev_estimate = avg_daily_usage * 0.2
+
+                    safety_stock = 2.33 * daily_standard_dev_estimate * math.sqrt(delivery_time_result)
+                    reorder_point = (avg_daily_usage * delivery_time_result) + safety_stock
+
+                    #stock level
+                    low_stock_level = reorder_point
+                    critical_stock_level = 0.50 * reorder_point
+                    
+                    if current_stock_result == low_stock_level:
+                        #insert data
+                        print('low stock level')
+                    elif current_stock_result == critical_stock_level:
+                        #insert data
+                        print('critical stock levels')
+                    else:
+                        print('good level')
+
+                else:
+                    #new record creation
+                    supply_information
 
                     check_uniqueness = get_existing_credentials(item_name, 'item_name', table_name='supply')
 
@@ -311,8 +390,10 @@ class SupplyWindow(SupplyBaseWindow):
                     item_id = supply_creation_id(supply_column, supply_row, table_name='supply')
 
                     if item_id: 
+                        item_id_store.append(item_id)
                         print('Item ID: ', item_id)
                         CTkMessageBox.show_success("Success", "Supply information saved successfully!", parent=self)
+                    
                     else:
                         print('Item ID creation error')
                         return
