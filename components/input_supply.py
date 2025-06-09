@@ -70,8 +70,13 @@ class SupplyBaseWindow(ctk.CTkToplevel):
 
         exit_image = ctk.CTkImage(light_image=Image.open("assets/exit.png"), size=(30, 30))
         self.exit_button = ctk.CTkButton(self, image=exit_image, text="", fg_color="transparent", bg_color="white", hover_color="white",
-                                         width=40, height=40, command=self.destroy)
+                                         width=40, height=40, command=self.close_window)
         self.exit_button.place(x=1200, y=15)
+
+    def close_window(self):
+        """Properly close the window and release grab"""
+        self.grab_release() 
+        self.destroy()
 
     def center_window(self):
         self.update_idletasks()
@@ -127,7 +132,10 @@ class SupplyWindow(SupplyBaseWindow):
         self.entry_itemname = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0,
                                       bg_color="white")
         self.entry_itemname.place(x=120, y=200)
-        ctk.CTkLabel(self, text="*Required", font=not_required_font, text_color="#008400", bg_color="white").place(x=210, y=145)
+
+        if not self.is_editing:
+            ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=210, y=145)
+        
         create_underline(120, 230, 180)
 
         if not self.is_editing:
@@ -144,16 +152,21 @@ class SupplyWindow(SupplyBaseWindow):
         )
         self.entry_category.configure(state="readonly")
         self.entry_category.place(x=420, y=200)
-        ctk.CTkLabel(self, text="*Required", font=not_required_font, text_color="#008400", bg_color="white").place(x=495, y=145)
+        
+        if not self.is_editing:
+            ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=495, y=145)
+        
         create_underline(420, 230, 140)
 
-        
-
-        # Restock Quantity
-        ctk.CTkLabel(self, text="Restock Quantity", font=label_font, fg_color="white", text_color="black").place(x=720, y=150)
+        # Current Stock (add mode) / Restock Quantity (edit mode)
+        stock_label_text = "Restock Quantity" if self.is_editing else "Current Stock"
+        ctk.CTkLabel(self, text=stock_label_text, font=label_font, fg_color="white", text_color="black").place(x=720, y=150)
         self.entry_restock_quantity = ctk.CTkEntry(self, width=150, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white")
         self.entry_restock_quantity.place(x=720, y=200)
-        ctk.CTkLabel(self, text="*Not Required", font=not_required_font, text_color="red", bg_color="white").place(x=890, y=145)
+        
+        if not self.is_editing:
+            ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=890, y=145)
+        
         create_underline(720, 230, 180)
 
         if not self.is_editing:
@@ -164,7 +177,10 @@ class SupplyWindow(SupplyBaseWindow):
         self.entry_restock_date = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0,
                                  bg_color="white")
         self.entry_restock_date.place(x=1020, y=200)
-        ctk.CTkLabel(self, text="*Not Required", font=not_required_font, text_color="red", bg_color="white").place(x=1160, y=145)
+        
+        if not self.is_editing:
+            ctk.CTkLabel(self, text="*Not Required", font=not_required_font, text_color="red", bg_color="white").place(x=1160, y=145)
+        
         create_underline(1020, 230, 140)
 
         if not self.is_editing:
@@ -196,7 +212,10 @@ class SupplyWindow(SupplyBaseWindow):
         self.entry_averageuse = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0,
                                       bg_color="white")
         self.entry_averageuse.place(x=120, y=350)
-        ctk.CTkLabel(self, text="*Not Required", font=not_required_font, text_color="red", bg_color="white").place(x=300, y=295)
+   
+        if not self.is_editing:
+            ctk.CTkLabel(self, text="*Not Required", font=not_required_font, text_color="red", bg_color="white").place(x=300, y=295)
+        
         create_underline(120, 380, 180)
         if not self.is_editing:
             add_placeholder(self.entry_averageuse, "Type here")
@@ -206,7 +225,10 @@ class SupplyWindow(SupplyBaseWindow):
         self.entry_delivery_date = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0,
                                  bg_color="white")
         self.entry_delivery_date.place(x=420, y=350)
-        ctk.CTkLabel(self, text="*Not Required", font=not_required_font, text_color="red", bg_color="white").place(x=580, y=295)
+        
+        if not self.is_editing:
+            ctk.CTkLabel(self, text="*Not Required", font=not_required_font, text_color="red", bg_color="white").place(x=580, y=295)
+        
         create_underline(420, 380, 140)
         if not self.is_editing:
             add_placeholder(self.entry_delivery_date, "Type here")
@@ -252,21 +274,24 @@ class SupplyWindow(SupplyBaseWindow):
             if not category:
                 CTkMessageBox.show_error("Input Error", "Category is required.", parent=self)
                 return
-
-            # Handle optional numeric fields with proper validation
-            try:
-                # Restock quantity - allow empty or placeholder for optional field
-                if restock_quantity_str and restock_quantity_str != "Type here":
-                    restock_quantity = int(restock_quantity_str)
-                    if restock_quantity < 0:
-                        CTkMessageBox.show_error("Input Error", "Restock quantity cannot be negative.", parent=self)
-                        return
-                else:
-                    restock_quantity = 0
-            except ValueError:
-                CTkMessageBox.show_error("Input Error", "Restock quantity must be a valid number.", parent=self)
+            
+            # Current Stock/Restock Quantity
+            if not restock_quantity_str or restock_quantity_str == "Type here":
+                stock_field_name = "Restock Quantity" if self.is_editing else "Current Stock"
+                CTkMessageBox.show_error("Input Error", f"{stock_field_name} is required.", parent=self)
                 return
 
+            # Handle required numeric fields
+            try:
+                restock_quantity = int(restock_quantity_str)
+                if restock_quantity < 0:
+                    CTkMessageBox.show_error("Input Error", "Stock quantity cannot be negative.", parent=self)
+                    return
+            except ValueError:
+                CTkMessageBox.show_error("Input Error", "Stock quantity must be a valid number.", parent=self)
+                return
+
+            # Handle optional numeric fields
             try:
                 if avg_weekly_usage_str and avg_weekly_usage_str != "Type here":
                     avg_weekly_usage = float(avg_weekly_usage_str)
@@ -408,7 +433,7 @@ class SupplyWindow(SupplyBaseWindow):
             finally:
                 cursor.close()
                 connect.close() 
-                self.destroy()
+                self.close_window()
 
         # Save button
         button_text = "Update" if self.is_editing else "Save"
