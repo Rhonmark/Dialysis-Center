@@ -4,7 +4,6 @@ from tkcalendar import Calendar
 from PIL import Image
 from backend.crud import supply_creation_id, get_existing_credentials
 from backend.connector import db_connection as db
-import math
 
 class CTkMessageBox(ctk.CTkToplevel):
     def __init__(self, parent, title, message, box_type="info"):
@@ -159,18 +158,20 @@ class SupplyWindow(SupplyBaseWindow):
         create_underline(420, 230, 140)
 
         # Current Stock (add mode) / Restock Quantity (edit mode)
-        stock_label_text = "Restock Quantity" if self.is_editing else "Current Stock"
-        ctk.CTkLabel(self, text=stock_label_text, font=label_font, fg_color="white", text_color="black").place(x=720, y=150)
-        self.entry_restock_quantity = ctk.CTkEntry(self, width=150, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white")
-        self.entry_restock_quantity.place(x=720, y=200)
-        
-        if not self.is_editing:
+        if self.is_editing:
+            # Edit mode: Show Restock Quantity field
+            ctk.CTkLabel(self, text="Restock Quantity", font=label_font, fg_color="white", text_color="black").place(x=720, y=150)
+            self.entry_restock_quantity = ctk.CTkEntry(self, width=150, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white")
+            self.entry_restock_quantity.place(x=720, y=200)
+            create_underline(720, 230, 180)
+        else:
+            # Add mode: Show Current Stock field
+            ctk.CTkLabel(self, text="Current Stock", font=label_font, fg_color="white", text_color="black").place(x=720, y=150)
+            self.entry_current_stock = ctk.CTkEntry(self, width=150, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white")
+            self.entry_current_stock.place(x=720, y=200)
             ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=890, y=145)
-        
-        create_underline(720, 230, 180)
-
-        if not self.is_editing:
-            add_placeholder(self.entry_restock_quantity, "Type here")
+            create_underline(720, 230, 180)
+            add_placeholder(self.entry_current_stock, "Type here")
 
         # Restock Date
         ctk.CTkLabel(self, text="Restock Date", font=label_font, fg_color="white", text_color="black").place(x=1020, y=150)
@@ -237,30 +238,9 @@ class SupplyWindow(SupplyBaseWindow):
         if self.is_editing:
             self.populate_fields()
 
-        def retrieve_supply_data(column, identifier, unique_id, table_name):
-
-            try:
-                connect = db()
-                cursor = connect.cursor()
-
-                query = f"SELECT {column} FROM {table_name} WHERE {identifier} = %s"
-                
-                cursor.execute(query, [unique_id])
-
-                result = cursor.fetchone()[0]
-
-                return result
-
-            except Exception as e:
-                print('error retrieving data', e)
-            finally:
-                connect.close()
-                cursor.close()
-
         def on_save_click():
             item_name = self.entry_itemname.get().strip()
             category = self.entry_category.get().strip()
-            restock_quantity_str = self.entry_restock_quantity.get().strip()
             restock_date = self.entry_restock_date.get().strip()
             avg_weekly_usage_str = self.entry_averageuse.get().strip()
             delivery_time_str = self.entry_delivery_date.get().strip()
@@ -275,21 +255,38 @@ class SupplyWindow(SupplyBaseWindow):
                 CTkMessageBox.show_error("Input Error", "Category is required.", parent=self)
                 return
             
-            # Current Stock/Restock Quantity
-            if not restock_quantity_str or restock_quantity_str == "Type here":
-                stock_field_name = "Restock Quantity" if self.is_editing else "Current Stock"
-                CTkMessageBox.show_error("Input Error", f"{stock_field_name} is required.", parent=self)
-                return
-
-            # Handle required numeric fields
-            try:
-                restock_quantity = int(restock_quantity_str)
-                if restock_quantity < 0:
-                    CTkMessageBox.show_error("Input Error", "Stock quantity cannot be negative.", parent=self)
+            # Handle Current Stock (add mode) n Restock Quantity (edit mode)
+            if self.is_editing:
+                # Edit mode: Get restock quantity
+                restock_quantity_str = self.entry_restock_quantity.get().strip()
+                if not restock_quantity_str:
+                    restock_quantity = 0
+                else:
+                    try:
+                        restock_quantity = int(restock_quantity_str)
+                        if restock_quantity < 0:
+                            CTkMessageBox.show_error("Input Error", "Restock quantity cannot be negative.", parent=self)
+                            return
+                    except ValueError:
+                        CTkMessageBox.show_error("Input Error", "Restock quantity must be a valid number.", parent=self)
+                        return
+                current_stock = None 
+            else:
+                # Add mode: Get current stock
+                current_stock_str = self.entry_current_stock.get().strip()
+                if not current_stock_str or current_stock_str == "Type here":
+                    CTkMessageBox.show_error("Input Error", "Current Stock is required.", parent=self)
                     return
-            except ValueError:
-                CTkMessageBox.show_error("Input Error", "Stock quantity must be a valid number.", parent=self)
-                return
+                
+                try:
+                    current_stock = int(current_stock_str)
+                    if current_stock < 0:
+                        CTkMessageBox.show_error("Input Error", "Current stock cannot be negative.", parent=self)
+                        return
+                except ValueError:
+                    CTkMessageBox.show_error("Input Error", "Current stock must be a valid number.", parent=self)
+                    return
+                restock_quantity = 0 
 
             # Handle optional numeric fields
             try:
@@ -321,90 +318,44 @@ class SupplyWindow(SupplyBaseWindow):
             if not restock_date or restock_date == "Select date":
                 restock_date = None
 
-            supply_information = {
-                'item_name': item_name,
-                'category': category,
-                'restock_quantity': restock_quantity,
-                'restock_date': restock_date,
-                'average_weekly_usage': avg_weekly_usage,
-                'delivery_time_days': delivery_time
-            }
-
-            supply_column = ', '.join(supply_information.keys())
-            supply_row = [f"{entries}" for entries in supply_information.values()]
-            # dynamic_column = [f"{entries}" for entries in supply_information.keys()]
-            # dynamic_values = [f"{col} = %s" for col in dynamic_column]
-
-            current_stock = 0
-
             try:
                 connect = db()
                 cursor = connect.cursor()
 
                 if self.is_editing:
+                    if restock_quantity > 0:
 
-                    # edit/update information
-                    # updatin       g_changes(dynamic_values, supply_column, table_name='supply')
-                    cursor.execute("""
-                        UPDATE supply 
-                        SET item_name = %s, category = %s, restock_quantity = %s, 
-                        restock_date = %s, average_weekly_usage = %s, delivery_time_days = %s
-                        WHERE item_id = %s 
-                    """, (item_name, category, restock_quantity, restock_date, avg_weekly_usage, delivery_time, self.edit_data['item_id']))
-
-                    print(f"Updated supply item with ID: {self.edit_data['item_id']}")
-                    CTkMessageBox.show_success("Success", "Supply information updated successfully!", parent=self)
-
-                    #column, identifier, unique_id, table_name
-                    restock_quantity_result = retrieve_supply_data('restock_quantity', 'item_id', self.edit_data['item_id'], table_name='supply')
-                    
-                    if restock_quantity_result:
-                        current_stock += restock_quantity_result
+                        cursor.execute("""
+                            UPDATE supply 
+                            SET item_name = %s, category = %s, restock_quantity = %s, 
+                            current_stock = %s,
+                            restock_date = %s, average_weekly_usage = %s, delivery_time_days = %s
+                            WHERE item_id = %s 
+                        """, (item_name, category, restock_quantity, restock_quantity, restock_date, avg_weekly_usage, delivery_time, self.edit_data['item_id']))
+                        print(f"Updated supply item with ID: {self.edit_data['item_id']} and added {restock_quantity} to stock")
                     else:
-                        return
-
-
-                    cursor.execute("""
-                        UPDATE supply
-                        SET current_stock = %s
-                        WHERE item_id = %s
-                    """, (current_stock, self.edit_data['item_id']))
+                        cursor.execute("""
+                            UPDATE supply 
+                            SET item_name = %s, category = %s, 
+                            restock_date = %s, average_weekly_usage = %s, delivery_time_days = %s
+                            WHERE item_id = %s 
+                        """, (item_name, category, restock_date, avg_weekly_usage, delivery_time, self.edit_data['item_id']))
+                        print(f"Updated supply item with ID: {self.edit_data['item_id']} without changing stock")
 
                     connect.commit()
-
-                    current_stock_result = retrieve_supply_data('current_stock', 'item_id', self.edit_data['item_id'], table_name='supply')
-                    avg_weekly_usage_result = retrieve_supply_data('average_weekly_usage', 'item_id', self.edit_data['item_id'], table_name='supply')
-                    delivery_time_result = retrieve_supply_data('delivery_time_days', 'item_id', self.edit_data['item_id'], table_name='supply')
-
-                    # print('current stock result: ', current_stock_result)
-                    # print('avg weekly result: ', avg_weekly_usage_result)
-                    # print('delivery time result: ', delivery_time_result)
-
-                    #daily usage for standard dev
-                    avg_daily_usage = avg_weekly_usage_result / 7 
-                        
-                    #standard 20% 
-                    daily_standard_dev_estimate = avg_daily_usage * 0.2
-
-                    safety_stock = 2.33 * daily_standard_dev_estimate * math.sqrt(delivery_time_result)
-                    reorder_point = (avg_daily_usage * delivery_time_result) + safety_stock
-
-                    #stock level
-                    low_stock_level = reorder_point
-                    critical_stock_level = 0.50 * reorder_point
-                    
-                    if current_stock_result == low_stock_level:
-                        #insert data
-                        print('low stock level')
-                    elif current_stock_result == critical_stock_level:
-                        #insert data
-                        print('critical stock levels')
-                    else:
-                        print('good level')
+                    CTkMessageBox.show_success("Success", "Supply information updated successfully!", parent=self)
 
                 else:
-                    #new record creation
-                    supply_information
+                    # New record creation (unchanged)
+                    supply_information = {
+                        'item_name': item_name,
+                        'category': category,
+                        'current_stock': current_stock,
+                        'restock_quantity': restock_quantity,
+                        'restock_date': restock_date,
+                        'average_weekly_usage': avg_weekly_usage,
+                        'delivery_time_days': delivery_time
+                    }
 
                     check_uniqueness = get_existing_credentials(item_name, 'item_name', table_name='supply')
 
@@ -412,13 +363,15 @@ class SupplyWindow(SupplyBaseWindow):
                         CTkMessageBox.show_error("Error", 'Item already exists', parent=self)
                         return
 
+                    supply_column = ', '.join(supply_information.keys())
+                    supply_row = [f"{entries}" for entries in supply_information.values()]
+
                     item_id = supply_creation_id(supply_column, supply_row, table_name='supply')
 
                     if item_id: 
                         item_id_store.append(item_id)
                         print('Item ID: ', item_id)
                         CTkMessageBox.show_success("Success", "Supply information saved successfully!", parent=self)
-                    
                     else:
                         print('Item ID creation error')
                         return
@@ -455,16 +408,15 @@ class SupplyWindow(SupplyBaseWindow):
         # Set category
         self.entry_category.set(self.edit_data['category'])
         
-        # Clear and set restock quantity
-        self.entry_restock_quantity.delete(0, "end")
-        restock_qty = self.edit_data.get('restock_quantity')
-
-        # Check if it's None or 0
-        if restock_qty is None or restock_qty == 0:
-            self.entry_restock_quantity.insert(0, "0")
-        else:
-            self.entry_restock_quantity.insert(0, str(restock_qty))
-        self.entry_restock_quantity.configure(text_color="black")
+        # Clear and set
+        if self.is_editing:
+            self.entry_restock_quantity.delete(0, "end")
+            restock_qty = self.edit_data.get('restock_quantity')
+            if restock_qty is None or restock_qty == 0:
+                self.entry_restock_quantity.insert(0, "0")
+            else:
+                self.entry_restock_quantity.insert(0, str(restock_qty))
+            self.entry_restock_quantity.configure(text_color="black")
         
         # Clear and set restock date
         self.entry_restock_date.delete(0, "end")
@@ -485,9 +437,36 @@ class SupplyWindow(SupplyBaseWindow):
         # Clear and set delivery time
         self.entry_delivery_date.delete(0, "end")
         delivery_time = self.edit_data.get('delivery_time_days')
-
         if delivery_time is None or delivery_time == 0:
             self.entry_delivery_date.insert(0, "0")
         else:
             self.entry_delivery_date.insert(0, str(delivery_time))
         self.entry_delivery_date.configure(text_color="black")
+
+def show_detailed_info(self, supply_data):
+    self.table_frame.place_forget()
+    self.button_frame.place_forget()
+    
+    # Update supply ID display
+    self.supply_id_value.configure(text=supply_data[0])
+    
+    # Update supply info
+    self.Supply_Name_Output.configure(text=supply_data[1])
+    self.Category_Output.configure(text=supply_data[2])
+    
+    current_stock = supply_data[3]
+    restock_date = supply_data[4] if len(supply_data) > 4 else "N/A"
+    date_registered = supply_data[5] if len(supply_data) > 5 else "N/A"
+    average_weekly_usage = supply_data[6] if len(supply_data) > 6 else "N/A"
+    delivery_time_days = supply_data[7] if len(supply_data) > 7 else "N/A"
+
+    # Display current stock as remaining stock (this is what you want)
+    self.currentstock_Output.configure(text=str(current_stock))
+    self.LastRestock_Date_Output.configure(text=restock_date)
+    self.Registered_Date_Output.configure(text=date_registered)
+    self.Average_Weekly_Usage_Output.configure(text=str(average_weekly_usage))
+    self.Delivery_Time_Output.configure(text=str(delivery_time_days))
+    
+    # Use current_stock for calculations
+    current_stock_value = int(current_stock) if current_stock else 0
+    max_stock = 200  # Your max stock value

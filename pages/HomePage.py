@@ -1513,7 +1513,7 @@ class SupplyPage(ctk.CTkFrame):
         tree_container = ctk.CTkFrame(self.table_frame, fg_color="black")
         tree_container.pack(fill="both", expand=True, padx=1, pady=1)
 
-        columns = ("item_id", "item_name", "category", "restock_quantity", "restock_date", "date_registered")
+        columns = ("item_id", "item_name", "category", "current_stock", "restock_date", "date_registered")
         self.tree = ttk.Treeview(tree_container, columns=columns, show="headings", height=12)
         self.tree.pack(side="left", fill="both", expand=True)
 
@@ -1644,10 +1644,10 @@ class SupplyPage(ctk.CTkFrame):
         self.Category_Output.place(x=300,y=130)
 
         # Last Restock Quantity Label and Output
-        self.LastRestock_Label = ctk.CTkLabel(supply_info_frame, text="Remaining Stock", font=label_font)
-        self.LastRestock_Label.place(x=520,y=100)
-        self.LastRestock_Output = ctk.CTkLabel(supply_info_frame, text="", font=output_font)
-        self.LastRestock_Output.place(x=520,y=130)
+        self.currentstock_Label = ctk.CTkLabel(supply_info_frame, text="Remaining Stock", font=label_font)
+        self.currentstock_Label.place(x=520,y=100)
+        self.currentstock_Output = ctk.CTkLabel(supply_info_frame, text="", font=output_font)
+        self.currentstock_Output.place(x=520,y=130)
 
         # Last Restocked Date Label and Output
         self.LastRestock_Date_Label = ctk.CTkLabel(supply_info_frame, text="Last Restock Date", font=label_font)
@@ -1757,7 +1757,7 @@ class SupplyPage(ctk.CTkFrame):
             connect = db()
             cursor = connect.cursor()
             cursor.execute("""
-                SELECT item_id, item_name, category, restock_quantity, restock_date, 
+                SELECT item_id, item_name, category, current_stock, restock_date, 
                     date_registered, average_weekly_usage, delivery_time_days
                 FROM supply
             """)
@@ -1815,28 +1815,34 @@ class SupplyPage(ctk.CTkFrame):
         self.Supply_Name_Output.configure(text=supply_data[1])
         self.Category_Output.configure(text=supply_data[2])
         
-        restock_quantity = supply_data[3]
+        # Correct: current_stock is the remaining stock
+        current_stock = supply_data[3] 
         restock_date = supply_data[4]
         date_registered = supply_data[5] if len(supply_data) > 5 else "N/A"
         average_weekly_usage = supply_data[6] if len(supply_data) > 6 else "N/A"
         delivery_time_days = supply_data[7] if len(supply_data) > 7 else "N/A"
         
-        self.LastRestock_Output.configure(text=str(restock_quantity))
+        # Show current_stock as Remaining Stock
+        self.currentstock_Output.configure(text=str(current_stock))
         self.LastRestock_Date_Output.configure(text=restock_date)
         self.Registered_Date_Output.configure(text=date_registered)
         self.Average_Weekly_Usage_Output.configure(text=str(average_weekly_usage))
         self.Delivery_Time_Output.configure(text=str(delivery_time_days))
         
-        current_stock = int(restock_quantity) if restock_quantity else 0
+        # For the meter and status
+        try:
+            current_stock_val = int(current_stock) if current_stock else 0
+        except ValueError:
+            current_stock_val = 0
         max_stock = 200
         
-        self.Remaining_Output.configure(text=str(current_stock))
+        self.Remaining_Output.configure(text=str(current_stock_val))
         self.Capacity_Output.configure(text=str(max_stock))
         
-        progress_value = current_stock / max_stock if max_stock > 0 else 0
+        progress_value = current_stock_val / max_stock if max_stock > 0 else 0
         self.StorageMeter.set(progress_value)
 
-        stock_percentage = current_stock / max_stock if max_stock > 0 else 0
+        stock_percentage = current_stock_val / max_stock if max_stock > 0 else 0
         
         if stock_percentage == 0:
             self.Status_Output.configure(text="Out of Stock", text_color="#8B0000") 
@@ -2381,4 +2387,3 @@ class SettingsPage(ctk.CTkFrame):
         finally:
             cursor.close()
             connect.close()
-            
