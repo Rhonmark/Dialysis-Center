@@ -7,7 +7,7 @@ from PIL import Image
 from tkinter import ttk, messagebox
 from components.Inputs import PatientInfoWindow
 from backend.connector import db_connection as db
-from components.input_supply import CTkMessageBox, SupplyWindow
+from components.input_supply import CTkMessageBox, EditStockWindow, SupplyWindow
 from components.state import login_shared_states
 from backend.crud import retrieve_form_data, db_connection
 from datetime import datetime
@@ -1716,6 +1716,44 @@ class SupplyPage(ctk.CTkFrame):
 
         self.Capacity_Output = ctk.CTkLabel(storage_meter_frame, text="200", font=label_font)
         self.Capacity_Output.place(x=850,y=180)
+
+        # Edit Stock Frame
+        self.Edit_Stock_Frame = ctk.CTkFrame(self.Main_Supply_Frame,
+                width=450,
+                height=350,
+                fg_color="white",
+                corner_radius=20)
+        self.Edit_Stock_Frame.place(x=50,y=700)
+
+        self.Top_bar = ctk.CTkFrame(self.Edit_Stock_Frame,
+                width=450,
+                height=20,
+                fg_color="#68EDC6")
+        self.Top_bar.place(y=0)
+
+        # Edit Stock Button
+        self.Edit_Stock_Button = ctk.CTkButton(self.Edit_Stock_Frame,
+                text="Edit Stock",
+                width=120,
+                height=35,
+                fg_color="#68EDC6",
+                text_color="black",
+                corner_radius=10,
+                hover_color="#5DD4B3")
+        self.Edit_Stock_Button.place(x=165, y=50)
+
+        self.Edit_Stock_Button = ctk.CTkButton(
+            self.Edit_Stock_Frame,
+            text="Edit Stock",
+            width=120,
+            height=35,
+            fg_color="#68EDC6",
+            text_color="black",
+            corner_radius=10,
+            hover_color="#5DD4B3",
+            command=self.open_edit_stock_window
+        )
+        self.Edit_Stock_Button.place(x=165, y=50)
          
         # Daily Usage Frame
         self.Daily_Usage_Frame = ctk.CTkFrame(self.Main_Supply_Frame,
@@ -1750,6 +1788,14 @@ class SupplyPage(ctk.CTkFrame):
                 height=20,
                 fg_color="#68EDC6")
         self.Top_bar2.place(y=0)
+
+    def open_edit_stock_window(self):
+        if hasattr(self, 'selected_supply_id') and self.selected_supply_id:
+            edit_stock_window = EditStockWindow(self, self.selected_supply_id)
+            edit_stock_window.grab_set()
+            edit_stock_window.focus_force()
+        else:
+            CTkMessageBox.show_error("Error", "Please select a supply item first.", parent=self)
 
     def fetch_supply_data(self):
         """Fetch supply data from database including all fields"""

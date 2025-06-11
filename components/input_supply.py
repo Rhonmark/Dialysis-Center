@@ -641,7 +641,7 @@ def show_detailed_info(self, supply_data):
     average_weekly_usage = supply_data[8] if len(supply_data) > 6 else "N/A"
     delivery_time_days = supply_data [10] if len(supply_data) > 7 else "N/A"
 
-    # Display current stock as remaining stock (this is what you want)
+    # Display current stock as remaining stock
     self.currentstock_Output.configure(text=str(current_stock))
     self.LastRestock_Date_Output.configure(text=restock_date)
     self.Registered_Date_Output.configure(text=date_registered)
@@ -650,4 +650,87 @@ def show_detailed_info(self, supply_data):
     
     # Use current_stock for calculations
     current_stock_value = int(current_stock) if current_stock else 0
-    max_stock = supply_data[12]  # Your max stock value
+    max_stock = supply_data[12]  # max stock value
+
+class EditStockWindow(SupplyBaseWindow):
+    def __init__(self, parent, item_id=None):
+        super().__init__(parent, "Edit Stock")
+
+        # Store the item_id
+        self.item_id = item_id
+
+        print("item_id:", self.item_id)
+
+        # Title
+        ctk.CTkLabel(
+            self, 
+            text="Edit Stock", 
+            font=("Merriweather bold", 25), 
+            text_color="black", 
+            bg_color="white"
+        ).place(x=90, y=60)
+
+        # for placeholders
+        def add_placeholder(entry, text):
+            entry.insert(0, text)
+            entry.configure(text_color="gray")
+            entry.bind("<FocusIn>", lambda event: clear_placeholder(entry, text))
+            entry.bind("<FocusOut>", lambda event: restore_placeholder(entry, text))
+            entry.bind("<Button-1>", lambda event: force_clear(entry))
+
+        def clear_placeholder(entry, text):
+            if entry.get() == text:
+                entry.delete(0, "end")
+                entry.configure(text_color="black")
+
+        def restore_placeholder(entry, text):
+            if entry.get() == "":
+                entry.insert(0, text)
+                entry.configure(text_color="gray")
+
+        def force_clear(entry):
+            entry.delete(0, "end")
+            entry.configure(text_color="black")
+
+        def create_underline(x, y, width):
+            ctk.CTkFrame(self, height=1, width=width, fg_color="black").place(x=x, y=y)
+
+        # Font styles
+        entry_font = ("Merriweather Sans", 13)
+        label_font = ("Merriweather Sans bold", 15)
+        required_font = ("Merriweather Sans bold", 10)
+
+        # Quantity Used Input
+        ctk.CTkLabel(self, text="Quantity Used", font=label_font, fg_color="white", text_color="black").place(x=120, y=150)
+        self.entry_quantity_used = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white")
+        self.entry_quantity_used.place(x=120, y=200)
+        create_underline(120, 230, 180)
+        add_placeholder(self.entry_quantity_used, "Type here")
+
+        # Patient ID Input
+        ctk.CTkLabel(self, text="Patient ID", font=label_font, fg_color="white", text_color="black").place(x=420, y=150)
+        self.entry_patient_id = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white")
+        self.entry_patient_id.place(x=420, y=200)
+        create_underline(420, 230, 180)
+        add_placeholder(self.entry_patient_id, "Type here")
+
+        # Submit function
+        def on_submit_click():
+            quantity_used = self.entry_quantity_used.get().strip()
+            patient_id = self.entry_patient_id.get().strip()
+            
+            print(f"Quantity Used: {quantity_used}")
+            print(f"Patient ID: {patient_id}")
+            print("Edit Stock form submitted!")
+
+        # Submit button
+        button_font = ("Merriweather Bold", 20)
+        self.btn_submit = ctk.CTkButton(self, text="Submit", fg_color="#1A374D", hover_color="#16C79A", text_color="white",
+                                      bg_color="white", corner_radius=20, font=button_font, width=200, height=50,
+                                      command=on_submit_click)
+        self.btn_submit.place(x=720, y=300)
+
+        exit_image = ctk.CTkImage(light_image=Image.open("assets/exit.png"), size=(30, 30))
+        self.exit_button = ctk.CTkButton(self, image=exit_image, text="", fg_color="transparent", bg_color="white", hover_color="white",
+                                         width=40, height=40, command=self.close_window)
+        self.exit_button.place(x=1200, y=15)
