@@ -227,6 +227,12 @@ class HomePageContent(ctk.CTkFrame):
     def __init__(self, parent):
         super().__init__(parent, fg_color="#E8FBFC")
 
+        # Initialize reminder carousel variables
+        self.current_reminder_index = 0
+        self.reminder_images = []
+        self.reminder_animation_job = None
+        self.fade_animation_job = None
+
         self.navbar = ctk.CTkFrame(self, fg_color="white", height=130)
         self.navbar.pack(fill="x", side="top")
         self.navbar.pack_propagate(False)
@@ -239,22 +245,96 @@ class HomePageContent(ctk.CTkFrame):
         self.dropdown_frame.place_forget()
 
         self.welcome_label = ctk.CTkLabel(self.navbar, text="Welcome Back,", text_color="black", font=("Arial", 30, "bold"))
-        self.welcome_label.place(relx=0.2, rely=0.5, anchor="e")
+        self.welcome_label.place(relx=0.17, rely=0.5, anchor="e")
 
         self.name_label = ctk.CTkLabel(self.navbar, text="Tristan!", text_color="black", font=("Arial", 30, "bold"))
-        self.name_label.place(relx=0.27, rely=0.5, anchor="e")
+        self.name_label.place(relx=0.25, rely=0.5, anchor="e")
 
-        self.namev2_label = ctk.CTkLabel(self.navbar, text="Tristan", text_color="black", font=("Arial", 30, "bold"))
+         # Search container
+        self.search_container = ctk.CTkFrame(
+            self.navbar, 
+            fg_color="white", 
+            corner_radius=25,
+            width=300,
+            height=50,
+            border_width=2.5,
+            border_color="#E0E0E0"
+        )
+        self.search_container.place(x=450, y=70, anchor="w")
+
+        # Search icon
+        try:
+            search_img = ctk.CTkImage(light_image=Image.open("assets/search.png"), size=(24, 24))
+            search_icon = ctk.CTkLabel(self.search_container, image=search_img, text="")
+            search_icon.place(x=15, rely=0.5, anchor="w")
+        except:
+            search_icon = ctk.CTkLabel(
+                self.search_container, 
+                text="🔍", 
+                font=("Arial", 16),
+                text_color="#666666"
+            )
+            search_icon.place(x=15, rely=0.5, anchor="w")
+
+        # Search entry
+        self.search_entry = ctk.CTkEntry(   
+            self.search_container,
+            placeholder_text="Search patient",
+            width=170,
+            height=40,
+            border_width=0,
+            fg_color="transparent",
+            font=("Arial", 14),
+            text_color="#333333",
+            placeholder_text_color="#999999"
+        )
+        self.search_entry.place(x=50, rely=0.5, anchor="w")
+
+        # calendar container
+        self.calendar_container = ctk.CTkFrame(
+            self.navbar, 
+            fg_color="white", 
+            corner_radius=25,
+            width=250,
+            height=50,
+            border_width=2.5,
+            border_color="#E0E0E0"
+        )
+        self.calendar_container.place(x=810, y=70, anchor="w")
+
+        # calendar icon
+        try:
+            calendar_img = ctk.CTkImage(light_image=Image.open("assets/calendar.png"), size=(30, 30))
+            calendar_icon = ctk.CTkLabel(self.calendar_container, image=calendar_img, text="")
+            calendar_icon.place(x=15, rely=0.5, anchor="w")
+        except:
+            calendar_icon = ctk.CTkLabel(
+                self.calendar_container,
+                text="📅",
+                font=("Arial", 16),
+                text_color="#666666"
+            )
+            calendar_icon.place(x=25, rely=0.5, anchor="w")
+
+        # Get today's date
+        today_date = datetime.datetime.now().strftime("%B %d, %Y") 
+
+        # date label beside the icon
+        date_label = ctk.CTkLabel(
+            self.calendar_container,
+            text=today_date,
+            font=("Arial", 20),
+            text_color="#333333"
+        )
+        date_label.place(x=60, rely=0.5, anchor="w")
+
+        self.namev2_label = ctk.CTkLabel(self.navbar, text="Tristan Lopez!", text_color="black", font=("Arial", 30, "bold"))
         self.namev2_label.place(relx=0.85, rely=0.5, anchor="e")
 
-        profile_img = ctk.CTkImage(light_image=Image.open("assets/profile.png"), size=(42, 42))
         notif_img = ctk.CTkImage(light_image=Image.open("assets/notif.png"), size=(42, 42))
         settings_img = ctk.CTkImage(light_image=Image.open("assets/settingsv2.png"), size=(42, 42))
 
         icon_y = 62
-
-        profile_btn = ctk.CTkButton(self.navbar, image=profile_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5")
-        profile_btn.place(relx=1.0, x=-60, y=icon_y, anchor="center")
 
         notif_btn = ctk.CTkButton(self.navbar, image=notif_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5")
         notif_btn.place(relx=1.0, x=-110, y=icon_y, anchor="center")
@@ -478,6 +558,7 @@ class HomePageContent(ctk.CTkFrame):
         )
         inactive_icon_label.place(x=15, y=20)
 
+        # Sixth frame with animated reminder carousel
         sixth_frame = ctk.CTkFrame(
             self,
             width=350,
@@ -494,24 +575,115 @@ class HomePageContent(ctk.CTkFrame):
         )
         reminder_label.place(x=120, y=40)
 
-        reminder_img = Image.open("assets/reminder.png")  
-        reminder_ctk_img = ctk.CTkImage(light_image=reminder_img, size=(110, 110))  
+        # Load reminder images 
+        try:
+            reminder_img1 = Image.open("assets/reminder.png") 
+            reminder_img2 = Image.open("assets/reminder2.png")  
+            
+            self.reminder_images = [
+                ctk.CTkImage(light_image=reminder_img1, size=(200, 200)),
+                ctk.CTkImage(light_image=reminder_img2, size=(200, 200))
+            ]
+        except Exception as e:
+            # Fallback if second image doesn't exist
+            print(f"Warning: Could not load second reminder image: {e}")
+            reminder_img = Image.open("assets/reminder.png")
+            self.reminder_images = [
+                ctk.CTkImage(light_image=reminder_img, size=(200, 200)),
+                ctk.CTkImage(light_image=reminder_img, size=(200, 200)) 
+            ]
 
-        reminder_image_label = ctk.CTkLabel(
+        # Create reminder image label with initial image
+        self.reminder_image_label = ctk.CTkLabel(
             sixth_frame,
-            image=reminder_ctk_img,
+            image=self.reminder_images[0],
             text="",  
         )
-        reminder_image_label.place(x=120, y=100)
+        self.reminder_image_label.place(x=80, y=100)
+
+        # Add carousel indicators
+        self.indicator_frame = ctk.CTkFrame(
+            sixth_frame,
+            width=60,
+            height=20,
+            fg_color="transparent"
+        )
+        self.indicator_frame.place(x=145, y=310)
+
+        # Create indicator dots
+        self.indicators = []
+        for i in range(len(self.reminder_images)):
+            indicator = ctk.CTkLabel(
+                self.indicator_frame,
+                text="●",
+                font=("Arial", 16),
+                text_color="#68EDC6" if i == 0 else "#D3D3D3",
+                width=20,
+                height=20
+            )
+            indicator.place(x=i * 25, y=0)
+            self.indicators.append(indicator)
+
+        # Start the carousel animation
+        self.start_reminder_carousel()
+
+    def start_reminder_carousel(self):
+        """Start the automatic reminder carousel"""
+        self.reminder_animation_job = self.after(10000, self.next_reminder)
+
+    def next_reminder(self):
+        """Switch to the next reminder with fade animation"""
+        if len(self.reminder_images) <= 1:
+            return
+            
+        # Start fade out animation
+        self.fade_out_reminder()
+
+    def fade_out_reminder(self):
+        """Fade out current reminder image"""
+        # Create fade effect by temporarily hiding the image
+        self.reminder_image_label.configure(image=None)
+        
+        # Schedule fade in after a brief moment
+        self.fade_animation_job = self.after(200, self.fade_in_next_reminder)
+
+    def fade_in_next_reminder(self):
+        """Fade in the next reminder image"""
+        # Update to next image
+        self.current_reminder_index = (self.current_reminder_index + 1) % len(self.reminder_images)
+        
+        # Update image
+        self.reminder_image_label.configure(image=self.reminder_images[self.current_reminder_index])
+        
+        # Update indicators
+        self.update_indicators()
+        
+        # Schedule next transition
+        self.reminder_animation_job = self.after(10000, self.next_reminder)
+
+    def update_indicators(self):
+        """Update the carousel indicator dots"""
+        for i, indicator in enumerate(self.indicators):
+            if i == self.current_reminder_index:
+                indicator.configure(text_color="#68EDC6")  
+            else:
+                indicator.configure(text_color="#D3D3D3") 
+
+    def stop_reminder_carousel(self):
+        """Stop the reminder carousel animation"""
+        if self.reminder_animation_job:
+            self.after_cancel(self.reminder_animation_job)
+            self.reminder_animation_job = None
+        if self.fade_animation_job:
+            self.after_cancel(self.fade_animation_job)
+            self.fade_animation_job = None
 
     def toggle_dropdown(self):
         if self.dropdown_visible:
             self.dropdown_frame.place_forget()
         else:
-
             x = self.winfo_rootx() + self.winfo_width() - 180
             y = self.winfo_rooty() + 90
-
             self.dropdown_frame.place(x=x, y=y)
             self.dropdown_frame.lift() 
         self.dropdown_visible = not self.dropdown_visible
@@ -521,6 +693,11 @@ class HomePageContent(ctk.CTkFrame):
 
     def logout(self):
         print("Logging out...")
+
+    def destroy(self):
+        """Clean up when the widget is destroyed"""
+        self.stop_reminder_carousel()
+        super().destroy()
 
 class PatientPage(ctk.CTkFrame):
     def __init__(self, parent, shared_state):
@@ -542,14 +719,10 @@ class PatientPage(ctk.CTkFrame):
         self.namev2_label = ctk.CTkLabel(self.navbar, text="Tristan Lopez!", text_color="black", font=("Arial", 30, "bold"))
         self.namev2_label.place(relx=0.85, rely=0.5, anchor="e")
 
-        profile_img = ctk.CTkImage(light_image=Image.open("assets/profile.png"), size=(42, 42))
         notif_img = ctk.CTkImage(light_image=Image.open("assets/notif.png"), size=(42, 42))
         settings_img = ctk.CTkImage(light_image=Image.open("assets/settingsv2.png"), size=(42, 42))
 
         icon_y = 62
-
-        profile_btn = ctk.CTkButton(self.navbar, image=profile_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5")
-        profile_btn.place(relx=1.0, x=-60, y=icon_y, anchor="center")
 
         notif_btn = ctk.CTkButton(self.navbar, image=notif_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5")
         notif_btn.place(relx=1.0, x=-110, y=icon_y, anchor="center")
@@ -579,7 +752,7 @@ class PatientPage(ctk.CTkFrame):
             text="Add",
             font=ctk.CTkFont("Arial", 16, "bold"),
             command=self.open_add_window,
-            width=230,  
+            width=180,  
             height=50    
         )
         self.add_button.pack(side="left", padx=10)
@@ -589,7 +762,7 @@ class PatientPage(ctk.CTkFrame):
             self.button_frame,
             text="Guide",
             font=ctk.CTkFont("Arial", 16, "bold"),
-            width=230,
+            width=180,
             height=50
         )
         self.guide_button.pack(side="left", padx=10)
@@ -599,12 +772,12 @@ class PatientPage(ctk.CTkFrame):
             self.navbar, 
             fg_color="white", 
             corner_radius=25,
-            width=400,
+            width=300,
             height=50,
             border_width=2.5,
             border_color="#E0E0E0"
         )
-        self.search_container.place(x=680, y=75, anchor="w")
+        self.search_container.place(x=450, y=70, anchor="w")
 
         # Search icon
         try:
@@ -621,10 +794,10 @@ class PatientPage(ctk.CTkFrame):
             search_icon.place(x=15, rely=0.5, anchor="w")
 
         # Search entry
-        self.search_entry = ctk.CTkEntry(
+        self.search_entry = ctk.CTkEntry(   
             self.search_container,
             placeholder_text="Search patient",
-            width=340,
+            width=170,
             height=40,
             border_width=0,
             fg_color="transparent",
@@ -633,6 +806,44 @@ class PatientPage(ctk.CTkFrame):
             placeholder_text_color="#999999"
         )
         self.search_entry.place(x=50, rely=0.5, anchor="w")
+
+        # calendar container
+        self.calendar_container = ctk.CTkFrame(
+            self.navbar, 
+            fg_color="white", 
+            corner_radius=25,
+            width=250,
+            height=50,
+            border_width=2.5,
+            border_color="#E0E0E0"
+        )
+        self.calendar_container.place(x=810, y=70, anchor="w")
+
+        # calendar icon
+        try:
+            calendar_img = ctk.CTkImage(light_image=Image.open("assets/calendar.png"), size=(30, 30))
+            calendar_icon = ctk.CTkLabel(self.calendar_container, image=calendar_img, text="")
+            calendar_icon.place(x=15, rely=0.5, anchor="w")
+        except:
+            calendar_icon = ctk.CTkLabel(
+                self.calendar_container,
+                text="📅",
+                font=("Arial", 16),
+                text_color="#666666"
+            )
+            calendar_icon.place(x=25, rely=0.5, anchor="w")
+
+        # Get today's date
+        today_date = datetime.datetime.now().strftime("%B %d, %Y") 
+
+        # date label beside the icon
+        date_label = ctk.CTkLabel(
+            self.calendar_container,
+            text=today_date,
+            font=("Arial", 20),
+            text_color="#333333"
+        )
+        date_label.place(x=60, rely=0.5, anchor="w")
 
         self.table_frame = ctk.CTkFrame(self, fg_color="#1A374D", border_width=2, border_color="black")
 
@@ -1608,14 +1819,10 @@ class SupplyPage(ctk.CTkFrame):
         self.namev2_label = ctk.CTkLabel(self.navbar, text="Tristan Lopez!", text_color="black", font=("Arial", 30, "bold"))
         self.namev2_label.place(relx=0.85, rely=0.5, anchor="e")
 
-        profile_img = ctk.CTkImage(light_image=Image.open("assets/profile.png"), size=(42, 42))
         notif_img = ctk.CTkImage(light_image=Image.open("assets/notif.png"), size=(42, 42))
         settings_img = ctk.CTkImage(light_image=Image.open("assets/settingsv2.png"), size=(42, 42))
 
         icon_y = 62
-
-        profile_btn = ctk.CTkButton(self.navbar, image=profile_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5")
-        profile_btn.place(relx=1.0, x=-60, y=icon_y, anchor="center")
 
         notif_btn = ctk.CTkButton(self.navbar, image=notif_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5")
         notif_btn.place(relx=1.0, x=-110, y=icon_y, anchor="center")
@@ -1646,13 +1853,13 @@ class SupplyPage(ctk.CTkFrame):
         # Button Frame
         self.button_frame = ctk.CTkFrame(self, fg_color="#FFFFFF")
 
-        # Add Button
+         # Add Button
         self.add_button = ctk.CTkButton(
             self.button_frame,
             text="Add",
             font=ctk.CTkFont("Arial", 16, "bold"),
             command=self.open_add_window,
-            width=230,  
+            width=180,  
             height=50    
         )
         self.add_button.pack(side="left", padx=10)
@@ -1662,7 +1869,7 @@ class SupplyPage(ctk.CTkFrame):
             self.button_frame,
             text="Guide",
             font=ctk.CTkFont("Arial", 16, "bold"),
-            width=230,
+            width=180,
             height=50
         )
         self.guide_button.pack(side="left", padx=10)
@@ -1672,12 +1879,12 @@ class SupplyPage(ctk.CTkFrame):
             self.navbar, 
             fg_color="white", 
             corner_radius=25,
-            width=400,
+            width=300,
             height=50,
             border_width=2.5,
             border_color="#E0E0E0"
         )
-        self.search_container.place(x=680, y=75, anchor="w")
+        self.search_container.place(x=450, y=70, anchor="w")
 
         # Search icon
         try:
@@ -1694,10 +1901,10 @@ class SupplyPage(ctk.CTkFrame):
             search_icon.place(x=15, rely=0.5, anchor="w")
 
         # Search entry
-        self.search_entry = ctk.CTkEntry(
+        self.search_entry = ctk.CTkEntry(   
             self.search_container,
-            placeholder_text="Search supply",
-            width=340,
+            placeholder_text="Search patient",
+            width=170,
             height=40,
             border_width=0,
             fg_color="transparent",
@@ -1706,6 +1913,44 @@ class SupplyPage(ctk.CTkFrame):
             placeholder_text_color="#999999"
         )
         self.search_entry.place(x=50, rely=0.5, anchor="w")
+
+        # calendar container
+        self.calendar_container = ctk.CTkFrame(
+            self.navbar, 
+            fg_color="white", 
+            corner_radius=25,
+            width=250,
+            height=50,
+            border_width=2.5,
+            border_color="#E0E0E0"
+        )
+        self.calendar_container.place(x=810, y=70, anchor="w")
+
+        # calendar icon
+        try:
+            calendar_img = ctk.CTkImage(light_image=Image.open("assets/calendar.png"), size=(30, 30))
+            calendar_icon = ctk.CTkLabel(self.calendar_container, image=calendar_img, text="")
+            calendar_icon.place(x=15, rely=0.5, anchor="w")
+        except:
+            calendar_icon = ctk.CTkLabel(
+                self.calendar_container,
+                text="📅",
+                font=("Arial", 16),
+                text_color="#666666"
+            )
+            calendar_icon.place(x=25, rely=0.5, anchor="w")
+
+        # Get today's date
+        today_date = datetime.datetime.now().strftime("%B %d, %Y") 
+
+        # date label beside the icon
+        date_label = ctk.CTkLabel(
+            self.calendar_container,
+            text=today_date,
+            font=("Arial", 20),
+            text_color="#333333"
+        )
+        date_label.place(x=60, rely=0.5, anchor="w")
 
         # Table Frame
         self.table_frame = ctk.CTkFrame(self, fg_color="#1A374D", border_width=2, border_color="black")
@@ -2025,7 +2270,8 @@ class SupplyPage(ctk.CTkFrame):
             cursor = connect.cursor()
             cursor.execute("""
                 SELECT item_id, item_name, category, current_stock, restock_date, 
-                    date_registered, average_weekly_usage, delivery_time_days
+                    date_registered, restock_quantity, average_daily_usage, average_weekly_usage, 
+                    average_monthly_usage, delivery_time_days, stock_level_status, max_supply
                 FROM supply
             """)
             return cursor.fetchall()
@@ -2053,12 +2299,18 @@ class SupplyPage(ctk.CTkFrame):
                 'item_id': supply_data[0],
                 'item_name': supply_data[1],
                 'category': supply_data[2],
-                'restock_quantity': supply_data[3],
+                'current_stock': supply_data[3],  # Now at index 3
                 'restock_date': supply_data[4],
                 'date_registered': supply_data[5],
-                'average_weekly_usage': supply_data[6] if len(supply_data) > 6 else 0,
-                'delivery_time_days': supply_data[7] if len(supply_data) > 7 else 0
+                'restock_quantity': supply_data[6],  # Now at index 6
+                'average_daily_usage': supply_data[7] if len(supply_data) > 7 and supply_data[7] else 0,
+                'average_weekly_usage': supply_data[8] if len(supply_data) > 8 and supply_data[8] else 0,
+                'average_monthly_usage': supply_data[9] if len(supply_data) > 9 and supply_data[9] else 0,
+                'delivery_time_days': supply_data[10] if len(supply_data) > 10 and supply_data[10] else 0,
+                'stock_level_status': supply_data[11] if len(supply_data) > 11 else '',
+                'max_supply': supply_data[12] if len(supply_data) > 12 and supply_data[12] else 0
             }
+
 
     def on_row_click(self, event):
         """Handle row click to show detailed info"""
@@ -2083,48 +2335,80 @@ class SupplyPage(ctk.CTkFrame):
         self.Supply_Name_Output.configure(text=supply_data[1])
         self.Category_Output.configure(text=supply_data[2])
         
-        # Correct: current_stock is the remaining stock
-        current_stock = supply_data[3] 
-        restock_date = supply_data[4]
+        # Use current_stock (now at index 3) as remaining stock
+        current_stock = supply_data[3] if len(supply_data) > 3 else 0
+        restock_date = supply_data[4] if supply_data[4] else "N/A"
         date_registered = supply_data[5] if len(supply_data) > 5 else "N/A"
-        average_weekly_usage = supply_data[6] if len(supply_data) > 6 else "N/A"
-        delivery_time_days = supply_data[7] if len(supply_data) > 7 else "N/A"
+        average_weekly_usage = supply_data[8] if len(supply_data) > 8 else "N/A"
+        delivery_time_days = supply_data[10] if len(supply_data) > 10 else "N/A"
         
-        # Show current_stock as Remaining Stock
+        # Use max_supply (index 12) but default to 200 if max_supply <= 200
+        max_supply = supply_data[12] if len(supply_data) > 12 and supply_data[12] else 0
+        
+        # Display current_stock as remaining stock
         self.currentstock_Output.configure(text=str(current_stock))
         self.LastRestock_Date_Output.configure(text=restock_date)
         self.Registered_Date_Output.configure(text=date_registered)
         self.Average_Weekly_Usage_Output.configure(text=str(average_weekly_usage))
         self.Delivery_Time_Output.configure(text=str(delivery_time_days))
         
-        # For the meter and status
+        # For the meter and status calculations
         try:
-            current_stock_val = int(current_stock) if current_stock else 0
-        except ValueError:
+            # Convert current_stock to int 
+            if current_stock and current_stock != 'None' and str(current_stock).strip():
+                current_stock_val = int(current_stock)
+            else:
+                current_stock_val = 0
+                
+            # Convert max_supply to int 
+            if max_supply and max_supply != 'None' and str(max_supply).strip():
+                max_supply_val = int(max_supply)
+            else:
+                max_supply_val = 0
+                
+        except (ValueError, TypeError) as e:
+            print(f"DEBUG: Conversion error: {e}")
+            print(f"DEBUG: current_stock value causing error: '{current_stock}'")
+            print(f"DEBUG: max_supply value causing error: '{max_supply}'")
             current_stock_val = 0
-        max_stock = 200
-        
+            max_supply_val = 0
+
+        # Always use 200 as the base capacity for progress calculation
+        base_capacity = 200
+
+        # Always show 200 as the capacity (unless max_supply is specifically higher than 200)
+        if max_supply_val > base_capacity:
+            capacity_display = max_supply_val
+        else:
+            capacity_display = base_capacity
+
+        # Update the display
         self.Remaining_Output.configure(text=str(current_stock_val))
-        self.Capacity_Output.configure(text=str(max_stock))
-        
-        progress_value = current_stock_val / max_stock if max_stock > 0 else 0
+        self.Capacity_Output.configure(text=str(capacity_display))
+
+        # Calculate progress based on the base capacity of 200
+        progress_value = current_stock_val / base_capacity if base_capacity > 0 else 0
+        # Ensure progress doesn't exceed 1.0 (100%)
+        progress_value = min(progress_value, 1.0)
         self.StorageMeter.set(progress_value)
 
-        stock_percentage = current_stock_val / max_stock if max_stock > 0 else 0
-        
+        # Calculate stock percentage for status based on the base capacity of 200
+        stock_percentage = current_stock_val / base_capacity if base_capacity > 0 else 0
+
+        # Determine status and colors based on percentage
         if stock_percentage == 0:
             self.Status_Output.configure(text="Out of Stock", text_color="#8B0000") 
             self.Remaining_Output.configure(text_color="#8B0000")
             self.StorageMeter.configure(progress_color="#8B0000")
-        elif stock_percentage <= 0.25:
+        elif stock_percentage <= 0.25:  # 0-50 items (25% of 200)
             self.Status_Output.configure(text="Very Low Stocks", text_color="red")
             self.Remaining_Output.configure(text_color="red")
             self.StorageMeter.configure(progress_color="red")
-        elif stock_percentage <= 0.50:
+        elif stock_percentage <= 0.50:  # 51-100 items (50% of 200)
             self.Status_Output.configure(text="Low Stocks", text_color="orange")
             self.Remaining_Output.configure(text_color="orange")
             self.StorageMeter.configure(progress_color="orange")
-        else:
+        else:  # 101+ items (above 50% of 200)
             self.Status_Output.configure(text="On Stocks", text_color="green")
             self.Remaining_Output.configure(text_color="green")
             self.StorageMeter.configure(progress_color="green")
@@ -2207,8 +2491,9 @@ class SupplyPage(ctk.CTkFrame):
             connect = db()
             cursor = connect.cursor()
             cursor.execute("""
-                SELECT item_id, item_name, category, restock_quantity, restock_date, 
-                    date_registered, average_weekly_usage, delivery_time_days
+                SELECT item_id, item_name, category, current_stock, restock_date, 
+                    date_registered, restock_quantity, average_daily_usage, average_weekly_usage, 
+                    average_monthly_usage, delivery_time_days, stock_level_status, max_supply
                 FROM supply
                 WHERE item_id = %s
             """, (self.selected_supply_id,))
@@ -2219,11 +2504,16 @@ class SupplyPage(ctk.CTkFrame):
                     'item_id': updated_data[0],
                     'item_name': updated_data[1],
                     'category': updated_data[2],
-                    'restock_quantity': updated_data[3],
+                    'current_stock': updated_data[3],
                     'restock_date': updated_data[4],
                     'date_registered': updated_data[5],
-                    'average_weekly_usage': updated_data[6] if updated_data[6] else 0,
-                    'delivery_time_days': updated_data[7] if updated_data[7] else 0
+                    'restock_quantity': updated_data[6],
+                    'average_daily_usage': updated_data[7] if updated_data[7] else 0,
+                    'average_weekly_usage': updated_data[8] if updated_data[8] else 0,
+                    'average_monthly_usage': updated_data[9] if updated_data[9] else 0,
+                    'delivery_time_days': updated_data[10] if updated_data[10] else 0,
+                    'stock_level_status': updated_data[11],
+                    'max_supply': updated_data[12]
                 }
                 
                 # Refresh the detailed view display
