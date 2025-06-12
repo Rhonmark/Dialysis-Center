@@ -662,11 +662,33 @@ class EditStockWindow(SupplyBaseWindow):
 
             return status
 
-        # Submit function
         def on_submit_click():
-
             quantity_used = self.entry_quantity_used.get().strip()
             patient_id = self.entry_patient_id.get().strip()
+
+            # Validation for quantity_used 
+            if not quantity_used or quantity_used.lower() == 'type here':
+                print("Quantity used is required.")
+                return
+
+            try:
+                quantity_used = int(quantity_used)
+                if quantity_used <= 0:
+                    print("Quantity used must be greater than 0.")
+                    return
+            except ValueError:
+                print("Quantity used must be a valid integer.")
+                return
+
+            # Validation for patient_id 
+            if not patient_id or patient_id.lower() == 'type here':
+                print("Patient ID is required.")
+                return
+            try:
+                patient_id = int(patient_id)
+            except ValueError:
+                print("Patient ID must be a valid integer.")
+                return
 
             usage_information = {
                 'item_id': self.item_id,
@@ -675,28 +697,14 @@ class EditStockWindow(SupplyBaseWindow):
             }
 
             try:
-
-                if quantity_used and quantity_used.lower() != 'type here':
-                    quantity_used = int(quantity_used)
-                else:
-                    print("Invalid quantity input.")
-                    return
-            except Exception as e:
-                print("Error converting quantity_used:", e)
-
-            try:
-
-                if patient_id and patient_id.lower() == 'type here':
-                    print("Invalid quantity input.")
-                    return
-                
-            except Exception as e:
-                print("Error converting quantity_used:", e)
-
-            try: 
-
                 connect = db()
                 cursor = connect.cursor()
+
+                # Check if there's enough stock
+                current_stock = retrieve_supply_data(cursor, 'current_stock', self.item_id)
+                if current_stock < quantity_used:
+                    print(f"Insufficient stock. Available: {current_stock}, Requested: {quantity_used}")
+                    return
 
                 usage_column = ', '.join(usage_information.keys())
                 usage_rows = [f'{entries}' for entries in usage_information.values()]
@@ -706,27 +714,38 @@ class EditStockWindow(SupplyBaseWindow):
                 if usage_id:
                     print(f'usage id creation successful: {usage_id}')
 
-                current_stock = retrieve_supply_data(cursor, 'current_stock', self.item_id)
+                    total_stock = current_stock - quantity_used
+                    set_supply_data(cursor, 'current_stock', total_stock, self.item_id)
+                    print(f'Item ID {self.item_id}: Previous stock was {current_stock} now updated to {total_stock}')
 
-                total_stock = current_stock - quantity_used
+                    # Update stock level status
+                    current_stock_val = retrieve_supply_data(cursor, 'current_stock', self.item_id)
+                    avg_weekly_usage_result = retrieve_supply_data(cursor, 'average_weekly_usage', self.item_id)
+                    delivery_time_result = retrieve_supply_data(cursor, 'delivery_time_days', self.item_id)
 
-                set_supply_data(cursor, 'current_stock', total_stock, self.item_id)
-                print(f'Item ID {item_id}: Previous stock was {current_stock} now updated to {total_stock}')
+                    if avg_weekly_usage_result > 0 and delivery_time_result > 0:
+                        status = set_stock_levels(avg_weekly_usage_result, delivery_time_result, current_stock_val)
+                        set_supply_data(cursor, 'stock_level_status', status, self.item_id)
 
-                current_stock_val = retrieve_supply_data(cursor, 'current_stock', item_id)
-                avg_weekly_usage_result = retrieve_supply_data(cursor, 'average_weekly_usage', item_id)
-                delivery_time_result = retrieve_supply_data(cursor, 'delivery_time_days', item_id)
-
-                if avg_weekly_usage_result > 0 and delivery_time_result > 0:
-                    status = set_stock_levels(avg_weekly_usage_result, delivery_time_result, current_stock_val)
-                    set_supply_data(cursor, 'stock_level_status', status, item_id)
-
-                connect.commit()
+                    connect.commit()
+                    
+                    print(f"Stock updated successfully! New stock: {total_stock}")
+                    
+                    # Refresh 
+                    if hasattr(self.master, 'selected_supply_id') and self.master.selected_supply_id == self.item_id:
+                        self.master.refresh_detailed_view()
+                        print("Detailed view refreshed with new stock levels")
+                    
+                    # Also refresh the table view
+                    if hasattr(self.master, 'refresh_table'):
+                        self.master.refresh_table()
+                        print("Table view refreshed")
+                    
+                    self.close_window()
 
             except Exception as e:
                 print('Error with editing supply stocks', e)
-
-            finally: 
+            finally:
                 cursor.close()
                 connect.close()
 

@@ -18,8 +18,6 @@ import shutil
 import os
 
 
-
-
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("blue")
 
@@ -1145,7 +1143,7 @@ class PatientPage(ctk.CTkFrame):
 
         self.populate_table(self.fetch_patient_data())
 
-    # Navbar methods (same as HomePage)
+    # Navbar methods 
     def toggle_dropdown(self):
         if self.dropdown_visible:
             self.dropdown_frame.place_forget()
@@ -2168,7 +2166,7 @@ class SupplyPage(ctk.CTkFrame):
                 height=350,
                 fg_color="white",
                 corner_radius=20)
-        self.Edit_Stock_Frame.place(x=50,y=700)
+        self.Edit_Stock_Frame.place(x=50, y=700)
 
         self.Top_bar = ctk.CTkFrame(self.Edit_Stock_Frame,
                 width=450,
@@ -2177,16 +2175,6 @@ class SupplyPage(ctk.CTkFrame):
         self.Top_bar.place(y=0)
 
         # Edit Stock Button
-        self.Edit_Stock_Button = ctk.CTkButton(self.Edit_Stock_Frame,
-                text="Edit Stock",
-                width=120,
-                height=35,
-                fg_color="#68EDC6",
-                text_color="black",
-                corner_radius=10,
-                hover_color="#5DD4B3")
-        self.Edit_Stock_Button.place(x=165, y=50)
-
         self.Edit_Stock_Button = ctk.CTkButton(
             self.Edit_Stock_Frame,
             text="Edit Stock",
@@ -2199,7 +2187,35 @@ class SupplyPage(ctk.CTkFrame):
             command=self.open_edit_stock_window
         )
         self.Edit_Stock_Button.place(x=165, y=50)
-         
+
+        # Quantity Used Button
+        self.Quantity_Used_Button = ctk.CTkButton(
+            self.Edit_Stock_Frame,
+            text="Quantity Used",
+            width=120,
+            height=35,
+            fg_color="#FFA07A",  # Optional color
+            text_color="black",
+            corner_radius=10,
+            hover_color="#FF8C69",
+            command=self.open_quantity_used_window  
+        )
+        self.Quantity_Used_Button.place(x=165, y=100)
+
+        # Restock Log Button
+        self.Restock_Log_Button = ctk.CTkButton(
+            self.Edit_Stock_Frame,
+            text="Restock Log",
+            width=120,
+            height=35,
+            fg_color="#ADD8E6",  # Optional color
+            text_color="black",
+            corner_radius=10,
+            hover_color="#87CEEB",
+            command=self.open_restock_log_window  
+        )
+        self.Restock_Log_Button.place(x=165, y=150)
+
         # Daily Usage Frame
         self.Daily_Usage_Frame = ctk.CTkFrame(self.Main_Supply_Frame,
                 width=450,
@@ -2238,7 +2254,7 @@ class SupplyPage(ctk.CTkFrame):
         self.navbar.pack(fill="x", side="top")
         self.table_frame.place(x=20, y=150, relwidth=0.95, relheight=0.8)
 
-    # Navbar methods (same as HomePage)
+    # Navbar methods 
     def toggle_dropdown(self):
         if self.dropdown_visible:
             self.dropdown_frame.place_forget()
@@ -2261,7 +2277,7 @@ class SupplyPage(ctk.CTkFrame):
             edit_stock_window.grab_set()
             edit_stock_window.focus_force()
         else:
-            CTkMessageBox.show_error("Error", "Please select a supply item first.", parent=self)
+            print("Please select a supply item first.")
 
     def fetch_supply_data(self):
         """Fetch supply data from database including all fields"""
@@ -2299,10 +2315,10 @@ class SupplyPage(ctk.CTkFrame):
                 'item_id': supply_data[0],
                 'item_name': supply_data[1],
                 'category': supply_data[2],
-                'current_stock': supply_data[3],  # Now at index 3
+                'current_stock': supply_data[3],  
                 'restock_date': supply_data[4],
                 'date_registered': supply_data[5],
-                'restock_quantity': supply_data[6],  # Now at index 6
+                'restock_quantity': supply_data[6],  
                 'average_daily_usage': supply_data[7] if len(supply_data) > 7 and supply_data[7] else 0,
                 'average_weekly_usage': supply_data[8] if len(supply_data) > 8 and supply_data[8] else 0,
                 'average_monthly_usage': supply_data[9] if len(supply_data) > 9 and supply_data[9] else 0,
@@ -2311,6 +2327,11 @@ class SupplyPage(ctk.CTkFrame):
                 'max_supply': supply_data[12] if len(supply_data) > 12 and supply_data[12] else 0
             }
 
+    def open_quantity_used_window(self):
+        print("Opening Quantity Used window...")
+    
+    def open_restock_log_window(self):
+        print("Opening Restock Log window...")
 
     def on_row_click(self, event):
         """Handle row click to show detailed info"""
@@ -2335,14 +2356,14 @@ class SupplyPage(ctk.CTkFrame):
         self.Supply_Name_Output.configure(text=supply_data[1])
         self.Category_Output.configure(text=supply_data[2])
         
-        # Use current_stock (now at index 3) as remaining stock
+        # Use current_stock as remaining stock
         current_stock = supply_data[3] if len(supply_data) > 3 else 0
         restock_date = supply_data[4] if supply_data[4] else "N/A"
         date_registered = supply_data[5] if len(supply_data) > 5 else "N/A"
         average_weekly_usage = supply_data[8] if len(supply_data) > 8 else "N/A"
         delivery_time_days = supply_data[10] if len(supply_data) > 10 else "N/A"
         
-        # Use max_supply (index 12) but default to 200 if max_supply <= 200
+        # Use max_supply but default to 200 if max_supply <= 200
         max_supply = supply_data[12] if len(supply_data) > 12 and supply_data[12] else 0
         
         # Display current_stock as remaining stock
