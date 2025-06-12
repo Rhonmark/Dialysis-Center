@@ -7,6 +7,7 @@ from PIL import Image
 from tkinter import ttk, messagebox
 from components.Inputs import PatientInfoWindow
 from backend.connector import db_connection as db
+from components.buttons import CTkButtonSelectable
 from components.input_supply import CTkMessageBox, EditStockWindow, SupplyWindow
 from components.state import login_shared_states
 from backend.crud import retrieve_form_data, db_connection
@@ -527,6 +528,42 @@ class PatientPage(ctk.CTkFrame):
         self.shared_state = shared_state
         self.patient_id = None 
 
+        self.navbar = ctk.CTkFrame(self, fg_color="white", height=130)
+        self.navbar.pack(fill="x", side="top")
+        self.navbar.pack_propagate(False)
+        self.navbar.configure(border_width=0, border_color="black")
+
+        self.dropdown_visible = False 
+
+        self.dropdown_frame = ctk.CTkFrame(self.navbar, fg_color="#f0f0f0", corner_radius=8, width=150, height=100)
+        self.dropdown_frame.configure(border_width=1, border_color="gray")
+        self.dropdown_frame.place_forget()
+
+        self.namev2_label = ctk.CTkLabel(self.navbar, text="Tristan Lopez!", text_color="black", font=("Arial", 30, "bold"))
+        self.namev2_label.place(relx=0.85, rely=0.5, anchor="e")
+
+        profile_img = ctk.CTkImage(light_image=Image.open("assets/profile.png"), size=(42, 42))
+        notif_img = ctk.CTkImage(light_image=Image.open("assets/notif.png"), size=(42, 42))
+        settings_img = ctk.CTkImage(light_image=Image.open("assets/settingsv2.png"), size=(42, 42))
+
+        icon_y = 62
+
+        profile_btn = ctk.CTkButton(self.navbar, image=profile_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5")
+        profile_btn.place(relx=1.0, x=-60, y=icon_y, anchor="center")
+
+        notif_btn = ctk.CTkButton(self.navbar, image=notif_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5")
+        notif_btn.place(relx=1.0, x=-110, y=icon_y, anchor="center")
+
+        settings_btn = ctk.CTkButton(self.navbar, image=settings_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5", command=self.toggle_dropdown)
+        settings_btn.place(relx=1.0, x=-160, y=icon_y, anchor="center")
+
+        ctk.CTkButton(self.dropdown_frame, text="Account Settings", width=140, command=self.open_settings).pack(pady=5)
+        ctk.CTkButton(self.dropdown_frame, text="Log Out", width=140, command=self.logout).pack(pady=5)
+
+        self.bottom_line = ctk.CTkFrame(self.navbar, height=1.5, fg_color="black")
+        self.bottom_line.place(relx=0, rely=1.0, relwidth=1.0, anchor="sw")
+
+        # Table view setup
         style = ttk.Style()
         style.configure("Treeview", font=("Arial", 14), rowheight=35)
         style.configure("Treeview.Heading", font=("Arial", 16, "bold"))
@@ -534,15 +571,68 @@ class PatientPage(ctk.CTkFrame):
 
         self.hovered_row = None
 
-        self.button_frame = ctk.CTkFrame(self, fg_color="#E8FBFC")
+        self.button_frame = ctk.CTkFrame(self, fg_color="#FFFFFF")
 
-        self.add_button = ctk.CTkButton(self.button_frame, text="Add", font=ctk.CTkFont("Arial", 16, "bold"),
-                                         width=120, command=self.open_add_window)
-        self.add_button.pack(side="left", padx=5)
+        # Add Button
+        self.add_button = ctk.CTkButton(
+            self.button_frame,
+            text="Add",
+            font=ctk.CTkFont("Arial", 16, "bold"),
+            command=self.open_add_window,
+            width=230,  
+            height=50    
+        )
+        self.add_button.pack(side="left", padx=10)
 
-        self.edit_button = ctk.CTkButton(self.button_frame, text="Edit", font=ctk.CTkFont("Arial", 16, "bold"),
-                                          width=120, command=self.open_edit_window)
-        self.edit_button.pack(side="left", padx=5)
+        # Guide Button
+        self.guide_button = ctk.CTkButton(
+            self.button_frame,
+            text="Guide",
+            font=ctk.CTkFont("Arial", 16, "bold"),
+            width=230,
+            height=50
+        )
+        self.guide_button.pack(side="left", padx=10)
+
+         # Search container
+        self.search_container = ctk.CTkFrame(
+            self.navbar, 
+            fg_color="white", 
+            corner_radius=25,
+            width=400,
+            height=50,
+            border_width=2.5,
+            border_color="#E0E0E0"
+        )
+        self.search_container.place(x=680, y=75, anchor="w")
+
+        # Search icon
+        try:
+            search_img = ctk.CTkImage(light_image=Image.open("assets/search.png"), size=(24, 24))
+            search_icon = ctk.CTkLabel(self.search_container, image=search_img, text="")
+            search_icon.place(x=15, rely=0.5, anchor="w")
+        except:
+            search_icon = ctk.CTkLabel(
+                self.search_container, 
+                text="🔍", 
+                font=("Arial", 16),
+                text_color="#666666"
+            )
+            search_icon.place(x=15, rely=0.5, anchor="w")
+
+        # Search entry
+        self.search_entry = ctk.CTkEntry(
+            self.search_container,
+            placeholder_text="Search patient",
+            width=340,
+            height=40,
+            border_width=0,
+            fg_color="transparent",
+            font=("Arial", 14),
+            text_color="#333333",
+            placeholder_text_color="#999999"
+        )
+        self.search_entry.place(x=50, rely=0.5, anchor="w")
 
         self.table_frame = ctk.CTkFrame(self, fg_color="#1A374D", border_width=2, border_color="black")
 
@@ -575,6 +665,7 @@ class PatientPage(ctk.CTkFrame):
         self.tree.bind("<Leave>", self.on_leave)
         self.tree.bind("<ButtonRelease-1>", self.on_row_click)
 
+        # Detailed info frame
         self.detailed_info_frame = ctk.CTkFrame(self, fg_color="#E8FBFC")
 
         self.photo_frame = ctk.CTkFrame(
@@ -833,14 +924,33 @@ class PatientPage(ctk.CTkFrame):
             width=250,
             height=40,
             fg_color="#01516D",
+            command=self.open_edit_window,
             hover_color="#013B50")
         self.edit_button_detailed.place(x=1050, y=10)
 
-        self.button_frame.place(x=20, y=10, anchor="nw")
-        self.table_frame.place(x=20, y=60, relwidth=0.95, relheight=0.8)
+        self.button_frame.place(x=20, y=50, anchor="nw")  
+        self.navbar.pack(fill="x", side="top")
+        self.table_frame.place(x=20, y=150, relwidth=0.95, relheight=0.8)
 
         self.populate_table(self.fetch_patient_data())
 
+    # Navbar methods (same as HomePage)
+    def toggle_dropdown(self):
+        if self.dropdown_visible:
+            self.dropdown_frame.place_forget()
+        else:
+            x = self.winfo_rootx() + self.winfo_width() - 180
+            y = self.winfo_rooty() + 90
+            self.dropdown_frame.place(x=x, y=y)
+            self.dropdown_frame.lift() 
+        self.dropdown_visible = not self.dropdown_visible
+
+    def open_settings(self):
+        print("Opening account settings...")
+
+    def logout(self):
+        print("Logging out...")
+    
     def open_patient_history(self):
         self.patient_history_window = PatientHistory(self.master)
         self.patient_history_window.place(x=60, y=10)
@@ -914,6 +1024,7 @@ class PatientPage(ctk.CTkFrame):
     def show_detailed_info(self, patient_id):
         self.table_frame.place_forget()
         self.button_frame.place_forget()
+        self.navbar.pack_forget()
         self.patient_id_value.configure(text=patient_id)
         self.display_patient_id(patient_id)
         
@@ -974,8 +1085,9 @@ class PatientPage(ctk.CTkFrame):
     def show_table_view(self):
         self.detailed_info_frame.place_forget()
         self.photo_frame.place_forget()
-        self.button_frame.place(x=20, y=10, anchor="nw") 
-        self.table_frame.place(x=20, y=60, relwidth=0.95, relheight=0.8)
+        self.button_frame.place(x=20, y=50, anchor="nw") 
+        self.navbar.pack(fill="x", side="top")
+        self.table_frame.place(x=20, y=150, relwidth=0.95, relheight=0.8)
 
     def open_input_window(self, window_class, data=None):
         input_window = window_class(self.master, data or {})
@@ -992,19 +1104,20 @@ class PatientPage(ctk.CTkFrame):
 
     def refresh_table(self):
         self.detailed_info_frame.place_forget() 
-        self.button_frame.place(x=20, y=10, anchor="nw") 
-        self.table_frame.place(x=20, y=60, relwidth=0.95, relheight=0.8) 
+        self.button_frame.place(x=20, y=50, anchor="nw") 
+        self.navbar.pack(fill="x", side="top")
+        self.table_frame.place(x=20, y=150, relwidth=0.95, relheight=0.8) 
         for row in self.tree.get_children():
             self.tree.delete(row)
         self.populate_table(self.fetch_patient_data())
 
     def enable_buttons(self):
         self.add_button.configure(state="normal")
-        self.edit_button.configure(state="normal")
+        self.edit_button_detailed.configure(state="normal")
 
     def disable_buttons(self):
         self.add_button.configure(state="disabled")
-        self.edit_button.configure(state="disabled")
+        self.edit_button_detailed.configure(state="disabled")
 
     def open_add_window(self, data=None):
         self.disable_buttons()
@@ -1480,6 +1593,41 @@ class SupplyPage(ctk.CTkFrame):
     def __init__(self, parent, shared_state):
         super().__init__(parent, fg_color="#E8FBFC")
         self.shared_state = shared_state
+
+        self.navbar = ctk.CTkFrame(self, fg_color="white", height=130)
+        self.navbar.pack(fill="x", side="top")
+        self.navbar.pack_propagate(False)
+        self.navbar.configure(border_width=0, border_color="black")
+
+        self.dropdown_visible = False 
+
+        self.dropdown_frame = ctk.CTkFrame(self.navbar, fg_color="#f0f0f0", corner_radius=8, width=150, height=100)
+        self.dropdown_frame.configure(border_width=1, border_color="gray")
+        self.dropdown_frame.place_forget()
+
+        self.namev2_label = ctk.CTkLabel(self.navbar, text="Tristan Lopez!", text_color="black", font=("Arial", 30, "bold"))
+        self.namev2_label.place(relx=0.85, rely=0.5, anchor="e")
+
+        profile_img = ctk.CTkImage(light_image=Image.open("assets/profile.png"), size=(42, 42))
+        notif_img = ctk.CTkImage(light_image=Image.open("assets/notif.png"), size=(42, 42))
+        settings_img = ctk.CTkImage(light_image=Image.open("assets/settingsv2.png"), size=(42, 42))
+
+        icon_y = 62
+
+        profile_btn = ctk.CTkButton(self.navbar, image=profile_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5")
+        profile_btn.place(relx=1.0, x=-60, y=icon_y, anchor="center")
+
+        notif_btn = ctk.CTkButton(self.navbar, image=notif_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5")
+        notif_btn.place(relx=1.0, x=-110, y=icon_y, anchor="center")
+
+        settings_btn = ctk.CTkButton(self.navbar, image=settings_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5", command=self.toggle_dropdown)
+        settings_btn.place(relx=1.0, x=-160, y=icon_y, anchor="center")
+
+        ctk.CTkButton(self.dropdown_frame, text="Account Settings", width=140, command=self.open_settings).pack(pady=5)
+        ctk.CTkButton(self.dropdown_frame, text="Log Out", width=140, command=self.logout).pack(pady=5)
+
+        self.bottom_line = ctk.CTkFrame(self.navbar, height=1.5, fg_color="black")
+        self.bottom_line.place(relx=0, rely=1.0, relwidth=1.0, anchor="sw")
         
         output_font = ("Merriweather", 15)
         label_font = ("Merriweather Sans bold", 15)
@@ -1496,19 +1644,71 @@ class SupplyPage(ctk.CTkFrame):
         self.selected_supply_data = None  
         
         # Button Frame
-        self.button_frame = ctk.CTkFrame(self, fg_color="#E8FBFC")
-        self.button_frame.place(x=20, y=10, anchor="nw")
+        self.button_frame = ctk.CTkFrame(self, fg_color="#FFFFFF")
 
         # Add Button
         self.add_button = ctk.CTkButton(
-            self.button_frame, text="Add", font=button_font,
-            width=120, command=self.open_add_window
+            self.button_frame,
+            text="Add",
+            font=ctk.CTkFont("Arial", 16, "bold"),
+            command=self.open_add_window,
+            width=230,  
+            height=50    
         )
-        self.add_button.pack(side="left", padx=5)
+        self.add_button.pack(side="left", padx=10)
+
+        # Guide Button
+        self.guide_button = ctk.CTkButton(
+            self.button_frame,
+            text="Guide",
+            font=ctk.CTkFont("Arial", 16, "bold"),
+            width=230,
+            height=50
+        )
+        self.guide_button.pack(side="left", padx=10)
+
+         # Search container
+        self.search_container = ctk.CTkFrame(
+            self.navbar, 
+            fg_color="white", 
+            corner_radius=25,
+            width=400,
+            height=50,
+            border_width=2.5,
+            border_color="#E0E0E0"
+        )
+        self.search_container.place(x=680, y=75, anchor="w")
+
+        # Search icon
+        try:
+            search_img = ctk.CTkImage(light_image=Image.open("assets/search.png"), size=(24, 24))
+            search_icon = ctk.CTkLabel(self.search_container, image=search_img, text="")
+            search_icon.place(x=15, rely=0.5, anchor="w")
+        except:
+            search_icon = ctk.CTkLabel(
+                self.search_container, 
+                text="🔍", 
+                font=("Arial", 16),
+                text_color="#666666"
+            )
+            search_icon.place(x=15, rely=0.5, anchor="w")
+
+        # Search entry
+        self.search_entry = ctk.CTkEntry(
+            self.search_container,
+            placeholder_text="Search supply",
+            width=340,
+            height=40,
+            border_width=0,
+            fg_color="transparent",
+            font=("Arial", 14),
+            text_color="#333333",
+            placeholder_text_color="#999999"
+        )
+        self.search_entry.place(x=50, rely=0.5, anchor="w")
 
         # Table Frame
         self.table_frame = ctk.CTkFrame(self, fg_color="#1A374D", border_width=2, border_color="black")
-        self.table_frame.place(x=20, y=60, relwidth=0.95, relheight=0.8)
 
         tree_container = ctk.CTkFrame(self.table_frame, fg_color="black")
         tree_container.pack(fill="both", expand=True, padx=1, pady=1)
@@ -1789,6 +1989,27 @@ class SupplyPage(ctk.CTkFrame):
                 fg_color="#68EDC6")
         self.Top_bar2.place(y=0)
 
+        self.button_frame.place(x=20, y=50, anchor="nw")  
+        self.navbar.pack(fill="x", side="top")
+        self.table_frame.place(x=20, y=150, relwidth=0.95, relheight=0.8)
+
+    # Navbar methods (same as HomePage)
+    def toggle_dropdown(self):
+        if self.dropdown_visible:
+            self.dropdown_frame.place_forget()
+        else:
+            x = self.winfo_rootx() + self.winfo_width() - 180
+            y = self.winfo_rooty() + 90
+            self.dropdown_frame.place(x=x, y=y)
+            self.dropdown_frame.lift() 
+        self.dropdown_visible = not self.dropdown_visible
+
+    def open_settings(self):
+        print("Opening account settings...")
+
+    def logout(self):
+        print("Logging out...")
+
     def open_edit_stock_window(self):
         if hasattr(self, 'selected_supply_id') and self.selected_supply_id:
             edit_stock_window = EditStockWindow(self, self.selected_supply_id)
@@ -1853,6 +2074,7 @@ class SupplyPage(ctk.CTkFrame):
     def show_detailed_info(self, supply_data):
         self.table_frame.place_forget()
         self.button_frame.place_forget()
+        self.navbar.pack_forget()
         
         # Update supply ID display
         self.supply_id_value.configure(text=supply_data[0])
@@ -1912,13 +2134,15 @@ class SupplyPage(ctk.CTkFrame):
     def show_table_view(self):
         """Return to table view"""
         self.Main_Supply_Frame.place_forget()
-        self.button_frame.place(x=20, y=10, anchor="nw")
-        self.table_frame.place(x=20, y=60, relwidth=0.95, relheight=0.8)
+        self.button_frame.place(x=20, y=50, anchor="nw")  
+        self.navbar.pack(fill="x", side="top")
+        self.table_frame.place(x=20, y=150, relwidth=0.95, relheight=0.8)
 
     def refresh_table(self):
         """Refresh the table with updated data"""
-        self.table_frame.place(x=20, y=60, relwidth=0.95, relheight=0.8)
-        self.button_frame.place(x=20, y=10, anchor="nw")
+        self.table_frame.place(x=20, y=150, relwidth=0.95, relheight=0.8)
+        self.button_frame.place(x=20, y=50, anchor="nw")
+        self.navbar.pack(fill="x", side="top")
         self.populate_table(self.fetch_supply_data())
 
     def open_add_window(self):
