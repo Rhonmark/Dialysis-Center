@@ -240,40 +240,89 @@ class SupplyWindow(SupplyBaseWindow):
         if self.is_editing:
             self.populate_fields()
 
-        def retrieve_supply_data(column, identifier, unique_id, table_name):
+        def retrieve_supply_data(cursor, column, unique_id):
             try:
-                connect = db()
-                cursor = connect.cursor()
-                query = f"SELECT {column} FROM {table_name} WHERE {identifier} = %s"
-                
+                query = f"SELECT {column} FROM supply WHERE item_id = %s"
                 cursor.execute(query, [unique_id])
                 result = cursor.fetchone()[0]
                 return result
             except Exception as e:
                 print('error retrieving data', e)
-            finally:
-                cursor.close()
-                connect.close()
 
-        def set_supply_data(column, row, unique_id):
+        def update_supply_data(cursor, item_id, supply_information):
             try:
-                connect = db()
-                cursor = connect.cursor()
-                query = f"""
-                UPDATE supply
-                SET {column} = %s 
-                WHERE item_id = %s
-                """
+                # Extract values from dictionary
+                item_name = supply_information['item_name']
+                category = supply_information['category']
+                restock_quantity = supply_information['restock_quantity']
+                restock_date = supply_information['restock_date']
+                avg_weekly_usage = supply_information['average_weekly_usage']
+                delivery_time = supply_information['delivery_time_days']
                 
-                cursor.execute(query, [row, unique_id])
-                connect.commit()
-                # return result
-
+                if restock_quantity > 0:
+                    cursor.execute("""
+                        UPDATE supply 
+                        SET item_name = %s, category = %s, restock_quantity = %s, 
+                        restock_date = %s, average_weekly_usage = %s, delivery_time_days = %s
+                        WHERE item_id = %s 
+                    """, (item_name, category, restock_quantity, restock_date, avg_weekly_usage, delivery_time, item_id))
+                    print(f"Updated supply item with ID: {item_id} and added {restock_quantity} to stock")
+                else:
+                    cursor.execute("""
+                        UPDATE supply 
+                        SET item_name = %s, category = %s, 
+                        restock_date = %s, average_weekly_usage = %s, delivery_time_days = %s
+                        WHERE item_id = %s 
+                    """, (item_name, category, restock_date, avg_weekly_usage, delivery_time, item_id))
+                    print(f"Updated supply item with ID: {item_id} without changing stock")
+                
+                return True
+                
+            except KeyError as e:
+                print(f"Missing required key in supply_information: {e}")
+                return False
             except Exception as e:
-                print('error retrieving data', e)
-            finally:
-                cursor.close()
-                connect.close()
+                print(f"Error updating supply item: {e}")
+                return False
+        
+        def set_supply_data(cursor, column, value, item_id):
+            try:
+                cursor.execute(f"""
+                    UPDATE supply
+                    SET {column} = %s
+                    WHERE item_id = %s
+                """, (value, item_id))
+            except Exception as e:
+                print(f'Error with updating {column}. Error: {e}')
+
+        def set_stock_levels(avg_weekly_usage, delivery_time, current_stock_val):
+
+            #daily usage for standard dev
+            avg_daily_usage = avg_weekly_usage / 7 
+                
+            #standard 20% 
+            daily_standard_dev_estimate = avg_daily_usage * 0.2
+            safety_stock = 2.33 * daily_standard_dev_estimate * math.sqrt(delivery_time)
+            reorder_point = (avg_daily_usage * delivery_time) + safety_stock
+
+            #stock level
+            low_stock_level = reorder_point
+            critical_stock_level = 0.50 * reorder_point
+            good_level = current_stock_val * 0.7
+
+            if current_stock_val <= critical_stock_level:
+                status = 'Critical Stock Level'
+
+            elif current_stock_val <= low_stock_level:
+                status = 'Low Stock Level'
+
+            elif current_stock_val <= good_level:
+                status = 'Good Stock Level'
+            
+            else:
+                status = 'Excellent Stock Level'         
+
+            return status       
 
         def on_save_click():
             item_name = self.entry_itemname.get().strip()
@@ -352,7 +401,7 @@ class SupplyWindow(SupplyBaseWindow):
                 restock_date = None
 
             supply_information = {
-                'item_name': item_name,
+                'item_name': item_name.capitalize(),
                 'category': category,
                 'current_stock': current_stock,
                 'restock_quantity': restock_quantity,
@@ -369,134 +418,33 @@ class SupplyWindow(SupplyBaseWindow):
                 cursor = connect.cursor()
 
                 if self.is_editing:
-                    if restock_quantity > 0:
-                        cursor.execute("""
-                            UPDATE supply 
-                            SET item_name = %s, category = %s, restock_quantity = %s, 
-                            restock_date = %s, average_weekly_usage = %s, delivery_time_days = %s
-                            WHERE item_id = %s 
-                        """, (item_name, category, restock_quantity, restock_date, avg_weekly_usage, delivery_time, self.edit_data['item_id']))
-                        print(f"Updated supply item with ID: {self.edit_data['item_id']} and added {restock_quantity} to stock")
-                    
+
+                    success = update_supply_data(cursor, self.edit_data['item_id'], supply_information)
+
+                    if not success: 
+                        CTkMessageBox.show_success("Failed", "Failed to update supply item!", parent=self)
+
+                    restock_quantity_result = retrieve_supply_data(cursor, 'restock_quantity', self.edit_data['item_id'])
+                    current_stock_result = retrieve_supply_data(cursor, 'current_stock', self.edit_data['item_id'])
+                    avg_weekly_usage_result = retrieve_supply_data(cursor, 'average_weekly_usage', self.edit_data['item_id'])
+                    delivery_time_result = retrieve_supply_data(cursor, 'delivery_time_days', self.edit_data['item_id'])
+
+                    #check if there's new input
+                    if current_stock_result == supply_information['restock_quantity']:
+                        current_stock_val = supply_information['restock_quantity'] 
                     else:
-                        cursor.execute("""
-                            UPDATE supply 
-                            SET item_name = %s, category = %s, 
-                            restock_date = %s, average_weekly_usage = %s, delivery_time_days = %s
-                            WHERE item_id = %s 
-                        """, (item_name, category, restock_date, avg_weekly_usage, delivery_time, self.edit_data['item_id']))
-                        print(f"Updated supply item with ID: {self.edit_data['item_id']} without changing stock")
+                        current_stock_val = current_stock_result + restock_quantity_result 
 
-                    restock_quantity_result = retrieve_supply_data('restock_quantity', 'item_id', self.edit_data['item_id'], table_name='supply')
-                    current_stock_result = retrieve_supply_data('current_stock', 'item_id', self.edit_data['item_id'], table_name='supply')
-                    avg_weekly_usage_result = retrieve_supply_data('average_weekly_usage', 'item_id', self.edit_data['item_id'], table_name='supply')
-                    delivery_time_result = retrieve_supply_data('delivery_time_days', 'item_id', self.edit_data['item_id'], table_name='supply')
+                    #cursor, column, value, item_id
+                    set_supply_data(cursor, 'current_stock', current_stock_val, self.edit_data['item_id'])
+                    set_supply_data(cursor, 'max_supply', current_stock_val, self.edit_data['item_id'])
+                    current_stock_val = retrieve_supply_data(cursor, 'current_stock', self.edit_data['item_id'])
 
-                    current_stock_val = current_stock_result + restock_quantity_result
-
-                    # set_stock_val = set_supply_data('current_stock', current_stock_val, self.edit_data['item_id'])
-                    
-                    # if set_stock_val:
-                    #     print('success set stock val')
-
-                    cursor.execute("""
-                        UPDATE supply
-                        SET current_stock = %s
-                        WHERE item_id = %s
-                    """, (current_stock_val, self.edit_data['item_id']))
-                    connect.commit()
-
-                    addend_stock = retrieve_supply_data('current_stock', 'item_id', self.edit_data['item_id'], table_name='supply')
-                    addend_restock_quantity = retrieve_supply_data('restock_quantity', 'item_id', self.edit_data['item_id'], table_name='supply')
-                    current_stock_sum = addend_stock + addend_restock_quantity
-                    # max_supply = 0
-
-                    # set_stock_val_1 = set_supply_data('current_stock', current_stock_sum, self.edit_data['item_id'])
-
-                    # if set_stock_val_1:
-                    #     print('success set stock val_1')
-
-                    cursor.execute("""
-                        UPDATE supply
-                        SET current_stock = %s
-                        WHERE item_id = %s
-                    """, (current_stock_sum, self.edit_data['item_id']))
-                    connect.commit()
-
-                    cursor.execute("""
-                            UPDATE supply
-                            SET max_supply = %s
-                            WHERE item_id = %s
-                        """, (current_stock_sum, self.edit_data['item_id']))
-                    connect.commit()
-
-                    # if max_supply == 0:
-                    #     cursor.execute("""
-                    #         UPDATE supply
-                    #         SET max_supply = %s
-                    #         WHERE item_id = %s
-                    #     """, (current_stock_sum, self.edit_data['item_id']))
-                    #     connect.commit()
-
-                    #     if max_supply < current_stock_sum:
-                    #         cursor.execute("""
-                    #             UPDATE supply
-                    #             SET max_supply = %s
-                    #             WHERE item_id = %s
-                    #         """, (current_stock_sum, self.edit_data['item_id']))
-                    #         connect.commit()  
-
-                    #daily usage for standard dev
-                    avg_daily_usage = avg_weekly_usage_result / 7 
-                        
-                    #standard 20% 
-                    daily_standard_dev_estimate = avg_daily_usage * 0.2
-                    safety_stock = 2.33 * daily_standard_dev_estimate * math.sqrt(delivery_time_result)
-                    reorder_point = (avg_daily_usage * delivery_time_result) + safety_stock
-
-                    # print(daily_standard_dev_estimate)
-                    # print(safety_stock)
-                    # print(reorder_point)
-
-                    #stock level
-                    low_stock_level = reorder_point
-                    critical_stock_level = 0.50 * reorder_point
-                    good_level = current_stock_result * 0.7
-                    
-                    # print(low_stock_level)
-                    # print(critical_stock_level)
-                    # print(good_level)
-
-                    if current_stock_result <= low_stock_level:
-                        cursor.execute("""
-                            UPDATE supply
-                            SET stock_level_status = %s
-                            WHERE item_id = %s
-                        """, ('Low Stock Level', self.edit_data['item_id']))
-                        connect.commit()
-                    elif current_stock_result <= critical_stock_level:
-                        cursor.execute("""
-                            UPDATE supply
-                            SET stock_level_status = %s
-                            WHERE item_id = %s
-                        """, ('Critical Stock Level', self.edit_data['item_id']))
-                        connect.commit()
-                    elif current_stock_result <= good_level:
-                        cursor.execute("""
-                            UPDATE supply
-                            SET stock_level_status = %s
-                            WHERE item_id = %s
-                        """, ('Good Stock Level', self.edit_data['item_id']))
-                        connect.commit()
-                    else:
-                        cursor.execute("""
-                            UPDATE supply
-                            SET stock_level_status = %s
-                            WHERE item_id = %s
-                        """, ('Excellent Stock Level', self.edit_data['item_id']))
-                        connect.commit()
+                    status = set_stock_levels(avg_weekly_usage_result, delivery_time_result, current_stock_val)
+                    set_supply_data(cursor, 'stock_level_status', status, self.edit_data['item_id'])
 
                     connect.commit()
+
                     CTkMessageBox.show_success("Success", "Supply information updated successfully!", parent=self)
 
                 else:
@@ -518,44 +466,15 @@ class SupplyWindow(SupplyBaseWindow):
                     else:
                         print('Item ID creation error')
                         return
-
-                    # current_stock_result = retrieve_supply_data('current_stock', 'item_id', self.edit_data['item_id'], table_name='supply')
-                    # avg_weekly_usage_result = retrieve_supply_data('average_weekly_usage', 'item_id', self.edit_data['item_id'], table_name='supply')
-                    # delivery_time_result = retrieve_supply_data('delivery_time_days', 'item_id', self.edit_data['item_id'], table_name='supply')
-
-                    # #daily usage for standard dev
-                    # avg_daily_usage = avg_weekly_usage_result / 7 
-                        
-                    # #standard 20% 
-                    # daily_standard_dev_estimate = avg_daily_usage * 0.2
-                    # safety_stock = 2.33 * daily_standard_dev_estimate * math.sqrt(delivery_time_result)
-                    # reorder_point = (avg_daily_usage * delivery_time_result) + safety_stock
-
-                    # #stock level
-                    # low_stock_level = reorder_point
-                    # critical_stock_level = 0.50 * reorder_point
                     
-                    # if current_stock_result == low_stock_level:
-                    #     cursor.execute("""
-                    #         UPDATE supply
-                    #         SET stock_level_status = %s
-                    #         WHERE item_id = %s
-                    #     """, ('Low Stock Level', self.edit_data['item_id']))
-                    #     connect.commit()
-                    # elif current_stock_result == critical_stock_level:
-                    #     cursor.execute("""
-                    #         UPDATE supply
-                    #         SET stock_level_status = %s
-                    #         WHERE item_id = %s
-                    #     """, ('Critical Stock Level', self.edit_data['item_id']))
-                    #     connect.commit()
-                    # else:
-                    #     cursor.execute("""
-                    #         UPDATE supply
-                    #         SET stock_level_status = %s
-                    #         WHERE item_id = %s
-                    #     """, ('Excellent Stock Level', self.edit_data['item_id']))
-                    #     connect.commit()
+                    connect.commit()
+                    
+                    avg_weekly_usage_result = retrieve_supply_data(cursor, 'average_weekly_usage', item_id)
+                    delivery_time_result = retrieve_supply_data(cursor, 'delivery_time_days', item_id)
+                    current_stock_result = retrieve_supply_data(cursor, 'current_stock', item_id)
+                    
+                    status = set_stock_levels(avg_weekly_usage_result, delivery_time_result, current_stock_result)
+                    set_supply_data(cursor, 'stock_level_status', status, item_id)
 
                 connect.commit()
 
@@ -701,27 +620,38 @@ class EditStockWindow(SupplyBaseWindow):
         required_font = ("Merriweather Sans bold", 10)
 
         # Quantity Used Input
-        ctk.CTkLabel(self, text="Quantity Used", font=label_font, fg_color="white", text_color="black").place(x=120, y=150)
-        self.entry_quantity_used = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white")
-        self.entry_quantity_used.place(x=120, y=200)
+        ctk.CTkLabel(self, text="Patient ID", font=label_font, fg_color="white", text_color="black").place(x=120, y=150)
+        self.entry_patient_id = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white")
+        self.entry_patient_id.place(x=120, y=200)
         create_underline(120, 230, 180)
-        add_placeholder(self.entry_quantity_used, "Type here")
+        add_placeholder(self.entry_patient_id, "Type here")
 
         # Patient ID Input
-        ctk.CTkLabel(self, text="Patient ID", font=label_font, fg_color="white", text_color="black").place(x=420, y=150)
-        self.entry_patient_id = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white")
-        self.entry_patient_id.place(x=420, y=200)
+        ctk.CTkLabel(self, text="Quantity Used", font=label_font, fg_color="white", text_color="black").place(x=420, y=150)
+        self.entry_quantity_used = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white")
+        self.entry_quantity_used.place(x=420, y=200)
         create_underline(420, 230, 180)
-        add_placeholder(self.entry_patient_id, "Type here")
+        add_placeholder(self.entry_quantity_used, "Type here")
 
         # Submit function
         def on_submit_click():
             quantity_used = self.entry_quantity_used.get().strip()
             patient_id = self.entry_patient_id.get().strip()
             
-            print(f"Quantity Used: {quantity_used}")
-            print(f"Patient ID: {patient_id}")
-            print("Edit Stock form submitted!")
+            usage_information = {
+                'item_id': self.item_id,
+                'patient_id': patient_id,
+                'quantity_used': quantity_used
+            }
+
+            usage_column = ', '.join(usage_information.keys())
+            usage_rows = [f'{entries}' for entries in usage_information.values()]
+
+            usage_id = supply_creation_id(usage_column, usage_rows, table_name='item_usage')
+
+            if usage_id:
+                print(f'usage id creation successful: {usage_id}')
+
 
         # Submit button
         button_font = ("Merriweather Bold", 20)

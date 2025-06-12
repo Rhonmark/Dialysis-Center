@@ -256,10 +256,18 @@ def supply_creation_id(column, row, table_name):
             # column_names = ', '.join(column)
             values_placeholder = ', '.join(['%s'] * len(row))
 
-            query = f"""
-                INSERT INTO {table_name}({column}, date_registered)
-                VALUES({values_placeholder}, CURDATE())
-            """
+            if table_name == 'supply':
+              query = f"""
+                  INSERT INTO {table_name}({column}, date_registered)
+                  VALUES({values_placeholder}, CURDATE())
+              """
+
+            elif table_name == 'item_usage':
+              query = f"""
+                  INSERT INTO {table_name}({column}, usage_date, usage_time)
+                  VALUES({values_placeholder}, CURDATE(), CURTIME())
+              """
+
             cursor.execute(query, tuple(row))
             unique_id = cursor.lastrowid  
             connect.commit()  
