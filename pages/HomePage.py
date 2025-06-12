@@ -2381,6 +2381,32 @@ class SupplyPage(ctk.CTkFrame):
         else:
             print("Please select a supply item first.")
 
+        item_id = self.selected_supply_id
+        
+        try:
+
+            connect = db()
+            cursor = connect.cursor()
+            
+            cursor.execute(f"""
+                SELECT pl.patient_id, pl.patient_name, pl.age, pl.gender, pl.access_type, s.item_name, iu.quantity_used, iu.usage_date, iu.usage_time
+                FROM item_usage iu
+                JOIN patient_list pl ON iu.patient_id = pl.patient_id
+                JOIN supply s ON iu.item_id = s.item_id
+                WHERE s.item_id = %s
+            """, (item_id,))
+
+            data_result = cursor.fetchall()
+            print(data_result)
+
+        except Exception as e:
+            print('Error retrieving the stock used data ', e)
+
+        finally: 
+
+            cursor.close()
+            connect.close()
+
     def open_restock_log_window(self):
         if hasattr(self, 'selected_supply_id') and self.selected_supply_id:
             restock_log_window = RestockLogWindow(self, self.selected_supply_id)
