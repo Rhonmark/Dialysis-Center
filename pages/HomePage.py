@@ -8,7 +8,7 @@ from tkinter import ttk, messagebox
 from components.Inputs import PatientInfoWindow
 from backend.connector import db_connection as db
 from components.buttons import CTkButtonSelectable
-from components.input_supply import CTkMessageBox, EditStockWindow, SupplyWindow
+from components.input_supply import CTkMessageBox, EditStockWindow, QuantityUsedLogsWindow, RestockLogWindow, SupplyWindow
 from components.state import login_shared_states
 from backend.crud import retrieve_form_data, db_connection
 from datetime import datetime
@@ -1050,6 +1050,19 @@ class PatientPage(ctk.CTkFrame):
         )
         contact_btn.place(x=80, y=220)
 
+        quantity_used_btn = ctk.CTkButton(
+            contact_options_panel,
+            text="Quantity Used",
+            font=("Merriweather", 14),
+            corner_radius=20,
+            width=250,
+            height=40,
+            fg_color="#01516D",
+            hover_color="#013B50",
+            command=self.open_quantity_used_info
+        )
+        quantity_used_btn.place(x=80, y=290)
+
         philhealth_info_panel = ctk.CTkFrame(
             self.detailed_info_frame,
             width=950,
@@ -1183,6 +1196,10 @@ class PatientPage(ctk.CTkFrame):
         self.contact_info_window = ContactInfoRelativeInfo(self.master)
         self.contact_info_window.place(x=60, y=10)
         self.contact_info_window.contact_relative_info(self.patient_id_value.cget("text"))
+
+    def open_quantity_used_info(self):
+        self.quantity_used_window = QuantityUsedInfo(self.master)
+        self.quantity_used_window.place(x=60, y=10)
 
     def fetch_patient_data(self):
         try:
@@ -1335,6 +1352,35 @@ class PatientPage(ctk.CTkFrame):
     def open_edit_window(self, data=None):
         self.disable_buttons()
         self.open_input_window(PatientInfoWindow, data)
+
+class QuantityUsedInfo(ctk.CTkFrame):
+    def __init__(self, master=None, **kwargs):
+        super().__init__(master, width=980, height=400, fg_color="white", corner_radius=20, **kwargs)
+        self.pack_propagate(False)
+
+        self.left_bar = ctk.CTkFrame(self, width=20, fg_color="#1A374D", corner_radius=0)
+        self.left_bar.pack(side="left", fill="y")
+
+        self.title_label = ctk.CTkLabel(self, text="Quantity Used", font=("Merriweather", 20, "bold"))
+        self.title_label.place(x=40, y=20)
+
+        self.quantity_used_header = ctk.CTkLabel(self, text="Quantity Used", font=("Merriweather", 16))
+        self.quantity_used_header.place(x=60, y=70)
+
+        self.quantity_used_labels = []
+        y_position = 100
+        for _ in range(10):
+            label = ctk.CTkLabel(self, text="", font=("Merriweather", 13), text_color="black")
+            label.place(x=60, y=y_position)
+            self.quantity_used_labels.append(label)
+            y_position += 30
+
+        self.exit_button = create_exit_button(self, command=self.exit_panel)
+        self.exit_button.place(x=900, y=15)
+
+    def exit_panel(self):
+        print("Quantity Used Info closed")
+        self.place_forget()
 
 class PatientHistory(ctk.CTkFrame):
     def __init__(self, master=None, **kwargs):
@@ -2328,10 +2374,20 @@ class SupplyPage(ctk.CTkFrame):
             }
 
     def open_quantity_used_window(self):
-        print("Opening Quantity Used window...")
-    
+        if hasattr(self, 'selected_supply_id') and self.selected_supply_id:
+            quantity_used_window = QuantityUsedLogsWindow(self, self.selected_supply_id)
+            quantity_used_window.grab_set()
+            quantity_used_window.focus_force()
+        else:
+            print("Please select a supply item first.")
+
     def open_restock_log_window(self):
-        print("Opening Restock Log window...")
+        if hasattr(self, 'selected_supply_id') and self.selected_supply_id:
+            restock_log_window = RestockLogWindow(self, self.selected_supply_id)
+            restock_log_window.grab_set()
+            restock_log_window.focus_force()
+        else:
+            print("Please select a supply item first.")
 
     def on_row_click(self, event):
         """Handle row click to show detailed info"""

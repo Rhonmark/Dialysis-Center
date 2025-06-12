@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from tkinter import Toplevel
+from tkinter import Toplevel, ttk
 from tkcalendar import Calendar
 from PIL import Image
 from backend.crud import supply_creation_id, get_existing_credentials
@@ -553,7 +553,7 @@ class EditStockWindow(SupplyBaseWindow):
         # Store the item_id
         self.item_id = item_id
 
-        print("item_id:", self.item_id)
+        print("edit stock - item_id:", self.item_id)
 
         # Title
         ctk.CTkLabel(
@@ -760,3 +760,110 @@ class EditStockWindow(SupplyBaseWindow):
         self.exit_button = ctk.CTkButton(self, image=exit_image, text="", fg_color="transparent", bg_color="white", hover_color="white",
                                          width=40, height=40, command=self.close_window)
         self.exit_button.place(x=1200, y=15)
+
+class QuantityUsedLogsWindow(SupplyBaseWindow):
+    def __init__(self, parent, item_id=None):
+        super().__init__(parent, "Quantity Used Logs")
+        self.geometry("1300x700")
+        self.center_window()
+
+        # Store the item_id
+        self.item_id = item_id
+        print("quantity used log - item_id:", self.item_id)
+
+        # Content frame 
+        self.content_frame = ctk.CTkFrame(self.main_frame, fg_color="white")
+        self.content_frame.pack(side="right", fill="both", expand=True, padx=(0, 20), pady=20)
+
+        # Title and subtitle container 
+        title_container = ctk.CTkFrame(self.content_frame, fg_color="transparent")
+        title_container.pack(fill="x", padx=20, pady=(20, 30))
+
+        # Title
+        title_label = ctk.CTkLabel(
+            title_container, 
+            text="Quantity Used Logs", 
+            font=("Merriweather bold", 22), 
+            text_color="#1A374D"
+        )
+        title_label.pack(anchor="w")
+
+        # Subtitle
+        subtitle_label = ctk.CTkLabel(
+            title_container, 
+            text="Every item usage will appear here", 
+            font=("Merriweather", 14), 
+            text_color="#666666"
+        )
+        subtitle_label.pack(anchor="w", pady=(5, 0))
+
+        # Table frame
+        self.table_frame = ctk.CTkFrame(self.content_frame, fg_color="#1A374D", border_width=2, border_color="black")
+        self.table_frame.pack(fill="both", expand=True, padx=20, pady=(0, 20))
+
+        # Tree container
+        tree_container = ctk.CTkFrame(self.table_frame, fg_color="black")
+        tree_container.pack(fill="both", expand=True, padx=1, pady=1)
+
+        # Configure table style
+        style = ttk.Style()
+        style.configure("UsageLogs.Treeview", font=("Merriweather Sans", 12), rowheight=35)
+        style.configure("UsageLogs.Treeview.Heading", font=("Merriweather Sans bold", 13))
+        style.map("UsageLogs.Treeview", background=[("selected", "#68EDC6")])        # Table columns
+        columns = ("patient_id", "patient_details", "item_used", "timestamp")
+        self.tree = ttk.Treeview(tree_container, columns=columns, show="headings", height=15, style="UsageLogs.Treeview")
+        self.tree.pack(side="left", fill="both", expand=True)
+
+        # Table headers
+        headers = [
+            ("Patient ID", 150),
+            ("Patient Details", 300),
+            ("Item Used", 250),
+            ("Timestamp", 200),
+        ]
+        
+        for (text, width), col in zip(headers, columns):
+            self.tree.heading(col, text=text)
+            self.tree.column(col, width=width, anchor="center")
+
+        # Scrollbar
+        scrollbar = ctk.CTkScrollbar(tree_container, orientation="vertical", command=self.tree.yview)
+        self.tree.configure(yscrollcommand=scrollbar.set)
+        scrollbar.pack(side="right", fill="y")
+
+        # Add some sample data 
+        self.add_sample_data()
+
+    def center_window(self):
+        self.update_idletasks()
+        width = self.winfo_width()
+        height = self.winfo_height()
+        x = (self.winfo_screenwidth() // 2) - (width // 2) + int(3 * 50)
+        y = (self.winfo_screenheight() // 2) - (height // 2)
+        self.geometry(f"1300x700+{x}+{y}")
+
+    def close_window(self):
+        """Properly close the window and release grab"""
+        self.grab_release() 
+        self.destroy()
+
+    def add_sample_data(self):
+        """Add sample data to demonstrate the table structure"""
+        sample_data = [
+            ("P001", "John Doe - Age 45", "Dialysis Filter", "2024-12-15 10:30:25"),
+            ("P002", "Jane Smith - Age 52", "Saline Solution", "2024-12-15 11:15:42"),
+            ("P003", "Mike Johnson - Age 38", "Disposable Tubing", "2024-12-15 14:22:18"),
+            ("P001", "John Doe - Age 45", "Medical Gauze", "2024-12-15 15:45:33"),
+            ("P004", "Sarah Wilson - Age 61", "Antiseptic Wipes", "2024-12-15 16:10:27"),
+        ]
+        
+        for row in sample_data:
+            self.tree.insert("", "end", values=row)
+
+class RestockLogWindow(SupplyBaseWindow):
+    def __init__(self, parent, item_id=None):
+        super().__init__(parent, "Restock Log")
+        
+        # Store the item_id
+        self.item_id = item_id
+        print("Restock Log - item_id:", self.item_id)
