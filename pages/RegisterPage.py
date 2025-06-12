@@ -106,40 +106,48 @@ class RegisterPage(tk.Frame):
         right_container.grid(row=0, column=1, sticky="nsew")
 
         # Title label 
-        title = tk.Label(right_container, text="REGISTER", font=("Arial", 36, "bold"), fg="#68EDC6", bg="#1A374D")
-        title.place(relx=0.5, rely=0, anchor="n", y=50)
+        title = tk.Label(right_container, text="REGISTER", font=("Arial", 32, "bold"), fg="#68EDC6", bg="#1A374D")
+        title.place(relx=0.5, rely=0, anchor="n", y=30)
 
         # Subtitle label 
         subtitle = tk.Label(
             right_container,
             text="Make sure to create an\naccount first",
-            font=("Arial", 11),
+            font=("Arial", 10),
             fg="white",
             bg="#1A374D",
             wraplength=250  
         )
-        subtitle.place(relx=0.5, rely=0.15, anchor="n")
+        subtitle.place(relx=0.5, rely=0.11, anchor="n")
+
+        # Full Name Label
+        fullname_label = tk.Label(right_container, text="Full Name", font=("Arial", 11), fg="white", bg="#1A374D")
+        fullname_label.place(relx=0.25, rely=0.18, anchor="n")
+
+        # Full Name Field
+        self.fullname_field = TextField(right_container, placeholder="Enter your full name", font=("Arial", 11), width=25)
+        self.fullname_field.place(relx=0.5, rely=0.21, anchor="n", width=280, height=40) 
 
         #Username Label
-        username_label = tk.Label(right_container, text="Username", font=("Arial", 12), fg="white", bg="#1A374D")
-        username_label.place(relx=0.23, rely=0.24, anchor="n")
+        username_label = tk.Label(right_container, text="Username", font=("Arial", 11), fg="white", bg="#1A374D")
+        username_label.place(relx=0.25, rely=0.29, anchor="n")
 
         # Username Field
-        self.username_field = TextField(right_container, placeholder="Username must be at least 8 characters", font=("Arial", 12), width=25)
-        self.username_field.place(relx=0.5, rely=0.28, anchor="n", width=300, height=50) 
+        self.username_field = TextField(right_container, placeholder="Username must be at least 8 characters", font=("Arial", 11), width=25)
+        self.username_field.place(relx=0.5, rely=0.32, anchor="n", width=280, height=40) 
 
         # Password Label
-        password_label = tk.Label(right_container, text="Password", font=("Arial", 12), fg="white", bg="#1A374D")
-        password_label.place(relx=0.23, rely=0.38, anchor="n") 
+        password_label = tk.Label(right_container, text="Password", font=("Arial", 11), fg="white", bg="#1A374D")
+        password_label.place(relx=0.25, rely=0.40, anchor="n") 
 
         # Password Field
         self.password_visible = False 
-        self.password_field = TextField(right_container, placeholder="Password must be at least 6 characters", font=("Arial", 12), width=25)
-        self.password_field.place(relx=0.5, rely=0.42, anchor="n", width=300, height=50) 
+        self.password_field = TextField(right_container, placeholder="Password must be at least 6 characters", font=("Arial", 11), width=25)
+        self.password_field.place(relx=0.5, rely=0.43, anchor="n", width=280, height=40) 
 
         # Load eye icons
-        self.eye_open_icon = ImageTk.PhotoImage(Image.open("assets/eye_open.png").resize((20, 20)))
-        self.eye_closed_icon = ImageTk.PhotoImage(Image.open("assets/eye_closed.png").resize((20, 20)))
+        self.eye_open_icon = ImageTk.PhotoImage(Image.open("assets/eye_open.png").resize((18, 18)))
+        self.eye_closed_icon = ImageTk.PhotoImage(Image.open("assets/eye_closed.png").resize((18, 18)))
 
         # Eye icon label (Initially Hidden)
         self.eye_label = tk.Label(right_container, image=self.eye_closed_icon, cursor="hand2", borderwidth=0, highlightthickness=0)
@@ -150,8 +158,8 @@ class RegisterPage(tk.Frame):
         self.password_field.bind("<KeyRelease>", self.check_password_input)
 
         # SecretQuestion Label
-        secret_question_label = tk.Label(right_container, text="Secret Question", font=("Arial", 12), fg="white", bg="#1A374D")
-        secret_question_label.place(relx=0.28, rely=0.52, anchor="n") 
+        secret_question_label = tk.Label(right_container, text="Secret Question", font=("Arial", 11), fg="white", bg="#1A374D")
+        secret_question_label.place(relx=0.30, rely=0.51, anchor="n") 
 
         # Secret Question Dropdown
         self.secret_questions = [
@@ -166,43 +174,43 @@ class RegisterPage(tk.Frame):
         self.selected_question = tk.StringVar(value=random.choice(self.secret_questions))
 
         # Dropdown menu (Combobox)
-        self.secret_question_dropdown = ttk.Combobox(right_container, textvariable=self.selected_question, values=self.secret_questions, state="readonly", font=("Arial", 12))
-        self.secret_question_dropdown.place(relx=0.5, rely=0.56, anchor="n", width=300, height=30)
+        self.secret_question_dropdown = ttk.Combobox(right_container, textvariable=self.selected_question, values=self.secret_questions, state="readonly", font=("Arial", 10))
+        self.secret_question_dropdown.place(relx=0.5, rely=0.54, anchor="n", width=280, height=28)
 
         # Secret Question Field
-        self.secret_question_field = TextField(right_container, placeholder="Enter secret question answer", font=("Arial", 12), width=25)
-        self.secret_question_field.place(relx=0.5, rely=0.62, anchor="n", width=300, height=50) 
+        self.secret_question_field = TextField(right_container, placeholder="Enter secret question answer", font=("Arial", 11), width=25)
+        self.secret_question_field.place(relx=0.5, rely=0.59, anchor="n", width=280, height=40) 
 
         # Error Label
-        self.error_secret_question_label = tk.Label(self, text="", font=("Arial", 12), fg="red", bg="#1A374D")
-        self.error_secret_question_label.place(relx=0.84, rely=0.71, anchor="n")
+        self.error_secret_question_label = tk.Label(self, text="", font=("Arial", 10), fg="red", bg="#1A374D")
+        self.error_secret_question_label.place(relx=0.84, rely=0.67, anchor="n")
 
         # Login Button
         login_button = CTkButtonSelectable(
             right_container,
             text="Login",
             command=self.on_login_click,
-            width=230,  
-            height=50   
+            width=210,  
+            height=45   
         )
-        login_button.place(relx=0.5, rely=0.76, anchor="n")  
+        login_button.place(relx=0.5, rely=0.72, anchor="n")  
 
         # Signup Button
         signup_button = CTkButtonSelectable(
             right_container,
             text="Register",
             command=self.on_signup_click,
-            width=230, 
-            height=50  
+            width=210, 
+            height=45  
         )
-        signup_button.place(relx=0.5, rely=0.85, anchor="n")  
+        signup_button.place(relx=0.5, rely=0.80, anchor="n")  
 
     def check_password_input(self, event=None):
         """Shows or hides the eye icon based on user input, ensuring it starts closed."""
         current_text = self.password_field.get().strip()
 
         if current_text: 
-            self.eye_label.place(relx=0.8, rely=0.44, anchor="n") 
+            self.eye_label.place(relx=0.8, rely=0.445, anchor="n") 
             self.password_visible = False 
             self.password_field.config(show="*")  
             self.eye_label.config(image=self.eye_closed_icon)  
