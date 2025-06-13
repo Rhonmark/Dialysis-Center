@@ -494,6 +494,28 @@ class HomePageContent(ctk.CTkFrame):
         )
         recent_label.place(relx=0.27, rely=0.5, anchor="center")
 
+        try:
+            connect = db()
+            cursor = connect.cursor()
+
+            cursor.execute("""
+                SELECT patient_name, age, gender FROM patient_list
+                ORDER BY patient_id DESC
+                LIMIT 1 
+            """)
+
+            recent_patient = cursor.fetchone()
+            
+            recent_patient_name = recent_patient[0]
+            recent_patient_age = recent_patient[1]
+            recent_patient_gender = recent_patient[2]
+
+        except Exception as e:
+            print('Error retrieving recent patient ', e)
+        finally:
+            cursor.close()
+            connect.close()
+
         # First Patient Box - Name
         first_box = ctk.CTkFrame(
             fourth_frame,
@@ -508,7 +530,7 @@ class HomePageContent(ctk.CTkFrame):
 
         name_value = ctk.CTkLabel(
             first_box,
-            text="Tristan\nLopez",
+            text=recent_patient_name,
             font=("Merriweather", 11),
             text_color="black",
             justify="center"
@@ -529,7 +551,7 @@ class HomePageContent(ctk.CTkFrame):
 
         age_value = ctk.CTkLabel(
             second_box,
-            text="21",
+            text=recent_patient_age,
             font=("Merriweather", 16, "bold"),
             text_color="black"
         )
@@ -549,7 +571,7 @@ class HomePageContent(ctk.CTkFrame):
 
         gender_value = ctk.CTkLabel(
             third_box,
-            text="Male",
+            text=recent_patient_gender,
             font=("Merriweather", 14, "bold"),
             text_color="black"
         )
