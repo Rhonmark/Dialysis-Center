@@ -2800,9 +2800,302 @@ class SupplyPage(ctk.CTkFrame):
 
 class ReportPage(ctk.CTkFrame):
     def __init__(self, parent):
-        super().__init__(parent, fg_color="#E8FBFC")
-        label = ctk.CTkLabel(self, text="Report Page", font=("Arial", 24))
-        label.pack(pady=100)
+        super().__init__(parent, fg_color="#EFEFEF")
+
+        label_font = ("Merriweather Sans Bold", 9)
+        Title_font = ("Merriweather Bold", 13)
+        NumberOuput_font = ("Poppins Regular" ,19)
+        DateOutput_font = ("Poppins Regular" ,15)
+        SubLabel_font = ("Merriweather Sans Light" ,9)
+        SubSubLabel_font = ("Poppins Regular" ,9)
+
+    #Patient Report
+        PatientReport_frame = ctk.CTkFrame(self,
+                                        width=245,
+                                        height=335,
+                                        corner_radius=20,
+                                        fg_color="#FFFFFF",
+                                        bg_color="transparent")
+        PatientReport_frame.place(x=120,y=75)
+        left_bar = ctk.CTkFrame(PatientReport_frame,width=20,height=335,fg_color="#1A374D",bg_color="transparent")
+        left_bar.place(x=0)
+
+        PateintReport_title = ctk.CTkLabel(PatientReport_frame,font=Title_font,text="Patient Report")
+        PateintReport_title.place(x=43,y=17)
+
+        #Active
+        Activepatient_BG = ctk.CTkFrame(PatientReport_frame,width=145,height=62.5,corner_radius=10,fg_color="#88BD8E",bg_color="transparent")
+        Activepatient_BG.place(x=55,y=65)
+
+         #Output for Active User
+        PatientIcon_image = ctk.CTkImage(Image.open("assets/PatientIcon.png"), size=(15,15))
+        ActivePatientCount = ctk.CTkLabel(Activepatient_BG,font=NumberOuput_font,text="58",text_color="#fFFFFF",fg_color="transparent",image=PatientIcon_image,compound='right')
+        ActivePatientCount.place(relx=.5,rely=.45,anchor="center")
+        PatientCount_SubLabel = ctk.CTkLabel(Activepatient_BG,font=SubLabel_font,text="Patient",text_color="#FfFFFF",fg_color="transparent",height=10)
+        PatientCount_SubLabel.place(relx=.5,rely=.7,anchor="center")
+
+        ActiveLabel_bg = ctk.CTkFrame(PatientReport_frame,width=140,height=25,corner_radius=10,fg_color="#FFFFFF",bg_color="transparent",border_width=1.5,border_color="#BBBBBB")
+        ActiveLabel_bg.place(x=58,y=140)
+        ActiveLabel = ctk.CTkLabel(ActiveLabel_bg,font=label_font,text="Active",text_color="#104E44",bg_color="transparent",height=10)
+        ActiveLabel.place(relx=.5,rely=.5,anchor="center")
+
+        #InActive
+        Inactivepatient_BG = ctk.CTkFrame(PatientReport_frame,width=145,height=62.5,corner_radius=10,fg_color="#F25B5B",bg_color="transparent")
+        Inactivepatient_BG.place(x=55,y=197)
+
+        #Output for Inactive User
+        PatientIcon_image = ctk.CTkImage(Image.open("assets/PatientIcon.png"), size=(15,15))
+        InactivePatientCount = ctk.CTkLabel(Inactivepatient_BG,font=NumberOuput_font,text="58",text_color="#fFFFFF",fg_color="transparent",image=PatientIcon_image,compound='right')
+        InactivePatientCount.place(relx=.5,rely=.45,anchor="center")
+        PatientCount_SubLabel = ctk.CTkLabel(Inactivepatient_BG,font=SubLabel_font,text="Patient",text_color="#FfFFFF",fg_color="transparent",height=10)
+        PatientCount_SubLabel.place(relx=.5,rely=.7,anchor="center")
+
+        InactiveLabel_bg = ctk.CTkFrame(PatientReport_frame,width=140,height=25,corner_radius=10,fg_color="#FFFFFF",bg_color="transparent",border_width=1.5,border_color="#BBBBBB")
+        InactiveLabel_bg.place(x=58,y=270)
+        InactiveLabel = ctk.CTkLabel(InactiveLabel_bg,font=label_font,text="Inactive",text_color="#104E44",bg_color="transparent",height=10)
+        InactiveLabel.place(relx=.5,rely=.4,anchor="center")
+
+#------------------------------------------------------------------------------------------------------------------------------------------
+    #Active Patient Table
+        Activepatient_frame = ctk.CTkFrame(self,
+                                           width=515,
+                                           height=335,
+                                           corner_radius=20,
+                                           fg_color="#FFFFFF",
+                                           bg_color="transparent")
+        Activepatient_frame.place(x=400,y=75)
+       
+
+
+    #Inactive Patient Table
+        Inactivepatient_frame = ctk.CTkFrame(self,
+                                             width=515,
+                                             height=335,
+                                             corner_radius=20,
+                                             fg_color="#FFFFFF",
+                                             bg_color="transparent")
+        Inactivepatient_frame.place(x=965,y=75)
+        
+
+
+#------------------------------------------------------------------------------------------------------------------------------------------
+
+    #Supply Report
+        SupplyReport_frame = ctk.CTkFrame(self,
+                                          width=675,
+                                          height=165,
+                                          corner_radius=20,
+                                          fg_color="#FFFFFF",
+                                          bg_color="transparent")
+        SupplyReport_frame.place(x=120,y=445)
+        left_bar = ctk.CTkFrame(SupplyReport_frame,width=20,height=165,fg_color="#1A374D",bg_color="transparent")
+        left_bar.place(x=0)
+
+        SupplyReport_title = ctk.CTkLabel(SupplyReport_frame,font=Title_font,text="Supply Report")
+        SupplyReport_title.place(x=43,y=17)
+
+        SupplyCount_BG = ctk.CTkFrame(SupplyReport_frame,width=155,height=55,corner_radius=10,fg_color="#818C7D",bg_color="transparent")
+        SupplyCount_BG.place(x=70,y=65)
+
+        #Output Supply Count
+        SupplyCountIcon_image = ctk.CTkImage(Image.open("assets/SupplyCountIcon.png"), size=(15,15))
+        SupplyCount = ctk.CTkLabel(SupplyCount_BG,font=NumberOuput_font,text="68",text_color="#fFFFFF",fg_color="transparent",image=SupplyCountIcon_image,compound='right')
+        SupplyCount.place(relx=.5,rely=.45,anchor="center")
+        SupplyCount_SubLabel = ctk.CTkLabel(SupplyCount_BG,font=SubLabel_font,text="Items",text_color="#FfFFFF",fg_color="transparent",height=10)
+        SupplyCount_SubLabel.place(relx=.5,rely=.7,anchor="center")
+
+        SupplyCountLabel_bg = ctk.CTkFrame(SupplyReport_frame,width=140,height=25,corner_radius=10,fg_color="#FFFFFF",bg_color="transparent",border_width=1.5,border_color="#BBBBBB",)
+        SupplyCountLabel_bg.place(x=77,y=125)
+        SupplyCountLabel = ctk.CTkLabel(SupplyCountLabel_bg,font=label_font,text="Supply Count",text_color="#104E44",bg_color="transparent",height=10)
+        SupplyCountLabel.place(relx=.5,rely=.4,anchor="center")
+
+
+        Lowstock_BG = ctk.CTkFrame(SupplyReport_frame,width=155,height=55,corner_radius=10,fg_color="#D08B40",bg_color="transparent")
+        Lowstock_BG.place(x=270,y=65)
+
+        #Output Low Stock
+        LowStockIcon_image = ctk.CTkImage(Image.open("assets/LowStockIcon.png"), size=(15,15))
+        LowStockCount = ctk.CTkLabel(Lowstock_BG,font=NumberOuput_font,text="68",text_color="#fFFFFF",fg_color="transparent",image=LowStockIcon_image,compound='right')
+        LowStockCount.place(relx=.5,rely=.45,anchor="center")
+        LowStockCount_SubLabel = ctk.CTkLabel(Lowstock_BG,font=SubLabel_font,text="Items",text_color="#FfFFFF",fg_color="transparent",height=10)
+        LowStockCount_SubLabel.place(relx=.5,rely=.7,anchor="center")
+
+
+        LowStockLabel_bg = ctk.CTkFrame(SupplyReport_frame,width=140,height=25,corner_radius=10,fg_color="#FFFFFF",bg_color="transparent",border_width=1.5,border_color="#BBBBBB",)
+        LowStockLabel_bg.place(x=277,y=125)
+        LowStockLabel = ctk.CTkLabel(LowStockLabel_bg,font=label_font,text="Low Stock",text_color="#104E44",bg_color="transparent",height=10)
+        LowStockLabel.place(relx=.5,rely=.4,anchor="center")
+
+
+        CriticalStock_BG = ctk.CTkFrame(SupplyReport_frame,width=155,height=55,corner_radius=10,fg_color="#AC1616",bg_color="transparent")
+        CriticalStock_BG.place(x=470,y=65)
+
+        #Output Critical Stock
+        CriticalStockIcon_image = ctk.CTkImage(Image.open("assets/CriticalStockIcon.png"), size=(15,15))
+        CriticalStockCount = ctk.CTkLabel(CriticalStock_BG,font=NumberOuput_font,text="68",text_color="#fFFFFF",fg_color="transparent",image=CriticalStockIcon_image,compound='right')
+        CriticalStockCount.place(relx=.5,rely=.45,anchor="center")
+        CriticalStockCount_SubLabel = ctk.CTkLabel(CriticalStock_BG,font=SubLabel_font,text="Items",text_color="#FfFFFF",fg_color="transparent",height=10)
+        CriticalStockCount_SubLabel.place(relx=.5,rely=.7,anchor="center")
+
+        CriticalStockLabel_bg = ctk.CTkFrame(SupplyReport_frame,width=140,height=25,corner_radius=10,fg_color="#FFFFFF",bg_color="transparent",border_width=1.5,border_color="#BBBBBB",)
+        CriticalStockLabel_bg.place(x=477,y=125)
+        CriticalStockLabel = ctk.CTkLabel(CriticalStockLabel_bg,font=label_font,text="Critical Stock",text_color="#104E44",bg_color="transparent",height=10)
+        CriticalStockLabel.place(relx=.5,rely=.4,anchor="center")
+
+#------------------------------------------------------------------------------------------------------------------------------------------
+
+    #Backup Report
+
+        BackupReport_frame = ctk.CTkFrame(self,
+                                        width=485,
+                                        height=165,
+                                        corner_radius=20,
+                                        fg_color="#FFFFFF",
+                                        bg_color="transparent")
+        BackupReport_frame.place(x=825,y=445)
+        left_bar = ctk.CTkFrame(BackupReport_frame,width=20,height=165,fg_color="#1A374D",bg_color="transparent")
+        left_bar.place(x=0)
+
+        BackupReport_title = ctk.CTkLabel(BackupReport_frame,font=Title_font,text="Backup Report")
+        BackupReport_title.place(x=43,y=17)
+
+        BackupCount_BG = ctk.CTkFrame(BackupReport_frame,width=155,height=55,corner_radius=10,fg_color="#818C7D",bg_color="transparent")
+        BackupCount_BG.place(x=70,y=65)
+
+        #Output Backup Count
+        BackupIcon_image = ctk.CTkImage(Image.open("assets/BackupIcon.png"), size=(15,15))
+        BackupCount = ctk.CTkLabel(BackupCount_BG,font=NumberOuput_font,text="68",text_color="#fFFFFF",fg_color="transparent",image=BackupIcon_image,compound='right')
+        BackupCount.place(relx=.5,rely=.45,anchor="center")
+        BackupCount_SubLabel = ctk.CTkLabel(BackupCount_BG,font=SubLabel_font,text="Backups",text_color="#FfFFFF",fg_color="transparent",height=10)
+        BackupCount_SubLabel.place(relx=.5,rely=.7,anchor="center")
+        
+        BackupCountLabel_bg = ctk.CTkFrame(BackupReport_frame,width=140,height=25,corner_radius=10,fg_color="#FFFFFF",bg_color="transparent",border_width=1.5,border_color="#BBBBBB",)
+        BackupCountLabel_bg.place(x=77,y=125)
+        BackupCountLabel = ctk.CTkLabel(BackupCountLabel_bg,font=label_font,text="Backup Count",text_color="#104E44",bg_color="transparent",height=10)
+        BackupCountLabel.place(relx=.5,rely=.4,anchor="center")
+
+        MostRecentBackup_BG = ctk.CTkFrame(BackupReport_frame,width=195,height=55,corner_radius=10,fg_color="#93E176",bg_color="transparent")
+        MostRecentBackup_BG.place(x=265,y=65)
+
+        #Output Recent backup Date
+        CalendarIcon_image = ctk.CTkImage(Image.open("assets/Calendaricon.png"), size=(18,18))
+        RecentBackupDate = ctk.CTkLabel(MostRecentBackup_BG,font=DateOutput_font,text="2025-06-13",text_color="#FFFFFF",fg_color="transparent",image=CalendarIcon_image,compound='right')
+        RecentBackupDate.place(relx=.5,rely=.45,anchor="center")
+        RecentBackup_SubLabel = ctk.CTkLabel(MostRecentBackup_BG,font=SubLabel_font,text="yyyy - mm - dd",text_color="#FFFFFF",fg_color="transparent",height=10)
+        RecentBackup_SubLabel.place(relx=.5,rely=.7,anchor="center")
+
+        MostRecentlabel_bg = ctk.CTkFrame(BackupReport_frame,width=185,height=25,corner_radius=10,fg_color="#FFFFFF",bg_color="transparent",border_width=1.5,border_color="#BBBBBB",)
+        MostRecentlabel_bg.place(x=270,y=125)
+        MostRecentLabel = ctk.CTkLabel(MostRecentlabel_bg,font=label_font,text="Most Recent Backup",text_color="#104E44",bg_color="transparent",height=0)
+        MostRecentLabel.place(relx=.5,rely=.4,anchor="center")
+
+#------------------------------------------------------------------------------------------------------------------------------------------
+
+    #Discrepancies
+        Discrepancies_frame = ctk.CTkFrame(self,
+                                           width=145,
+                                           height=165,
+                                           corner_radius=20,
+                                           fg_color="#FFFFFF",
+                                           bg_color="transparent")
+        Discrepancies_frame.place(x=1340,y=445)
+
+    #Low Stock Level items
+        LowOnStock_frame = ctk.CTkFrame(self,
+                                        width=525,
+                                        height=390,
+                                        corner_radius=20,
+                                        fg_color="#FFFFFF",
+                                        bg_color="transparent")
+        LowOnStock_frame.place(x=120,y=645)
+
+        LowonStock_title = ctk.CTkLabel(LowOnStock_frame,font=Title_font,text="Low Stock Levels Items")
+        LowonStock_title.place(x=43,y=17)
+
+        LowonStock_sublabel = ctk.CTkLabel(LowOnStock_frame,font=SubSubLabel_font,text="Current Data")
+        LowonStock_sublabel.place(x=43,y=45)
+
+
+    #Low Stock Level Items
+        CriticalStock_frame = ctk.CTkFrame(self,
+                                           width=525,
+                                           height=390,
+                                           corner_radius=20,
+                                           fg_color="#FFFFFF",
+                                           bg_color="transparent")
+        CriticalStock_frame.place(x=680,y=645)
+
+        CriticalStock_title = ctk.CTkLabel(CriticalStock_frame,font=Title_font,text="Critical stock Level Items")
+        CriticalStock_title.place(x=43,y=17)
+
+        CriticalStock_sublabel = ctk.CTkLabel(CriticalStock_frame,font=SubSubLabel_font,text="Current Data")
+        CriticalStock_sublabel.place(x=43,y=45)
+
+#------------------------------------------------------------------------------------------------------------------------------------------
+
+    #Notification Report
+        NotificationReport_frame = ctk.CTkFrame(self,
+                                                width=240,
+                                                height=390,
+                                                corner_radius=20,
+                                                fg_color="#FFFFFF",
+                                                bg_color="transparent")
+        NotificationReport_frame.place(x=1240,y=645)
+        left_bar = ctk.CTkFrame(NotificationReport_frame,width=20,height=390,fg_color="#1A374D",bg_color="transparent")
+        left_bar.place(x=0)
+
+        NotificationReport_title = ctk.CTkLabel(NotificationReport_frame,font=Title_font,text="Notification Report")
+        NotificationReport_title.place(x=43,y=17)
+
+        Stocklevels_BG = ctk.CTkFrame(NotificationReport_frame,width=155,height=55,corner_radius=10,fg_color="#538A8C",bg_color="transparent")
+        Stocklevels_BG.place(x=55,y=65)
+
+         #Output for Stock Levels
+        StockLevelIcon_image = ctk.CTkImage(Image.open("assets/LowStockIcon.png"), size=(15,15))
+        StockLevelCount = ctk.CTkLabel(Stocklevels_BG,font=NumberOuput_font,text="68",text_color="#fFFFFF",fg_color="transparent",image=StockLevelIcon_image,compound='right')
+        StockLevelCount.place(relx=.5,rely=.45,anchor="center")
+        StockCount_SubLabel = ctk.CTkLabel(Stocklevels_BG,font=SubLabel_font,text="Notifications",text_color="#FfFFFF",fg_color="transparent",height=10)
+        StockCount_SubLabel.place(relx=.5,rely=.7,anchor="center")
+
+        StocklevelsLabel_bg = ctk.CTkFrame(NotificationReport_frame,width=140,height=25,corner_radius=10,fg_color="#FFFFFF",bg_color="transparent",border_width=1.5,border_color="#BBBBBB",)
+        StocklevelsLabel_bg.place(x=62,y=125)
+        StockLevelsLabel = ctk.CTkLabel(StocklevelsLabel_bg,font=label_font,text="Stock Levels",text_color="#104E44",bg_color="transparent",height=11)
+        StockLevelsLabel.place(relx=.5,rely=.4,anchor="center")
+
+
+        PatientInformation_BG = ctk.CTkFrame(NotificationReport_frame,width=155,height=55,corner_radius=10,fg_color="#57CFBB",bg_color="transparent")
+        PatientInformation_BG.place(x=55,y=175)
+
+         #Output for Patient Information
+        PatientNotificationIcon_image = ctk.CTkImage(Image.open("assets/PatientNotificationIcon.png"), size=(15,15))
+        PatientNotificationCount = ctk.CTkLabel(PatientInformation_BG,font=NumberOuput_font,text="68",text_color="#fFFFFF",bg_color="#57CFBB",image=PatientNotificationIcon_image,compound='right')
+        PatientNotificationCount.place(relx=.5,rely=.45,anchor="center")
+        PatientNotification_SubLabel = ctk.CTkLabel(PatientInformation_BG,font=SubLabel_font,text="Notifications",text_color="#FfFFFF",fg_color="transparent",height=10)
+        PatientNotification_SubLabel.place(relx=.5,rely=.7,anchor="center")
+
+        PatientInfolabel_bg = ctk.CTkFrame(NotificationReport_frame,width=140,height=25,corner_radius=10,fg_color="#FFFFFF",bg_color="transparent",border_width=1.5,border_color="#BBBBBB",)
+        PatientInfolabel_bg.place(x=62,y=235)
+        PatientInfoLabel = ctk.CTkLabel(PatientInfolabel_bg,font=label_font,text="Patient Information",text_color="#104E44",bg_color="transparent",height=11)
+        PatientInfoLabel.place(relx=.5,rely=.4,anchor="center")
+
+        RecentBackup_BG = ctk.CTkFrame(NotificationReport_frame,width=155,height=55,corner_radius=10,fg_color="#AB8C6F",bg_color="transparent")
+        RecentBackup_BG.place(x=55,y=280)
+
+         #Output for Backup
+        BackupNotificationIcon_image = ctk.CTkImage(Image.open("assets/BackupNotificationIcon.png"), size=(15,15))
+        RecentNotificationCount = ctk.CTkLabel(RecentBackup_BG,font=NumberOuput_font,text="68",text_color="#fFFFFF",bg_color="#AB8C6F",image=BackupNotificationIcon_image,compound='right')
+        RecentNotificationCount.place(relx=.5,rely=.45,anchor="center")
+        BackupNotification_SubLabel = ctk.CTkLabel(RecentBackup_BG,font=SubLabel_font,text="Notifications",text_color="#FfFFFF",fg_color="transparent",height=10)
+        BackupNotification_SubLabel.place(relx=.5,rely=.7,anchor="center")
+
+
+        RecentBackuplabel_bg = ctk.CTkFrame(NotificationReport_frame,width=140,height=25,corner_radius=10,fg_color="#FFFFFF",bg_color="transparent",border_width=1.5,border_color="#BBBBBB",)
+        RecentBackuplabel_bg.place(x=62,y=340)
+        RecentBackuplabel = ctk.CTkLabel(RecentBackuplabel_bg,font=label_font,text="Back Up",text_color="#104E44",bg_color="transparent",height=11)
+        RecentBackuplabel.place(relx=.5,rely=.4,anchor="center")
+
+        
+
 
 class MaintenancePage(ctk.CTkFrame):
     def __init__(self, parent):
@@ -3134,8 +3427,7 @@ class MaintenancePage(ctk.CTkFrame):
                                             corner_radius=20,
                                             text="Export XLSXX File",
                                             text_color="white",
-                                            cursor="hand2",
-                                            
+                                            cursor="hand2",      
                                             )
         PrintXLSXX_Button.place(x=100,y=150)
 
