@@ -226,28 +226,34 @@ class HomePageContent(ctk.CTkFrame):
         super().__init__(parent, fg_color="#E8FBFC")
 
         def get_name():
+            # Commented out backend database call
+            # username = login_shared_states.get('logged_username', None)
 
-            username = login_shared_states.get('logged_username', None)
+            # try:
+            #     connect = db()
+            #     cursor = connect.cursor()
 
-            try:
-                connect = db()
-                cursor = connect.cursor()
+            #     cursor.execute("""
+            #         SELECT full_name FROM users WHERE username = %s
+            #     """, (username,))
 
-                cursor.execute("""
-                    SELECT full_name FROM users WHERE username = %s
-                """, (username,))
+            #     full_name = cursor.fetchone()[0]
 
-                full_name = cursor.fetchone()[0]
+            #     first_name = full_name.split()[0]
 
-                first_name = full_name.split()[0]
+            #     return first_name, full_name
 
-                return first_name, full_name
+            # except Exception as e:
+            #     print('Error retrieving user full name ', e)
+            # finally:
+            #     cursor.close()
+            #     connect.close()
 
-            except Exception as e:
-                print('Error retrieving user full name ', e)
-            finally:
-                cursor.close()
-                connect.close()
+            # Static values for testing
+            full_name = "User"
+            first_name = "User"
+
+            return first_name, full_name
 
         first_name, full_name = get_name()
 
@@ -341,6 +347,7 @@ class HomePageContent(ctk.CTkFrame):
             calendar_icon.place(x=25, rely=0.5, anchor="w")
 
         # Get today's date
+        import datetime
         today_date = datetime.datetime.now().strftime("%B %d, %Y") 
 
         # date label beside the icon
@@ -487,6 +494,7 @@ class HomePageContent(ctk.CTkFrame):
         )
         recent_label.place(relx=0.27, rely=0.5, anchor="center")
 
+        # First Patient Box - Name
         first_box = ctk.CTkFrame(
             fourth_frame,
             width=100,
@@ -498,6 +506,16 @@ class HomePageContent(ctk.CTkFrame):
         )
         first_box.place(x=30, y=60)
 
+        name_value = ctk.CTkLabel(
+            first_box,
+            text="Tristan\nLopez",
+            font=("Merriweather", 11),
+            text_color="black",
+            justify="center"
+        )
+        name_value.place(relx=0.5, rely=0.55, anchor="center")
+
+        # Second Patient Box - Age
         second_box = ctk.CTkFrame(
             fourth_frame,
             width=100,
@@ -509,6 +527,15 @@ class HomePageContent(ctk.CTkFrame):
         )
         second_box.place(x=155, y=60)
 
+        age_value = ctk.CTkLabel(
+            second_box,
+            text="21",
+            font=("Merriweather", 16, "bold"),
+            text_color="black"
+        )
+        age_value.place(relx=0.5, rely=0.55, anchor="center")
+
+        # Third Patient Box - Gender
         third_box = ctk.CTkFrame(
             fourth_frame,
             width=100,
@@ -519,6 +546,14 @@ class HomePageContent(ctk.CTkFrame):
             corner_radius=10
         )
         third_box.place(x=280, y=60)
+
+        gender_value = ctk.CTkLabel(
+            third_box,
+            text="Male",
+            font=("Merriweather", 14, "bold"),
+            text_color="black"
+        )
+        gender_value.place(relx=0.5, rely=0.55, anchor="center")
 
         fifth_frame = ctk.CTkFrame(
             self,
@@ -2011,6 +2046,7 @@ class SupplyPage(ctk.CTkFrame):
             calendar_icon.place(x=25, rely=0.5, anchor="w")
 
         # Get today's date
+        import datetime
         today_date = datetime.datetime.now().strftime("%B %d, %Y") 
 
         # date label beside the icon
@@ -2028,16 +2064,17 @@ class SupplyPage(ctk.CTkFrame):
         tree_container = ctk.CTkFrame(self.table_frame, fg_color="black")
         tree_container.pack(fill="both", expand=True, padx=1, pady=1)
 
-        columns = ("item_id", "item_name", "category", "current_stock", "restock_date", "date_registered")
+        # Updated columns - removed restock_date
+        columns = ("item_id", "item_name", "category", "current_stock", "date_registered")
         self.tree = ttk.Treeview(tree_container, columns=columns, show="headings", height=12)
         self.tree.pack(side="left", fill="both", expand=True)
 
+        # Updated headers - removed restock date
         headers = [
             ("ITEM ID", 120),
             ("ITEM NAME", 180),
             ("CATEGORY", 140),
             ("REMAINING STOCK", 150),
-            ("DATE RESTOCKED", 150),
             ("DATE REGISTERED", 150),
         ]
         
@@ -2158,17 +2195,11 @@ class SupplyPage(ctk.CTkFrame):
         self.Category_Output = ctk.CTkLabel(supply_info_frame, text="", font=output_font)
         self.Category_Output.place(x=300,y=130)
 
-        # Last Restock Quantity Label and Output
+        # Remaining Stock Label and Output
         self.currentstock_Label = ctk.CTkLabel(supply_info_frame, text="Remaining Stock", font=label_font)
         self.currentstock_Label.place(x=520,y=100)
         self.currentstock_Output = ctk.CTkLabel(supply_info_frame, text="", font=output_font)
         self.currentstock_Output.place(x=520,y=130)
-
-        # Last Restocked Date Label and Output
-        self.LastRestock_Date_Label = ctk.CTkLabel(supply_info_frame, text="Last Restock Date", font=label_font)
-        self.LastRestock_Date_Label.place(x=740,y=100)
-        self.LastRestock_Date_Output = ctk.CTkLabel(supply_info_frame, text="", font=output_font)
-        self.LastRestock_Date_Output.place(x=740,y=130)
 
         # Date Registered Label and Output
         self.Registered_Date_Label = ctk.CTkLabel(supply_info_frame, text="Date Registered", font=label_font)
@@ -2229,7 +2260,7 @@ class SupplyPage(ctk.CTkFrame):
         self.Seperator_Output = ctk.CTkLabel(storage_meter_frame, text="/", font=label_font)
         self.Seperator_Output.place(x=830,y=180)
 
-        self.Capacity_Output = ctk.CTkLabel(storage_meter_frame, text="200", font=label_font)
+        self.Capacity_Output = ctk.CTkLabel(storage_meter_frame, text="", font=label_font)
         self.Capacity_Output.place(x=850,y=180)
 
         # Edit Stock Frame
@@ -2280,47 +2311,13 @@ class SupplyPage(ctk.CTkFrame):
             text="Restock Log",
             width=120,
             height=35,
-            fg_color="#ADD8E6",  # Optional color
+            fg_color="#ADD8E6",  
             text_color="black",
             corner_radius=10,
             hover_color="#87CEEB",
             command=self.open_restock_log_window  
         )
         self.Restock_Log_Button.place(x=165, y=150)
-
-        # Daily Usage Frame
-        self.Daily_Usage_Frame = ctk.CTkFrame(self.Main_Supply_Frame,
-                width=450,
-                height=350,
-                fg_color="white",
-                corner_radius=20)
-        self.Daily_Usage_Frame.place(x=600,y=700)
-
-        self.Top_bar = ctk.CTkFrame(self.Daily_Usage_Frame,
-                width=450,
-                height=20,
-                fg_color="#68EDC6")
-        self.Top_bar.place(y=0)
-
-        Daily_Usage_Title = ctk.CTkLabel(self.Daily_Usage_Frame, text="Daily Usage", font=title_font)
-        Daily_Usage_Title.place(x=150, y=40)
-
-        # Weekly Usage Frame
-        self.Weekly_Usage_Frame = ctk.CTkFrame(self.Main_Supply_Frame,
-                width=450,
-                height=350,
-                fg_color="white",
-                corner_radius=20)
-        self.Weekly_Usage_Frame.place(x=1100,y=700)
-
-        Weekly_Usage_Title = ctk.CTkLabel(self.Weekly_Usage_Frame, text="Weekly Usage", font=title_font)
-        Weekly_Usage_Title.place(x=150, y=40)
-
-        self.Top_bar2 = ctk.CTkFrame(self.Weekly_Usage_Frame,
-                width=450,
-                height=20,
-                fg_color="#68EDC6")
-        self.Top_bar2.place(y=0)
 
         self.button_frame.place(x=20, y=50, anchor="nw")  
         self.navbar.pack(fill="x", side="top")
@@ -2357,7 +2354,7 @@ class SupplyPage(ctk.CTkFrame):
             connect = db()
             cursor = connect.cursor()
             cursor.execute("""
-                SELECT item_id, item_name, category, current_stock, restock_date, 
+                SELECT item_id, item_name, category, current_stock, 
                     date_registered, restock_quantity, average_daily_usage, average_weekly_usage, 
                     average_monthly_usage, delivery_time_days, stock_level_status, max_supply
                 FROM supply
@@ -2368,14 +2365,16 @@ class SupplyPage(ctk.CTkFrame):
             return []
 
     def populate_table(self, data):
-        """Populate the table with supply data"""
+        """Populate the table with supply data (excluding restock_date)"""
         # Clear existing data
         for row in self.tree.get_children():
             self.tree.delete(row)
         
-        # Insert new data
+        # Insert new data - only include relevant columns for display
         for row in data:
-            self.tree.insert("", "end", values=row)
+            # Only show: item_id, item_name, category, current_stock, date_registered
+            display_row = (row[0], row[1], row[2], row[3], row[4])
+            self.tree.insert("", "end", values=display_row)
 
     def on_row_select(self, event):
         """Handle row selection"""
@@ -2383,21 +2382,38 @@ class SupplyPage(ctk.CTkFrame):
         if selection:
             item = selection[0]
             supply_data = self.tree.item(item, 'values')
-            self.selected_supply_data = {
-                'item_id': supply_data[0],
-                'item_name': supply_data[1],
-                'category': supply_data[2],
-                'current_stock': supply_data[3],  
-                'restock_date': supply_data[4],
-                'date_registered': supply_data[5],
-                'restock_quantity': supply_data[6],  
-                'average_daily_usage': supply_data[7] if len(supply_data) > 7 and supply_data[7] else 0,
-                'average_weekly_usage': supply_data[8] if len(supply_data) > 8 and supply_data[8] else 0,
-                'average_monthly_usage': supply_data[9] if len(supply_data) > 9 and supply_data[9] else 0,
-                'delivery_time_days': supply_data[10] if len(supply_data) > 10 and supply_data[10] else 0,
-                'stock_level_status': supply_data[11] if len(supply_data) > 11 else '',
-                'max_supply': supply_data[12] if len(supply_data) > 12 and supply_data[12] else 0
-            }
+            
+            # Get full data from database using item_id
+            try:
+                connect = db()
+                cursor = connect.cursor()
+                cursor.execute("""
+                    SELECT item_id, item_name, category, current_stock, 
+                        date_registered, restock_quantity, average_daily_usage, average_weekly_usage, 
+                        average_monthly_usage, delivery_time_days, stock_level_status, max_supply
+                    FROM supply WHERE item_id = %s
+                """, (supply_data[0],))
+                
+                full_data = cursor.fetchone()
+                if full_data:
+                    self.selected_supply_data = {
+                        'item_id': full_data[0],
+                        'item_name': full_data[1],
+                        'category': full_data[2],
+                        'current_stock': full_data[3],
+                        'date_registered': full_data[4],
+                        'restock_quantity': full_data[5],
+                        'average_daily_usage': full_data[6] if full_data[6] else 0,
+                        'average_weekly_usage': full_data[7] if full_data[7] else 0,
+                        'average_monthly_usage': full_data[8] if full_data[8] else 0,
+                        'delivery_time_days': full_data[9] if full_data[9] else 0,
+                        'stock_level_status': full_data[10],
+                        'max_supply': full_data[11] if full_data[11] else 0
+                    }
+                cursor.close()
+                connect.close()
+            except Exception as e:
+                print("Error fetching full supply data:", e)
 
     def open_quantity_used_window(self):
         if hasattr(self, 'selected_supply_id') and self.selected_supply_id:
@@ -2410,7 +2426,6 @@ class SupplyPage(ctk.CTkFrame):
         item_id = self.selected_supply_id
         
         try:
-
             connect = db()
             cursor = connect.cursor()
             
@@ -2429,7 +2444,6 @@ class SupplyPage(ctk.CTkFrame):
             print('Error retrieving the stock used data ', e)
 
         finally: 
-
             cursor.close()
             connect.close()
 
@@ -2444,7 +2458,6 @@ class SupplyPage(ctk.CTkFrame):
         item_id = self.selected_supply_id
         
         try:
-
             connect = db()
             cursor = connect.cursor()
             
@@ -2457,10 +2470,9 @@ class SupplyPage(ctk.CTkFrame):
             print(data_result)
 
         except Exception as e:
-            print('Error retrieving the stock used data ', e)
+            print('Error retrieving the restock log data ', e)
 
         finally: 
-
             cursor.close()
             connect.close()
 
@@ -2473,7 +2485,25 @@ class SupplyPage(ctk.CTkFrame):
             print("Supply ID:", supply_id)
             
             self.selected_supply_id = supply_id
-            self.show_detailed_info(supply_data)
+            
+            # Get full data including max_supply for detailed view
+            try:
+                connect = db()
+                cursor = connect.cursor()
+                cursor.execute("""
+                    SELECT item_id, item_name, category, current_stock, 
+                        date_registered, restock_quantity, average_daily_usage, average_weekly_usage, 
+                        average_monthly_usage, delivery_time_days, stock_level_status, max_supply
+                    FROM supply WHERE item_id = %s
+                """, (supply_id,))
+                
+                full_supply_data = cursor.fetchone()
+                if full_supply_data:
+                    self.show_detailed_info(full_supply_data)
+                cursor.close()
+                connect.close()
+            except Exception as e:
+                print("Error fetching supply details:", e)
 
     def show_detailed_info(self, supply_data):
         self.table_frame.place_forget()
@@ -2487,24 +2517,20 @@ class SupplyPage(ctk.CTkFrame):
         self.Supply_Name_Output.configure(text=supply_data[1])
         self.Category_Output.configure(text=supply_data[2])
         
-        # Use current_stock as remaining stock
+        # Get data safely
         current_stock = supply_data[3] if len(supply_data) > 3 else 0
-        restock_date = supply_data[4] if supply_data[4] else "N/A"
-        date_registered = supply_data[5] if len(supply_data) > 5 else "N/A"
-        average_weekly_usage = supply_data[8] if len(supply_data) > 8 else "N/A"
-        delivery_time_days = supply_data[10] if len(supply_data) > 10 else "N/A"
+        date_registered = supply_data[4] if len(supply_data) > 4 and supply_data[4] else "N/A"
+        average_weekly_usage = supply_data[7] if len(supply_data) > 7 and supply_data[7] else "N/A"
+        delivery_time_days = supply_data[9] if len(supply_data) > 9 and supply_data[9] else "N/A"
+        max_supply = supply_data[11] if len(supply_data) > 11 and supply_data[11] else 0
         
-        # Use max_supply but default to 200 if max_supply <= 200
-        max_supply = supply_data[12] if len(supply_data) > 12 and supply_data[12] else 0
-        
-        # Display current_stock as remaining stock
+        # Display current stock as remaining stock
         self.currentstock_Output.configure(text=str(current_stock))
-        self.LastRestock_Date_Output.configure(text=restock_date)
         self.Registered_Date_Output.configure(text=date_registered)
         self.Average_Weekly_Usage_Output.configure(text=str(average_weekly_usage))
         self.Delivery_Time_Output.configure(text=str(delivery_time_days))
         
-        # For the meter and status calculations
+        # For the meter and status calculations using max_supply
         try:
             # Convert current_stock to int 
             if current_stock and current_stock != 'None' and str(current_stock).strip():
@@ -2516,7 +2542,7 @@ class SupplyPage(ctk.CTkFrame):
             if max_supply and max_supply != 'None' and str(max_supply).strip():
                 max_supply_val = int(max_supply)
             else:
-                max_supply_val = 0
+                max_supply_val = current_stock_val  # If no max_supply, use current stock
                 
         except (ValueError, TypeError) as e:
             print(f"DEBUG: Conversion error: {e}")
@@ -2525,45 +2551,54 @@ class SupplyPage(ctk.CTkFrame):
             current_stock_val = 0
             max_supply_val = 0
 
-        # Always use 200 as the base capacity for progress calculation
-        base_capacity = 200
+        # Ensure max_supply_val is not zero to avoid division by zero
+        if max_supply_val == 0:
+            max_supply_val = current_stock_val if current_stock_val > 0 else 1
 
-        # Always show 200 as the capacity (unless max_supply is specifically higher than 200)
-        if max_supply_val > base_capacity:
-            capacity_display = max_supply_val
-        else:
-            capacity_display = base_capacity
-
-        # Update the display
+        # Update the display - show current_stock/max_supply
         self.Remaining_Output.configure(text=str(current_stock_val))
-        self.Capacity_Output.configure(text=str(capacity_display))
+        self.Capacity_Output.configure(text=str(max_supply_val))
 
-        # Calculate progress based on the base capacity of 200
-        progress_value = current_stock_val / base_capacity if base_capacity > 0 else 0
+        # Calculate progress based on max_supply
+        progress_value = current_stock_val / max_supply_val if max_supply_val > 0 else 0
         # Ensure progress doesn't exceed 1.0 (100%)
         progress_value = min(progress_value, 1.0)
         self.StorageMeter.set(progress_value)
 
-        # Calculate stock percentage for status based on the base capacity of 200
-        stock_percentage = current_stock_val / base_capacity if base_capacity > 0 else 0
+        # Calculate stock percentage for status based on max_supply
+        stock_percentage = current_stock_val / max_supply_val if max_supply_val > 0 else 0
 
-        # Determine status and colors based on percentage
+        # Updated color scheme: Critical=Red, Low=Orange, Good=Green, Excellent=Light Blue
         if stock_percentage == 0:
-            self.Status_Output.configure(text="Out of Stock", text_color="#8B0000") 
-            self.Remaining_Output.configure(text_color="#8B0000")
-            self.StorageMeter.configure(progress_color="#8B0000")
-        elif stock_percentage <= 0.25:  # 0-50 items (25% of 200)
-            self.Status_Output.configure(text="Very Low Stocks", text_color="red")
-            self.Remaining_Output.configure(text_color="red")
-            self.StorageMeter.configure(progress_color="red")
-        elif stock_percentage <= 0.50:  # 51-100 items (50% of 200)
-            self.Status_Output.configure(text="Low Stocks", text_color="orange")
-            self.Remaining_Output.configure(text_color="orange")
-            self.StorageMeter.configure(progress_color="orange")
-        else:  # 101+ items (above 50% of 200)
-            self.Status_Output.configure(text="On Stocks", text_color="green")
-            self.Remaining_Output.configure(text_color="green")
-            self.StorageMeter.configure(progress_color="green")
+            status_text = "Out of Stock"
+            status_color = "#8B0000"  # Dark Red
+            progress_color = "#8B0000"
+            remaining_color = "#8B0000"
+        elif stock_percentage <= 0.25:  # 25% or less of max capacity - CRITICAL
+            status_text = "Critical Stock Level"
+            status_color = "#FF0000"  # Red
+            progress_color = "#FF0000"
+            remaining_color = "#FF0000"
+        elif stock_percentage <= 0.50:  # 26-50% of max capacity - LOW
+            status_text = "Low Stock Level"
+            status_color = "#FF8C00"  # Orange
+            progress_color = "#FF8C00"
+            remaining_color = "#FF8C00"
+        elif stock_percentage <= 0.80:  # 51-80% of max capacity - GOOD
+            status_text = "Good Stock Level"
+            status_color = "#28A745"  # Green
+            progress_color = "#28A745"
+            remaining_color = "#28A745"
+        else:  # Above 80% of max capacity - EXCELLENT
+            status_text = "Excellent Stock Level"
+            status_color = "#17A2B8"  # Light Blue/Cyan
+            progress_color = "#17A2B8"
+            remaining_color = "#17A2B8"
+
+        # Apply the colors
+        self.Status_Output.configure(text=status_text, text_color=status_color)
+        self.Remaining_Output.configure(text_color=remaining_color)
+        self.StorageMeter.configure(progress_color=progress_color)
 
         self.Main_Supply_Frame.place(x=0, y=0, relwidth=1, relheight=1)
 
@@ -2643,7 +2678,7 @@ class SupplyPage(ctk.CTkFrame):
             connect = db()
             cursor = connect.cursor()
             cursor.execute("""
-                SELECT item_id, item_name, category, current_stock, restock_date, 
+                SELECT item_id, item_name, category, current_stock, 
                     date_registered, restock_quantity, average_daily_usage, average_weekly_usage, 
                     average_monthly_usage, delivery_time_days, stock_level_status, max_supply
                 FROM supply
@@ -2657,15 +2692,14 @@ class SupplyPage(ctk.CTkFrame):
                     'item_name': updated_data[1],
                     'category': updated_data[2],
                     'current_stock': updated_data[3],
-                    'restock_date': updated_data[4],
-                    'date_registered': updated_data[5],
-                    'restock_quantity': updated_data[6],
-                    'average_daily_usage': updated_data[7] if updated_data[7] else 0,
-                    'average_weekly_usage': updated_data[8] if updated_data[8] else 0,
-                    'average_monthly_usage': updated_data[9] if updated_data[9] else 0,
-                    'delivery_time_days': updated_data[10] if updated_data[10] else 0,
-                    'stock_level_status': updated_data[11],
-                    'max_supply': updated_data[12]
+                    'date_registered': updated_data[4],
+                    'restock_quantity': updated_data[5],
+                    'average_daily_usage': updated_data[6] if updated_data[6] else 0,
+                    'average_weekly_usage': updated_data[7] if updated_data[7] else 0,
+                    'average_monthly_usage': updated_data[8] if updated_data[8] else 0,
+                    'delivery_time_days': updated_data[9] if updated_data[9] else 0,
+                    'stock_level_status': updated_data[10],
+                    'max_supply': updated_data[11]
                 }
                 
                 # Refresh the detailed view display

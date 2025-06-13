@@ -282,3 +282,163 @@ def supply_creation_id(column, row, table_name):
             cursor.close()
             connect.close()
 
+def update_patient_info(patient_id, data_dict):
+    """Update patient information"""
+    try:
+        connect = db()
+        cursor = connect.cursor()
+        
+        set_clause = ", ".join([f"{key} = %s" for key in data_dict.keys()])
+        values = list(data_dict.values()) + [patient_id]
+        
+        query = f"UPDATE patient_info SET {set_clause} WHERE patient_id = %s"
+        cursor.execute(query, values)
+        
+        connect.commit()
+        cursor.close()
+        connect.close()
+        return True
+        
+    except Exception as e:
+        print(f"Error updating patient info: {e}")
+        return False
+
+def update_patient_contact(patient_id, data_dict):
+    """Update patient contact information"""
+    try:
+        connect = db()
+        cursor = connect.cursor()
+        
+        set_clause = ", ".join([f"{key} = %s" for key in data_dict.keys()])
+        values = list(data_dict.values()) + [patient_id]
+        
+        query = f"UPDATE patient_contact SET {set_clause} WHERE patient_id = %s"
+        cursor.execute(query, values)
+        
+        connect.commit()
+        cursor.close()
+        connect.close()
+        return True
+        
+    except Exception as e:
+        print(f"Error updating patient contact: {e}")
+        return False
+
+def update_patient_relative(patient_id, data_dict):
+    """Update patient relative information"""
+    try:
+        connect = db()
+        cursor = connect.cursor()
+        
+        set_clause = ", ".join([f"{key} = %s" for key in data_dict.keys()])
+        values = list(data_dict.values()) + [patient_id]
+        
+        query = f"UPDATE patient_relative SET {set_clause} WHERE patient_id = %s"
+        cursor.execute(query, values)
+        
+        connect.commit()
+        cursor.close()
+        connect.close()
+        return True
+        
+    except Exception as e:
+        print(f"Error updating patient relative: {e}")
+        return False
+
+def update_patient_benefits(patient_id, data_dict):
+    """Update patient benefits information"""
+    try:
+        connect = db()
+        cursor = connect.cursor()
+        
+        set_clause = ", ".join([f"{key} = %s" for key in data_dict.keys()])
+        values = list(data_dict.values()) + [patient_id]
+        
+        query = f"UPDATE patient_benefits SET {set_clause} WHERE patient_id = %s"
+        cursor.execute(query, values)
+        
+        connect.commit()
+        cursor.close()
+        connect.close()
+        return True
+        
+    except Exception as e:
+        print(f"Error updating patient benefits: {e}")
+        return False
+
+def update_patient_history(patient_id, data_dict):
+    """Update patient history information"""
+    try:
+        connect = db()
+        cursor = connect.cursor()
+        
+        set_clause = ", ".join([f"{key} = %s" for key in data_dict.keys()])
+        values = list(data_dict.values()) + [patient_id]
+        
+        query = f"UPDATE patient_history SET {set_clause} WHERE patient_id = %s"
+        cursor.execute(query, values)
+        
+        connect.commit()
+        cursor.close()
+        connect.close()
+        return True
+        
+    except Exception as e:
+        print(f"Error updating patient history: {e}")
+        return False
+
+def update_patient_medications(patient_id, medication_list):
+    """Update patient medications - delete old ones and insert new ones"""
+    try:
+        connect = db()
+        cursor = connect.cursor()
+        
+        cursor.execute("DELETE FROM patient_medications WHERE patient_id = %s", (patient_id,))
+        
+        # Insert new medications 
+        for medication_name in medication_list:
+            if medication_name and medication_name.strip() and medication_name != "Type Here":
+                # Check if medication exists in medicines table
+                cursor.execute("SELECT medication_id FROM medicines WHERE medication_name = %s", (medication_name.strip(),))
+                medication_result = cursor.fetchone()
+                
+                if medication_result:
+                    medication_id = medication_result[0]
+                else:
+                    # Insert new medication
+                    cursor.execute("INSERT INTO medicines (medication_name) VALUES (%s)", (medication_name.strip(),))
+                    medication_id = cursor.lastrowid
+                
+                # Insert patient-medication relationship
+                cursor.execute("INSERT INTO patient_medications (patient_id, medication_id) VALUES (%s, %s)", 
+                             (patient_id, medication_id))
+        
+        connect.commit()
+        cursor.close()
+        connect.close()
+        return True
+        
+    except Exception as e:
+        print(f"Error updating patient medications: {e}")
+        return False
+
+def update_patient_list(patient_id, data_dict):
+    """Update patient list (main table)"""
+    try:
+        connect = db()
+        cursor = connect.cursor()
+        
+        set_clause = ", ".join([f"{key} = %s" for key in data_dict.keys()])
+        values = list(data_dict.values()) + [patient_id]
+        
+        query = f"UPDATE patient_list SET {set_clause} WHERE patient_id = %s"
+        cursor.execute(query, values)
+        
+        connect.commit()
+        cursor.close()
+        connect.close()
+        return True
+        
+    except Exception as e:
+        print(f"Error updating patient list: {e}")
+        return False

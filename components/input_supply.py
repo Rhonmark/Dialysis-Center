@@ -176,41 +176,6 @@ class SupplyWindow(SupplyBaseWindow):
             create_underline(720, 230, 180)
             add_placeholder(self.entry_current_stock, "Type here")
 
-        # Restock Date
-        ctk.CTkLabel(self, text="Restock Date", font=label_font, fg_color="white", text_color="black").place(x=1020, y=150)
-        self.entry_restock_date = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0,
-                                 bg_color="white")
-        self.entry_restock_date.place(x=1020, y=200)
-        
-        if not self.is_editing:
-            ctk.CTkLabel(self, text="*Not Required", font=not_required_font, text_color="red", bg_color="white").place(x=1160, y=145)
-        
-        create_underline(1020, 230, 140)
-
-        if not self.is_editing:
-            add_placeholder(self.entry_restock_date, "Select date")
-
-        dropdown_btn = ctk.CTkButton(self, text="▼", width=30, font=entry_font, height=30, corner_radius=8,
-                                     command=lambda: open_calendar(self.entry_restock_date), bg_color="white",
-                                     fg_color="#1A374D", hover_color="#68EDC6", text_color="black")
-        dropdown_btn.place(x=1170, y=200)
-
-        def open_calendar(entry_widget):
-            def on_date_select(event):
-                selected_date = cal.get_date()
-                entry_widget.delete(0, "end")
-                entry_widget.insert(0, selected_date)
-                entry_widget.configure(text_color="black")
-                top.destroy()
-
-            top = Toplevel(self)
-            top.grab_set()
-            top.overrideredirect(True)
-            top.geometry(f"+{self.winfo_rootx() + 1000}+{self.winfo_rooty() + 230}")
-            cal = Calendar(top, date_pattern='yyyy-mm-dd')
-            cal.pack(padx=10, pady=10)
-            cal.bind("<<CalendarSelected>>", on_date_select)
-
         # Second Row - Average Weekly Usage
         ctk.CTkLabel(self, text="Average Weekly Usage", font=label_font, fg_color="white", text_color="black").place(x=120, y=300)
         self.entry_averageuse = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0,
@@ -261,10 +226,9 @@ class SupplyWindow(SupplyBaseWindow):
                 """
                 
                 cursor.execute(query, [row, unique_id])
-                # return result
 
             except Exception as e:
-                print('error retrieving setting supply data (set_supply_data)', e)
+                print('error setting supply data (set_supply_data)', e)
 
         def set_stock_levels(avg_weekly_usage, delivery_time, current_stock_val):
 
@@ -298,7 +262,6 @@ class SupplyWindow(SupplyBaseWindow):
         def on_save_click():
             item_name_val = self.entry_itemname.get().strip()
             category = self.entry_category.get().strip()
-            # restock_date = self.entry_restock_date.get().strip()
             avg_weekly_usage_str = self.entry_averageuse.get().strip()      
             delivery_time_str = self.entry_delivery_date.get().strip()
             item_name = ' '.join(item.capitalize() for item in item_name_val.split())
@@ -396,26 +359,24 @@ class SupplyWindow(SupplyBaseWindow):
                     cursor.execute("""
                         UPDATE supply 
                         SET item_name = %s, category = %s, restock_quantity = %s, 
-                        restock_date = %s, average_weekly_usage = %s, delivery_time_days = %s
+                        average_weekly_usage = %s, delivery_time_days = %s
                         WHERE item_id = %s 
-                    """, (item_name, category, restock_quantity, date.today(), avg_weekly_usage, delivery_time, self.edit_data['item_id']))
-
-                    cursor.execute("""
-                        INSERT INTO restock_logs(item_id, restock_quantity, restock_date)
-                        VALUES(%s, %s, %s)
-                    """, (self.edit_data['item_id'], restock_quantity, date.today()))
+                    """, (item_name, category, restock_quantity, avg_weekly_usage, delivery_time, self.edit_data['item_id']))
 
                     # Only add restock quantity to current stock if restock_quantity > 0
                     if restock_quantity > 0:
+                        cursor.execute("""
+                            INSERT INTO restock_logs(item_id, restock_quantity, restock_date)
+                            VALUES(%s, %s, %s)
+                        """, (self.edit_data['item_id'], restock_quantity, date.today()))
 
                         new_current_stock = current_stock_before + restock_quantity
                         print(f"Updated supply item with ID: {self.edit_data['item_id']} and added {restock_quantity} to stock")
-                        print(f"Stock changed from {current_stock_before} to {new_current_stock}")
+                        print(f"Stock changed from {current_stock_before} to {new_current_stock}")  
                     else:
                         new_current_stock = current_stock_before
                         print(f"Updated supply item with ID: {self.edit_data['item_id']} without changing stock")
 
-                    #cursor, column, row, unique_id
                     set_supply_data(cursor, 'current_stock', new_current_stock, self.edit_data['item_id'])
 
                     # Update max_supply if the new stock is higher
@@ -447,6 +408,10 @@ class SupplyWindow(SupplyBaseWindow):
 
                     if item_id: 
                         item_id_store.append(item_id)
+                        
+                        # Set max_supply to current_stock for new items
+                        set_supply_data(cursor, 'max_supply', current_stock, item_id)
+
                         print('Item ID: ', item_id)
                         CTkMessageBox.show_success("Success", "Supply information saved successfully!", parent=self)
                     else:
@@ -502,14 +467,7 @@ class SupplyWindow(SupplyBaseWindow):
             else:
                 self.entry_restock_quantity.insert(0, str(restock_qty))
             self.entry_restock_quantity.configure(text_color="black")
-        
-        # Clear and set restock date
-        self.entry_restock_date.delete(0, "end")
-        restock_date = self.edit_data.get('restock_date')
-        if restock_date:
-            self.entry_restock_date.insert(0, str(restock_date))
-            self.entry_restock_date.configure(text_color="black")
-        
+
         # Clear and set average weekly usage
         self.entry_averageuse.delete(0, "end")
         avg_usage = self.edit_data.get('average_weekly_usage')
@@ -540,14 +498,12 @@ def show_detailed_info(self, supply_data):
     self.Category_Output.configure(text=supply_data[2])
     
     current_stock = supply_data[6]
-    restock_date = supply_data[4] if len(supply_data) > 4 else "N/A"
     date_registered = supply_data[5] if len(supply_data) > 5 else "N/A"
     average_weekly_usage = supply_data[8] if len(supply_data) > 6 else "N/A"
     delivery_time_days = supply_data [10] if len(supply_data) > 7 else "N/A"
 
     # Display current stock as remaining stock
     self.currentstock_Output.configure(text=str(current_stock))
-    self.LastRestock_Date_Output.configure(text=restock_date)
     self.Registered_Date_Output.configure(text=date_registered)
     self.Average_Weekly_Usage_Output.configure(text=str(average_weekly_usage))
     self.Delivery_Time_Output.configure(text=str(delivery_time_days))
@@ -604,14 +560,14 @@ class EditStockWindow(SupplyBaseWindow):
         label_font = ("Merriweather Sans bold", 15)
         required_font = ("Merriweather Sans bold", 10)
 
-        # Quantity Used Input
+        # Patient ID Input
         ctk.CTkLabel(self, text="Patient ID", font=label_font, fg_color="white", text_color="black").place(x=120, y=150)
         self.entry_patient_id = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white")
         self.entry_patient_id.place(x=120, y=200)
         create_underline(120, 230, 180)
         add_placeholder(self.entry_patient_id, "Type here")
 
-        # Patient ID Input
+        # Quantity Used Input
         ctk.CTkLabel(self, text="Quantity Used", font=label_font, fg_color="white", text_color="black").place(x=420, y=150)
         self.entry_quantity_used = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white")
         self.entry_quantity_used.place(x=420, y=200)
@@ -638,10 +594,9 @@ class EditStockWindow(SupplyBaseWindow):
                 """
                 
                 cursor.execute(query, [row, unique_id])
-                # return result
 
             except Exception as e:
-                print('error retrieving setting supply data (set_supply_data)', e)
+                print('error setting supply data (set_supply_data)', e)
 
         def set_stock_levels(avg_weekly_usage, delivery_time, current_stock_val):
 
@@ -724,9 +679,11 @@ class EditStockWindow(SupplyBaseWindow):
                 if usage_id:
                     print(f'usage id creation successful: {usage_id}')
 
+                    # IMPORTANT: Only update current_stock, DO NOT change max_supply
                     total_stock = current_stock - quantity_used
                     set_supply_data(cursor, 'current_stock', total_stock, self.item_id)
                     print(f'Item ID {self.item_id}: Previous stock was {current_stock} now updated to {total_stock}')
+                    print(f'IMPORTANT: max_supply remains unchanged when using quantity')
 
                     # Update stock level status
                     current_stock_val = retrieve_supply_data(cursor, 'current_stock', self.item_id)
