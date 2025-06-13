@@ -5,6 +5,7 @@ from PIL import Image
 from backend.crud import supply_creation_id, get_existing_credentials
 from backend.connector import db_connection as db
 import math
+from datetime import date
 
 class CTkMessageBox(ctk.CTkToplevel):
     def __init__(self, parent, title, message, box_type="info"):
@@ -295,11 +296,12 @@ class SupplyWindow(SupplyBaseWindow):
             return status
 
         def on_save_click():
-            item_name = self.entry_itemname.get().strip()
+            item_name_val = self.entry_itemname.get().strip()
             category = self.entry_category.get().strip()
-            restock_date = self.entry_restock_date.get().strip()
+            # restock_date = self.entry_restock_date.get().strip()
             avg_weekly_usage_str = self.entry_averageuse.get().strip()      
             delivery_time_str = self.entry_delivery_date.get().strip()
+            item_name = ' '.join(item.capitalize() for item in item_name_val.split())
 
             item_id_store = []
 
@@ -367,15 +369,14 @@ class SupplyWindow(SupplyBaseWindow):
                 return
 
             # Handle date field - set to None if empty or placeholder
-            if not restock_date or restock_date == "Select date":
-                restock_date = None
+            # if not restock_date or restock_date == "Select date":
+            #     restock_date = None
 
             supply_information = {
-                'item_name': item_name.capitalize(),
+                'item_name': item_name,
                 'category': category,
                 'current_stock': current_stock,
                 'restock_quantity': restock_quantity,
-                'restock_date': restock_date,
                 'average_weekly_usage': avg_weekly_usage,
                 'delivery_time_days': delivery_time
             }
@@ -397,10 +398,16 @@ class SupplyWindow(SupplyBaseWindow):
                         SET item_name = %s, category = %s, restock_quantity = %s, 
                         restock_date = %s, average_weekly_usage = %s, delivery_time_days = %s
                         WHERE item_id = %s 
-                    """, (item_name, category, restock_quantity, restock_date, avg_weekly_usage, delivery_time, self.edit_data['item_id']))
-                    
+                    """, (item_name, category, restock_quantity, date.today(), avg_weekly_usage, delivery_time, self.edit_data['item_id']))
+
+                    cursor.execute("""
+                        INSERT INTO restock_logs(item_id, restock_quantity, restock_date)
+                        VALUES(%s, %s, %s)
+                    """, (self.edit_data['item_id'], restock_quantity, date.today()))
+
                     # Only add restock quantity to current stock if restock_quantity > 0
                     if restock_quantity > 0:
+
                         new_current_stock = current_stock_before + restock_quantity
                         print(f"Updated supply item with ID: {self.edit_data['item_id']} and added {restock_quantity} to stock")
                         print(f"Stock changed from {current_stock_before} to {new_current_stock}")
@@ -429,6 +436,7 @@ class SupplyWindow(SupplyBaseWindow):
                     CTkMessageBox.show_success("Success", "Supply information updated successfully!", parent=self)
 
                 else:
+
                     check_uniqueness = get_existing_credentials(item_name, 'item_name', table_name='supply')
 
                     if check_uniqueness:
@@ -446,9 +454,11 @@ class SupplyWindow(SupplyBaseWindow):
                         return
                     
                     current_stock_val = retrieve_supply_data(cursor, 'current_stock', item_id)
+                    avg_weekly_usage_result = retrieve_supply_data(cursor, 'average_weekly_usage', item_id)
+                    delivery_time_result = retrieve_supply_data(cursor, 'delivery_time_days', item_id)
 
                     if avg_weekly_usage_result > 0 and delivery_time_result > 0:
-                        status = set_stock_levels(avg_weekly_usage, delivery_time, current_stock_val)
+                        status = set_stock_levels(avg_weekly_usage, delivery_time_result, current_stock_val)
                         set_supply_data(cursor, 'stock_level_status', status, item_id)
 
                 connect.commit()

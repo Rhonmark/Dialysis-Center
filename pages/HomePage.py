@@ -225,6 +225,32 @@ class HomePageContent(ctk.CTkFrame):
     def __init__(self, parent):
         super().__init__(parent, fg_color="#E8FBFC")
 
+        def get_name():
+
+            username = login_shared_states.get('logged_username', None)
+
+            try:
+                connect = db()
+                cursor = connect.cursor()
+
+                cursor.execute("""
+                    SELECT full_name FROM users WHERE username = %s
+                """, (username,))
+
+                full_name = cursor.fetchone()[0]
+
+                first_name = full_name.split()[0]
+
+                return first_name, full_name
+
+            except Exception as e:
+                print('Error retrieving user full name ', e)
+            finally:
+                cursor.close()
+                connect.close()
+
+        first_name, full_name = get_name()
+
         # Initialize reminder carousel variables
         self.current_reminder_index = 0
         self.reminder_images = []
@@ -245,7 +271,7 @@ class HomePageContent(ctk.CTkFrame):
         self.welcome_label = ctk.CTkLabel(self.navbar, text="Welcome Back,", text_color="black", font=("Arial", 30, "bold"))
         self.welcome_label.place(relx=0.17, rely=0.5, anchor="e")
 
-        self.name_label = ctk.CTkLabel(self.navbar, text="Tristan!", text_color="black", font=("Arial", 30, "bold"))
+        self.name_label = ctk.CTkLabel(self.navbar, text=f"{first_name}!", text_color="black", font=("Arial", 30, "bold"))
         self.name_label.place(relx=0.25, rely=0.5, anchor="e")
 
          # Search container
@@ -326,7 +352,7 @@ class HomePageContent(ctk.CTkFrame):
         )
         date_label.place(x=60, rely=0.5, anchor="w")
 
-        self.namev2_label = ctk.CTkLabel(self.navbar, text="Tristan Lopez!", text_color="black", font=("Arial", 30, "bold"))
+        self.namev2_label = ctk.CTkLabel(self.navbar, text=full_name, text_color="black", font=("Arial", 30, "bold"))
         self.namev2_label.place(relx=0.85, rely=0.5, anchor="e")
 
         notif_img = ctk.CTkImage(light_image=Image.open("assets/notif.png"), size=(42, 42))
@@ -2414,6 +2440,29 @@ class SupplyPage(ctk.CTkFrame):
             restock_log_window.focus_force()
         else:
             print("Please select a supply item first.")
+
+        item_id = self.selected_supply_id
+        
+        try:
+
+            connect = db()
+            cursor = connect.cursor()
+            
+            cursor.execute(f"""
+                SELECT restock_quantity, restock_date FROM restock_logs
+                WHERE item_id = %s
+            """, (item_id,))
+
+            data_result = cursor.fetchall()
+            print(data_result)
+
+        except Exception as e:
+            print('Error retrieving the stock used data ', e)
+
+        finally: 
+
+            cursor.close()
+            connect.close()
 
     def on_row_click(self, event):
         """Handle row click to show detailed info"""

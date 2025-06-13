@@ -164,7 +164,6 @@ class RegisterPage(tk.Frame):
         # Secret Question Dropdown
         self.secret_questions = [
             "What is your mother's maiden name?",
-            "What is your Father's maiden name?",
             "What was the name of your first pet?",
             "What is the name of your first school?",
             "What is your favorite book?"
@@ -247,7 +246,10 @@ class RegisterPage(tk.Frame):
         username = self.username_field.get().strip()
         password = self.password_field.get().strip()
         secret_answer = self.secret_question_field.get().strip()
+        full_name = self.fullname_field.get().strip()
         
+        fn_val = ' '.join(name.capitalize() for name in full_name.split())
+
         try: 
             role = self.shared_state.get("selected_role", 'None')
             if not role:
@@ -272,7 +274,7 @@ class RegisterPage(tk.Frame):
             hashed_password = hashlib.sha256(password.encode()).hexdigest() 
             hashed_answer = hashlib.sha256(secret_answer.encode()).hexdigest()
 
-            create_user = register_to_db(role, username, hashed_password, secret_question, hashed_answer)
+            create_user = register_to_db(fn_val, role, username, hashed_password, secret_question, hashed_answer)
             if create_user:
                 self.display_error(create_user)
                 self.shared_state["navigate"]("LoginPage")  

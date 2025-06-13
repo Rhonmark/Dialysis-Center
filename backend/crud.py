@@ -14,15 +14,15 @@ def db_connection():
 
     return connect, cursor
 
-def register_to_db(role, username, password, secret_question, secret_answer):
+def register_to_db(full_name, role, username, password, secret_question, secret_answer):
   try:
     connect, cursor = db_connection()
     # connect.start_transaction()
     query = """
-        INSERT INTO users (role, username, password, secret_question, secret_answer)
-        VALUES (%s, %s, %s, %s, %s)
+        INSERT INTO users (full_name, role, username, password, secret_question, secret_answer)
+        VALUES (%s, %s, %s, %s, %s, %s)
     """
-    values = (role, username, password, secret_question, secret_answer)
+    values = (full_name, role, username, password, secret_question, secret_answer)
     cursor.execute(query, values)
     connect.commit()
     return "Registration Successful"
