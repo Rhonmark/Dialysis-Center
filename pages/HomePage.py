@@ -102,7 +102,7 @@ class DataRetrieval():
         return retrieve_form_data(item_id, 'item_id', '*', table_name='supply')
 
     # =========== FOR SUPPLY DATA RETRIEVAL =========== #
-
+    
 class HomePage(ctk.CTkFrame):
     def __init__(self, parent, shared_state):
         super().__init__(parent, fg_color="#E8FBFC")
@@ -146,6 +146,11 @@ class HomePage(ctk.CTkFrame):
 
     def switch_to_page(self, page_name, loading_label):
         loading_label.pack_forget()
+        
+        # Refresh recent patient data when navigating to Home page
+        if page_name == "Home":
+            self.pages["Home"].refresh_recent_patient()
+            
         self.current_page = self.pages[page_name]
         self.current_page.pack(fill="both", expand=True)
 
@@ -263,6 +268,11 @@ class HomePageContent(ctk.CTkFrame):
         self.reminder_animation_job = None
         self.fade_animation_job = None
 
+        # Setup UI
+        self.setup_ui(first_name, full_name)
+
+    def setup_ui(self, first_name, full_name):
+        """Setup all the UI elements"""
         self.navbar = ctk.CTkFrame(self, fg_color="white", height=130)
         self.navbar.pack(fill="x", side="top")
         self.navbar.pack_propagate(False)
@@ -468,17 +478,18 @@ class HomePageContent(ctk.CTkFrame):
         )
         left_bar.place(x=0, y=0)
 
-        fourth_frame = ctk.CTkFrame(
+        # Recent Patient Frame
+        self.fourth_frame = ctk.CTkFrame(
             self,
             width=410,
             height=200,
             fg_color="white",
             corner_radius=20
         )
-        fourth_frame.place(x=710, y=845)
+        self.fourth_frame.place(x=710, y=845)
 
         top_bar = ctk.CTkFrame(
-            fourth_frame,
+            self.fourth_frame,
             width=410,
             height=40,
             fg_color="#68EDC6",
@@ -494,88 +505,8 @@ class HomePageContent(ctk.CTkFrame):
         )
         recent_label.place(relx=0.27, rely=0.5, anchor="center")
 
-        try:
-            connect = db()
-            cursor = connect.cursor()
-
-            cursor.execute("""
-                SELECT patient_name, age, gender FROM patient_list
-                ORDER BY patient_id DESC
-                LIMIT 1 
-            """)
-
-            recent_patient = cursor.fetchone()
-            
-            recent_patient_name = recent_patient[0]
-            recent_patient_age = recent_patient[1]
-            recent_patient_gender = recent_patient[2]
-
-        except Exception as e:
-            print('Error retrieving recent patient ', e)
-        finally:
-            cursor.close()
-            connect.close()
-
-        # First Patient Box - Name
-        first_box = ctk.CTkFrame(
-            fourth_frame,
-            width=100,
-            height=120,
-            fg_color="white",
-            border_width=2,
-            border_color="gray",
-            corner_radius=10
-        )
-        first_box.place(x=30, y=60)
-
-        name_value = ctk.CTkLabel(
-            first_box,
-            text=recent_patient_name,
-            font=("Merriweather", 11),
-            text_color="black",
-            justify="center"
-        )
-        name_value.place(relx=0.5, rely=0.55, anchor="center")
-
-        # Second Patient Box - Age
-        second_box = ctk.CTkFrame(
-            fourth_frame,
-            width=100,
-            height=120,
-            fg_color="white",
-            border_width=2,
-            border_color="gray",
-            corner_radius=10
-        )
-        second_box.place(x=155, y=60)
-
-        age_value = ctk.CTkLabel(
-            second_box,
-            text=recent_patient_age,
-            font=("Merriweather", 16, "bold"),
-            text_color="black"
-        )
-        age_value.place(relx=0.5, rely=0.55, anchor="center")
-
-        # Third Patient Box - Gender
-        third_box = ctk.CTkFrame(
-            fourth_frame,
-            width=100,
-            height=120,
-            fg_color="white",
-            border_width=2,
-            border_color="gray",
-            corner_radius=10
-        )
-        third_box.place(x=280, y=60)
-
-        gender_value = ctk.CTkLabel(
-            third_box,
-            text=recent_patient_gender,
-            font=("Merriweather", 14, "bold"),
-            text_color="black"
-        )
-        gender_value.place(relx=0.5, rely=0.55, anchor="center")
+        # Setup patient info boxes
+        self.setup_patient_boxes()
 
         fifth_frame = ctk.CTkFrame(
             self,
@@ -666,7 +597,6 @@ class HomePageContent(ctk.CTkFrame):
                 ctk.CTkImage(light_image=reminder_img2, size=(200, 200))
             ]
         except Exception as e:
-            # Fallback if second image doesn't exist
             print(f"Warning: Could not load second reminder image: {e}")
             reminder_img = Image.open("assets/reminder.png")
             self.reminder_images = [
@@ -705,8 +635,115 @@ class HomePageContent(ctk.CTkFrame):
             indicator.place(x=i * 25, y=0)
             self.indicators.append(indicator)
 
-        # Start the carousel animation
+        # Start the carousel animation and refresh recent patient
         self.start_reminder_carousel()
+        self.refresh_recent_patient()
+
+    def setup_patient_boxes(self):
+        # First Patient Box - Name
+        self.first_box = ctk.CTkFrame(
+            self.fourth_frame,
+            width=100,
+            height=120,
+            fg_color="white",
+            border_width=2,
+            border_color="gray",
+            corner_radius=10
+        )
+        self.first_box.place(x=30, y=60)
+
+        self.name_value = ctk.CTkLabel(
+            self.first_box,
+            text="No Patient",
+            font=("Merriweather", 11),
+            text_color="black",
+            justify="center"
+        )
+        self.name_value.place(relx=0.5, rely=0.55, anchor="center")
+
+        # Second Patient Box - Age
+        self.second_box = ctk.CTkFrame(
+            self.fourth_frame,
+            width=100,
+            height=120,
+            fg_color="white",
+            border_width=2,
+            border_color="gray",
+            corner_radius=10
+        )
+        self.second_box.place(x=155, y=60)
+
+        self.age_value = ctk.CTkLabel(
+            self.second_box,
+            text="--",
+            font=("Merriweather", 16, "bold"),
+            text_color="black"
+        )
+        self.age_value.place(relx=0.5, rely=0.55, anchor="center")
+
+        # Third Patient Box - Gender
+        self.third_box = ctk.CTkFrame(
+            self.fourth_frame,
+            width=100,
+            height=120,
+            fg_color="white",
+            border_width=2,
+            border_color="gray",
+            corner_radius=10
+        )
+        self.third_box.place(x=280, y=60)
+
+        self.gender_value = ctk.CTkLabel(
+            self.third_box,
+            text="--",
+            font=("Merriweather", 14, "bold"),
+            text_color="black"
+        )
+        self.gender_value.place(relx=0.5, rely=0.55, anchor="center")
+
+    def refresh_recent_patient(self):
+        """Refresh the recent patient data from database"""
+        try:
+            connect = db()
+            cursor = connect.cursor()
+
+            cursor.execute("""
+                SELECT patient_name, age, gender FROM patient_list
+                ORDER BY patient_id DESC
+                LIMIT 1 
+            """)
+
+            recent_patient = cursor.fetchone()
+            
+            if recent_patient:
+                recent_patient_name = recent_patient[0]
+                recent_patient_age = recent_patient[1]
+                recent_patient_gender = recent_patient[2]
+                
+                # Update the labels with fresh data
+                self.name_value.configure(text=recent_patient_name)
+                self.age_value.configure(text=str(recent_patient_age))
+                self.gender_value.configure(text=recent_patient_gender)
+                
+                print(f"✅ Recent patient refreshed: {recent_patient_name}")
+            else:
+                # No patients in database
+                self.name_value.configure(text="No Patient")
+                self.age_value.configure(text="--")
+                self.gender_value.configure(text="--")
+                print("ℹ️ No patients found in database")
+
+        except Exception as e:
+            print('Error retrieving recent patient:', e)
+            # Set default values on error
+            self.name_value.configure(text="Error")
+            self.age_value.configure(text="--")
+            self.gender_value.configure(text="--")
+        finally:
+            if 'cursor' in locals():
+                cursor.close()
+            if 'connect' in locals():
+                connect.close()
 
     def start_reminder_carousel(self):
         """Start the automatic reminder carousel"""
@@ -1281,8 +1318,7 @@ class PatientPage(ctk.CTkFrame):
         self.contact_info_window.contact_relative_info(self.patient_id_value.cget("text"))
 
     def open_quantity_used_info(self):
-        self.quantity_used_window = QuantityUsedInfo(self.master)
-        self.quantity_used_window.place(x=60, y=10)
+        self.quantity_used_window = QuantityUsedLogsWindow(self.master)
 
     def fetch_patient_data(self):
         try:
@@ -1416,9 +1452,20 @@ class PatientPage(ctk.CTkFrame):
         self.button_frame.place(x=20, y=50, anchor="nw") 
         self.navbar.pack(fill="x", side="top")
         self.table_frame.place(x=20, y=150, relwidth=0.95, relheight=0.8) 
-        for row in self.tree.get_children():
-            self.tree.delete(row)
-        self.populate_table(self.fetch_patient_data())
+
+        """Refresh the patient table with latest data"""
+        try:
+            # Clear existing table data
+            for row in self.tree.get_children():
+                self.tree.delete(row)
+            
+            # Fetch fresh data and populate table
+            fresh_data = self.fetch_patient_data()
+            self.populate_table(fresh_data)
+            
+            print("✅ Table refreshed with latest data")
+        except Exception as e:
+            print(f"❌ Error refreshing table: {e}")
 
     def enable_buttons(self):
         self.add_button.configure(state="normal")
@@ -1432,38 +1479,56 @@ class PatientPage(ctk.CTkFrame):
         self.disable_buttons()
         self.open_input_window(PatientInfoWindow, data)
 
+    def refresh_after_update(self):
+        """Called after a patient is updated to refresh the table and view"""
+        print("🔄 Refreshing patient data after update...")
+        
+        # Store current patient_id if we were viewing details
+        current_patient_id = self.patient_id_value.cget("text") if hasattr(self, 'patient_id_value') else None
+        
+        # Refresh the table
+        self.refresh_table()
+        
+        # If we were viewing a patient's details, refresh that view too
+        if current_patient_id:
+            self.show_detailed_info(current_patient_id)
+        
+        print("✅ Patient data refreshed successfully!")
+
     def open_edit_window(self, data=None):
+        """Open edit window with current patient data"""
         self.disable_buttons()
-        self.open_input_window(PatientInfoWindow, data)
-
-class QuantityUsedInfo(ctk.CTkFrame):
-    def __init__(self, master=None, **kwargs):
-        super().__init__(master, width=980, height=400, fg_color="white", corner_radius=20, **kwargs)
-        self.pack_propagate(False)
-
-        self.left_bar = ctk.CTkFrame(self, width=20, fg_color="#1A374D", corner_radius=0)
-        self.left_bar.pack(side="left", fill="y")
-
-        self.title_label = ctk.CTkLabel(self, text="Quantity Used", font=("Merriweather", 20, "bold"))
-        self.title_label.place(x=40, y=20)
-
-        self.quantity_used_header = ctk.CTkLabel(self, text="Quantity Used", font=("Merriweather", 16))
-        self.quantity_used_header.place(x=60, y=70)
-
-        self.quantity_used_labels = []
-        y_position = 100
-        for _ in range(10):
-            label = ctk.CTkLabel(self, text="", font=("Merriweather", 13), text_color="black")
-            label.place(x=60, y=y_position)
-            self.quantity_used_labels.append(label)
-            y_position += 30
-
-        self.exit_button = create_exit_button(self, command=self.exit_panel)
-        self.exit_button.place(x=900, y=15)
-
-    def exit_panel(self):
-        print("Quantity Used Info closed")
-        self.place_forget()
+        
+        # Get the current patient ID
+        patient_id = self.patient_id_value.cget("text")
+        
+        if patient_id:
+            # Fetch all patient data for editing
+            edit_data = {
+                'patient_id': patient_id,
+                'edit_mode': True
+            }
+            
+            # Open PatientInfoWindow in edit mode
+            edit_window = PatientInfoWindow(self.master, edit_data)
+            edit_window.grab_set()
+            edit_window.focus_force()
+            
+            def on_close():
+                edit_window.destroy()
+                self.enable_buttons()
+                # Refresh data after edit window closes
+                self.refresh_after_update()
+            
+            edit_window.protocol("WM_DELETE_WINDOW", on_close)
+            self.wait_window(edit_window)
+            self.enable_buttons()
+            
+            # Refresh data after editing
+            self.refresh_after_update()
+        else:
+            print("No patient selected for editing")
+            self.enable_buttons()
 
 class PatientHistory(ctk.CTkFrame):
     def __init__(self, master=None, **kwargs):
