@@ -148,7 +148,7 @@ class HomePage(ctk.CTkFrame):
 
     def switch_to_page(self, page_name, loading_label):
         loading_label.pack_forget()
-        
+
         # Refresh recent patient data when navigating to Home page
         if page_name == "Home":
             self.pages["Home"].refresh_recent_patient()
@@ -3496,9 +3496,6 @@ class ReportPage(ctk.CTkFrame):
         RecentBackuplabel = ctk.CTkLabel(RecentBackuplabel_bg,font=label_font,text="Back Up",text_color="#104E44",bg_color="transparent",height=11)
         RecentBackuplabel.place(relx=.5,rely=.4,anchor="center")
 
-        
-
-
 class MaintenancePage(ctk.CTkFrame):
     def __init__(self, parent):
         super().__init__(parent, fg_color="#E8FBFC")
@@ -3647,6 +3644,40 @@ class MaintenancePage(ctk.CTkFrame):
             LastBackup_date_output.configure(text=now.strftime("%Y-%m-%d"))
             LastBackup_time_output.configure(text=now.strftime("%H:%M:%S"))
 
+        #last/next backup date/time
+        def retrieve_backup_logs(cursor, column):
+            try:
+                #pag isipan ko pa
+                # cursor.execute("""
+                #     SELECT %s FROM backup_logs
+                #     wWHERE employee_id = %s                
+                # """, (column, identifier))
+                cursor.execute("""
+                    SELECT %s FROM backup_logs                
+                """, (column,))
+
+                col_list = column.split(',')
+                col_length = len(col_list)
+
+                if col_length <=2:
+                    log_result = cursor.fetchone()
+                    return log_result
+
+                else:
+                    logs_result = cursor.fetchall()
+                    return logs_result
+
+            except Exception as e:
+                print('Error retrieveng backup logs', e)
+
+        def set_backup_schedule(cursor, date, time):
+            try:
+                cursor.execute("""
+                    UPDATE backup_logs
+                    SET next_date = %s, next_time = %s        
+                """, {date, time})
+            except Exception as e:
+                print('Error appointing backup schedule', e)
 
         def manual_backup_action():
             update_last_backup_time
