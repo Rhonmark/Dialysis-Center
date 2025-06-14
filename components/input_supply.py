@@ -826,11 +826,4 @@ class QuantityUsedLogsWindow(SupplyBaseWindow):
         
         for row in sample_data:
             self.tree.insert("", "end", values=row)
-
-class RestockLogWindow(SupplyBaseWindow):
-    def __init__(self, parent, item_id=None):
-        super().__init__(parent, "Restock Log")
-        
-        # Store the item_id
-        self.item_id = item_id
-        print("Restock Log - item_id:", self.item_id)
+            

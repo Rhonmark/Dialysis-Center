@@ -8,7 +8,7 @@ from tkinter import ttk, messagebox
 from components.Inputs import PatientInfoWindow
 from backend.connector import db_connection as db
 from components.buttons import CTkButtonSelectable
-from components.input_supply import CTkMessageBox, EditStockWindow, QuantityUsedLogsWindow, RestockLogWindow, SupplyWindow
+from components.input_supply import CTkMessageBox, EditStockWindow, QuantityUsedLogsWindow, SupplyWindow
 from components.state import login_shared_states
 from backend.crud import retrieve_form_data, db_connection
 from datetime import datetime
@@ -2352,14 +2352,14 @@ class SupplyPage(ctk.CTkFrame):
 
         # Edit Stock Frame
         self.Edit_Stock_Frame = ctk.CTkFrame(self.Main_Supply_Frame,
-                width=450,
-                height=350,
+                width=400,
+                height=200,
                 fg_color="white",
                 corner_radius=20)
-        self.Edit_Stock_Frame.place(x=50, y=700)
+        self.Edit_Stock_Frame.place(x=50, y=600)
 
         self.Top_bar = ctk.CTkFrame(self.Edit_Stock_Frame,
-                width=450,
+                width=400,
                 height=20,
                 fg_color="#68EDC6")
         self.Top_bar.place(y=0)
@@ -2368,43 +2368,194 @@ class SupplyPage(ctk.CTkFrame):
         self.Edit_Stock_Button = ctk.CTkButton(
             self.Edit_Stock_Frame,
             text="Edit Stock",
-            width=120,
-            height=35,
-            fg_color="#68EDC6",
-            text_color="black",
+            width=150,
+            height=50,
+            fg_color="#1A374D",
+            text_color="white",
             corner_radius=10,
             hover_color="#5DD4B3",
             command=self.open_edit_stock_window
         )
-        self.Edit_Stock_Button.place(x=165, y=50)
+        self.Edit_Stock_Button.place(x=130, y=50)
 
         # Quantity Used Button
         self.Quantity_Used_Button = ctk.CTkButton(
             self.Edit_Stock_Frame,
             text="Quantity Used",
-            width=120,
-            height=35,
-            fg_color="#FFA07A",  # Optional color
-            text_color="black",
+            width=150,
+            height=50,
+            fg_color="#1A374D", 
+            text_color="white",
             corner_radius=10,
-            hover_color="#FF8C69",
+            hover_color="#5DD4B3",
             command=self.open_quantity_used_window  
         )
-        self.Quantity_Used_Button.place(x=165, y=100)
+        self.Quantity_Used_Button.place(x=130, y=120)
 
-        # Restock Log Button
-        self.Restock_Log_Button = ctk.CTkButton(
-            self.Edit_Stock_Frame,
-            text="Restock Log",
-            width=120,
-            height=35,
-            fg_color="#ADD8E6",  
-            text_color="black",
-            corner_radius=10,
-            hover_color="#87CEEB",
-            command=self.open_restock_log_window  
+        # Reminder Frame
+        self.Reminder_Frame = ctk.CTkFrame(self.Main_Supply_Frame,
+                width=400,
+                height=230,
+                fg_color="white",
+                corner_radius=20)
+        self.Reminder_Frame.place(x=50, y=820)
+
+        # Reminder icon and label container
+        self.reminder_header_frame = ctk.CTkFrame(self.Reminder_Frame,
+                width=380,
+                height=40,
+                fg_color="transparent")
+        self.reminder_header_frame.place(x=10, y=30)
+
+        # Reminder icon
+        try:
+            reminder_img = ctk.CTkImage(light_image=Image.open("assets/reminderr.png"), size=(24, 24))
+            reminder_icon = ctk.CTkLabel(self.reminder_header_frame, image=reminder_img, text="")
+            reminder_icon.place(x=10, y=8)
+        except:
+            # Fallback if reminder icon not found
+            reminder_icon = ctk.CTkLabel(
+                self.reminder_header_frame, 
+                text="⚠️", 
+                font=("Arial", 20),
+                text_color="#FF8C00"
+            )
+            reminder_icon.place(x=10, y=8)
+
+        # Reminder Label
+        self.reminder_title = ctk.CTkLabel(
+            self.reminder_header_frame,
+            text="Reminder",
+            font=("Merriweather Bold", 16),
+            text_color="#333333"
         )
-        self.Restock_Log_Button.place(x=165, y=150)
+        self.reminder_title.place(x=45, y=8)
+
+        # Reminder text content
+        self.reminder_text1 = ctk.CTkLabel(
+            self.Reminder_Frame,
+            text="Always check for the status level of any item as it may result to a stock out.",
+            font=("Merriweather", 12),
+            text_color="#666666",
+            wraplength=360,
+            justify="left"
+        )
+        self.reminder_text1.place(x=20, y=80)
+
+        self.reminder_text2 = ctk.CTkLabel(
+            self.Reminder_Frame,
+            text="Please inform the admin when status is at Low Stock Level, the likeliness of a stock out increases when the status reaches Critical Stock Level.",
+            font=("Merriweather", 12),
+            text_color="#666666",
+            wraplength=360,
+            justify="left"
+        )
+        self.reminder_text2.place(x=20, y=125)
+
+        # Restock Logs Frame
+        self.Restock_Logs_Frame = ctk.CTkFrame(self.Main_Supply_Frame,
+                width=950,
+                height=380,
+                fg_color="white",
+                corner_radius=20)
+        self.Restock_Logs_Frame.place(x=600, y=690)
+
+        # Top bar for restock logs frame
+        self.Restock_Logs_Top_bar = ctk.CTkFrame(self.Restock_Logs_Frame,
+                width=950,
+                height=20,
+                fg_color="#68EDC6")
+        self.Restock_Logs_Top_bar.place(y=0)
+
+        # Restock Logs Title
+        self.restock_logs_title = ctk.CTkLabel(
+            self.Restock_Logs_Frame,
+            text="Restock Logs -  ",
+            font=("Merriweather Bold", 18),
+            text_color="#333333"
+        )
+        self.restock_logs_title.place(x=20, y=35)
+
+        # Item name label 
+        self.restock_logs_item_name = ctk.CTkLabel(
+            self.Restock_Logs_Frame,
+            text="syringe",
+            font=("Merriweather Bold", 18),
+            text_color="#1A374D"
+        )
+        self.restock_logs_item_name.place(x=140, y=35)
+
+        self.restock_reminder_container = ctk.CTkFrame(
+            self.Restock_Logs_Frame,
+            fg_color="transparent",
+            width=280,
+            height=50
+        )
+        self.restock_reminder_container.place(x=730, y=37)
+
+        # Reminder text
+        self.restock_reminder_text1 = ctk.CTkLabel(
+            self.restock_reminder_container,
+            text="If there are discrepancies \nplease contact the developers",
+            font=("Merriweather", 10),
+            text_color="#666666"
+        )
+        self.restock_reminder_text1.place(x=0, y=5)
+
+        # Reminder icon
+        try:
+            restock_reminder_img = ctk.CTkImage(light_image=Image.open("assets/reminderrr.png"), size=(24, 24))
+            self.restock_reminder_icon = ctk.CTkLabel(
+                self.restock_reminder_container, 
+                image=restock_reminder_img, 
+                text=""
+            )
+            self.restock_reminder_icon.place(x=148, y=6) 
+        except:
+            # Fallback if reminder icon not found
+            self.restock_reminder_icon = ctk.CTkLabel(
+                self.restock_reminder_container, 
+                text="⚠️", 
+                font=("Arial", 18),
+                text_color="#FF8C00"
+            )
+            self.restock_reminder_icon.place(x=250, y=12)
+
+        
+        # Information text
+        self.restock_logs_info = ctk.CTkLabel(
+            self.Restock_Logs_Frame,
+            text="Information about restock logs will appear here",
+            font=("Merriweather", 12),
+            text_color="#666666"
+        )
+        self.restock_logs_info.place(x=20, y=70)
+
+        # Table Frame for restock logs
+        self.restock_table_frame = ctk.CTkFrame(self.Restock_Logs_Frame, fg_color="#1A374D", border_width=2, border_color="black")
+        self.restock_table_frame.place(x=20, y=100, relwidth=0.925, relheight=0.725)
+
+        restock_tree_container = ctk.CTkFrame(self.restock_table_frame, fg_color="black")
+        restock_tree_container.pack(fill="both", expand=True, padx=1, pady=1)
+
+        # Create the restock logs treeview
+        restock_columns = ("restock_quantity", "restock_date")
+        self.restock_tree = ttk.Treeview(restock_tree_container, columns=restock_columns, show="headings", height=8)
+        self.restock_tree.pack(side="left", fill="both", expand=True)
+
+        # Configure headers for restock table
+        restock_headers = [
+            ("RESTOCK QUANTITY", 220),
+            ("RESTOCK DATE", 250),
+        ]
+
+        for (text, width), col in zip(restock_headers, restock_columns):
+            self.restock_tree.heading(col, text=text)
+            self.restock_tree.column(col, width=width, anchor="center")
+
+        restock_scrollbar = ctk.CTkScrollbar(restock_tree_container, orientation="vertical", command=self.restock_tree.yview)
+        self.restock_tree.configure(yscrollcommand=restock_scrollbar.set)
+        restock_scrollbar.pack(side="right", fill="y")
 
         self.button_frame.place(x=20, y=50, anchor="nw")  
         self.navbar.pack(fill="x", side="top")
@@ -2534,34 +2685,55 @@ class SupplyPage(ctk.CTkFrame):
             cursor.close()
             connect.close()
 
-    def open_restock_log_window(self):
-        if hasattr(self, 'selected_supply_id') and self.selected_supply_id:
-            restock_log_window = RestockLogWindow(self, self.selected_supply_id)
-            restock_log_window.grab_set()
-            restock_log_window.focus_force()
-        else:
-            print("Please select a supply item first.")
-
-        item_id = self.selected_supply_id
-        
+    def fetch_restock_logs(self, item_id):
+        """Fetch restock logs for a specific item"""
         try:
             connect = db()
             cursor = connect.cursor()
             
-            cursor.execute(f"""
-                SELECT restock_quantity, restock_date FROM restock_logs
+            cursor.execute("""
+                SELECT restock_quantity, restock_date 
+                FROM restock_logs
                 WHERE item_id = %s
+                ORDER BY restock_date DESC
             """, (item_id,))
-
+            
             data_result = cursor.fetchall()
-            print(data_result)
-
-        except Exception as e:
-            print('Error retrieving the restock log data ', e)
-
-        finally: 
             cursor.close()
             connect.close()
+            return data_result
+            
+        except Exception as e:
+            print('Error retrieving the restock log data:', e)
+            return []
+
+    def populate_restock_logs(self, item_id, item_name):
+        """Populate the restock logs table with data for the selected item"""
+        # Update the item name in the restock logs title
+        self.restock_logs_item_name.configure(text=item_name)
+        
+        # Clear existing data in restock logs table
+        for row in self.restock_tree.get_children():
+            self.restock_tree.delete(row)
+        
+        # Fetch and populate restock logs data
+        restock_data = self.fetch_restock_logs(item_id)
+        
+        if restock_data:
+            # Update info text
+            self.restock_logs_info.configure(
+                text=f"Showing {len(restock_data)} restock entries for {item_name}"
+            )
+            
+            # Insert data into the restock logs table
+            for row in restock_data:
+                # Format the data: (restock_quantity, restock_date)
+                self.restock_tree.insert("", "end", values=row)
+        else:
+            # No restock logs found
+            self.restock_logs_info.configure(
+                text=f"No restock logs found for {item_name}"
+            )
 
     def on_row_click(self, event):
         """Handle row click to show detailed info"""
@@ -2686,6 +2858,11 @@ class SupplyPage(ctk.CTkFrame):
         self.Status_Output.configure(text=status_text, text_color=status_color)
         self.Remaining_Output.configure(text_color=remaining_color)
         self.StorageMeter.configure(progress_color=progress_color)
+
+        # Populate restock logs for the selected item
+        item_id = supply_data[0]
+        item_name = supply_data[1]
+        self.populate_restock_logs(item_id, item_name)
 
         self.Main_Supply_Frame.place(x=0, y=0, relwidth=1, relheight=1)
 
