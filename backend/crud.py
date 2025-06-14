@@ -7,11 +7,6 @@ def db_connection():
     connect = db()
     cursor = connect.cursor()
 
-    cursor.execute("SELECT patient_name, age, gender FROM patient_list ORDER BY patient_id DESC LIMIT 1")
-    result = cursor.fetchone()
-
-    print(result)
-
     return connect, cursor
 
 def register_to_db(full_name, role, username, password, secret_question, secret_answer):

@@ -1639,7 +1639,9 @@ class MedicationWindow(BaseWindow):
             }
 
             patient_information_column = ', '.join(patient_information.keys())
-            patient_information_row = [f"{entries}" for entries in patient_information.values()]
+            patient_information_row = [
+                entries.capitalize() if isinstance(entries, str) else  entries 
+                for entries in patient_information.values()]
 
             patient_contact_information = {
                 "last_name": self.data.get("contact_last_name"),
@@ -1651,7 +1653,9 @@ class MedicationWindow(BaseWindow):
             }
 
             patient_contact_information_column = ', '.join(patient_contact_information.keys())
-            patient_contact_information_row = [f"{entries}" for entries in patient_contact_information.values()]
+            patient_contact_information_row = [
+                entries.capitalize() if isinstance(entries, str) else entries
+                for entries in patient_contact_information.values()]
 
             patient_relative_information = {
                 "last_name": self.data.get("relative_last_name"),
@@ -1662,7 +1666,9 @@ class MedicationWindow(BaseWindow):
             }
 
             patient_relative_information_column = ', '.join(patient_relative_information.keys())
-            patient_relative_information_row = [f"{entries}" for entries in patient_relative_information.values()]
+            patient_relative_information_row = [
+                entries.capitalize() if isinstance(entries, str) else entries
+                for entries in patient_relative_information.values()]
 
             patient_benefits = {
                 "is_senior": self.data.get("is_senior"),
@@ -1674,7 +1680,9 @@ class MedicationWindow(BaseWindow):
             }
 
             patient_benefits_column = ', '.join(patient_benefits.keys())
-            patient_benefits_row = [f"{entries}" for entries in patient_benefits.values()]
+            patient_benefits_row = [
+                entries.capitalize() if isinstance(entries, str) else entries                    
+                for entries in patient_benefits.values()]
 
             patient_history_1 = {
                 "has_hypertension": self.data.get("family_hypertension"),
@@ -1703,7 +1711,7 @@ class MedicationWindow(BaseWindow):
                 "clinical_impression": self.data.get("clinical_impression"), 
             }
 
-            medication_entries_row = [entries.get().strip() for entries in self.medication_entries]
+            medication_entries_row = [entries.get().strip().capitalize() for entries in self.medication_entries]
             medication_entries_data = ', '.join(medication_entries_row)
 
             patient_history_column = ', '.join(
@@ -1727,7 +1735,7 @@ class MedicationWindow(BaseWindow):
 
             name_validation = [name for name in [first_name, middle_name, last_name] if name not in null_values]
 
-            patient_full_name = ' '.join(name_validation)
+            patient_full_name = ' '.join(name.capitalize() for name in name_validation)
 
             patient_list = {
                 'patient_name': patient_full_name,   
