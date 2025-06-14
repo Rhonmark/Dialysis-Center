@@ -388,95 +388,163 @@ class HomePageContent(ctk.CTkFrame):
 
         self.bottom_line = ctk.CTkFrame(self.navbar, height=1.5, fg_color="black")
         self.bottom_line.place(relx=0, rely=1.0, relwidth=1.0, anchor="sw")
-
-        self.first_frame = ctk.CTkFrame(
+        
+        # Most Used Items Frame
+        self.most_used_frame = ctk.CTkFrame(
             self,
             width=1050,
             height=430,
             fg_color="white",
             corner_radius=20,   
         )
-        self.first_frame.place(x=70, y=150)
+        self.most_used_frame.place(x=70, y=150)
 
-        top_bar = ctk.CTkFrame(
-            self.first_frame,
+        # Top bar for Most Used Items
+        most_used_top_bar = ctk.CTkFrame(
+            self.most_used_frame,
             width=1050,
             height=20,
             fg_color="#68EDC6",
             corner_radius=0
         )
-        top_bar.place(x=0, y=0)
+        most_used_top_bar.place(x=0, y=0)
 
-        YItemUsage_label = ctk.CTkLabel(
-            self.first_frame,
-            text="Yesterday Item Usage",
+        # Most Used Items title and subtitle
+        MUsedItems_label = ctk.CTkLabel(
+            self.most_used_frame,
+            text="Most Used Items",
             font=("Merriweather", 20, "bold")
         )
-        YItemUsage_label.place(x=400, y=40)
+        MUsedItems_label.place(x=20, y=40)
 
-        self.second_frame = ctk.CTkFrame(
+        # Subtitle for Most Used Items
+        MUsedItems_subtitle = ctk.CTkLabel(
+            self.most_used_frame,
+            text="Data over time",
+            font=("Arial", 12),
+            text_color="#666666"
+        )
+        MUsedItems_subtitle.place(x=20, y=70)
+
+        # Refresh indicator for Most Used Items
+        refresh_indicator_most = ctk.CTkLabel(
+            self.most_used_frame,
+            text="The graph refreshes\nevery 00:00",
+            font=("Arial", 10),
+            text_color="#888888"
+        )
+        refresh_indicator_most.place(x=900, y=50)
+
+        # Yesterday Item Usage Frame
+        self.yesterday_usage_frame = ctk.CTkFrame(
             self,
             width=600,
-            height=435,
+            height=430,
             fg_color="white",
-            corner_radius=20
+            corner_radius=20   
         )
-        self.second_frame.place(x=70, y=610)
+        self.yesterday_usage_frame.place(x=70, y=610)
 
-        top_bar = ctk.CTkFrame(
-            self.second_frame,
+        # Top bar for Yesterday Item Usage
+        yesterday_top_bar = ctk.CTkFrame(
+            self.yesterday_usage_frame,
             width=600,
             height=20,
             fg_color="#68EDC6",
             corner_radius=0
         )
-        top_bar.place(x=0, y=0)
+        yesterday_top_bar.place(x=0, y=0)
 
-        MUsedItems_label = ctk.CTkLabel(
-            self.second_frame,
-            text="Most Used Items",
+        # Yesterday Item Usage title and subtitle
+        YItemUsage_label = ctk.CTkLabel(
+            self.yesterday_usage_frame,
+            text="Yesterday Item Usage",
             font=("Merriweather", 20, "bold")
         )
-        MUsedItems_label.place(x=210, y=40)
+        YItemUsage_label.place(x=20, y=40)
 
-        self.third_frame = ctk.CTkFrame(
+        # Subtitle for Yesterday Item Usage
+        YItemUsage_subtitle = ctk.CTkLabel(
+            self.yesterday_usage_frame,
+            text="2025/06/13",
+            font=("Arial", 12),
+            text_color="#666666"
+        )
+        YItemUsage_subtitle.place(x=20, y=70)
+
+        # Refresh indicator for Yesterday Item Usage
+        refresh_indicator_yesterday = ctk.CTkLabel(
+            self.yesterday_usage_frame,
+            text="The graph refreshes\nevery 00:00",
+            font=("Arial", 10),
+            text_color="#888888"
+        )
+        refresh_indicator_yesterday.place(x=460, y=50)
+
+        # Backup Information Frame
+        self.backup_frame = ctk.CTkFrame(
             self,
             width=410,
             height=200,
             fg_color="white",
             corner_radius=20
         )
-        self.third_frame.place(x=710, y=610)
-
-        RecentManual_label = ctk.CTkLabel(
-            self.third_frame,
-            text="Recent Manual Backup:",
-            font=("Merriweather", 17)
-        )
-        RecentManual_label.place(x=30, y=45)
-
-        RecentSched_label = ctk.CTkLabel(
-            self.third_frame,
-            text="Recent Scheduled Backup:",
-            font=("Merriweather", 17)
-        )
-        RecentSched_label.place(x=30, y=75)
-
-        UpcomingSched_label = ctk.CTkLabel(
-            self.third_frame,
-            text="Upcoming Scheduled Backup:",
-            font=("Merriweather", 17)
-        )
-        UpcomingSched_label.place(x=30, y=105)
+        self.backup_frame.place(x=710, y=610)
 
         left_bar = ctk.CTkFrame(
-            self.third_frame,
+            self.backup_frame,
             width=20,
-            height=370,
+            height=200,
             fg_color="#68EDC6",
             corner_radius=0
         )
         left_bar.place(x=0, y=0)
+
+        # Backup labels with dates
+        RecentManual_label = ctk.CTkLabel(
+            self.backup_frame,
+            text="Recent Manual Backup:",
+            font=("Merriweather", 16, "bold")
+        )
+        RecentManual_label.place(x=30, y=35)
+
+        RecentManual_date = ctk.CTkLabel(
+            self.backup_frame,
+            text="11-25-2025",
+            font=("Arial", 14),
+            text_color="#000000"
+        )
+        RecentManual_date.place(x=250, y=37)
+
+        RecentSched_label = ctk.CTkLabel(
+            self.backup_frame,
+            text="Recent Scheduled Backup:",
+            font=("Merriweather", 16, "bold")
+        )
+        RecentSched_label.place(x=30, y=75)
+
+        RecentSched_date = ctk.CTkLabel(
+            self.backup_frame,
+            text="11-20-2025",
+            font=("Arial", 14),
+            text_color="#000000"
+        )
+        RecentSched_date.place(x=270, y=77)
+
+        UpcomingSched_label = ctk.CTkLabel(
+            self.backup_frame,
+            text="Upcoming Scheduled Backup:",
+            font=("Merriweather", 16, "bold")
+        )
+        UpcomingSched_label.place(x=30, y=115)
+
+        UpcomingSched_date = ctk.CTkLabel(
+            self.backup_frame,
+            text="12-01-2025",
+            font=("Arial", 14),
+            text_color="#000000"
+        )
+        UpcomingSched_date.place(x=295, y=117)
 
         # Recent Patient Frame
         self.fourth_frame = ctk.CTkFrame(
@@ -508,6 +576,7 @@ class HomePageContent(ctk.CTkFrame):
         # Setup patient info boxes
         self.setup_patient_boxes()
 
+        # Total Patients Frame
         fifth_frame = ctk.CTkFrame(
             self,
             width=350,
@@ -522,7 +591,16 @@ class HomePageContent(ctk.CTkFrame):
             text="Total Patients",
             font=("Merriweather", 20, "bold")
         )
-        totalPatients_label.place(x=100, y=40)
+        totalPatients_label.place(x=140, y=40)
+
+        # Patient count display
+        total_count_label = ctk.CTkLabel(
+            fifth_frame,
+            text="247",
+            font=("Arial", 48, "bold"),
+            text_color="#68EDC6"
+        )
+        total_count_label.place(x=40, y=20)
 
         active_icon_image = ctk.CTkImage(
             light_image=Image.open("assets/active_patients.png"),
@@ -540,10 +618,10 @@ class HomePageContent(ctk.CTkFrame):
             height=80,
             fg_color="white",
             border_width=2,
-            border_color="gray",
+            border_color="#4CAF50",
             corner_radius=10
         )
-        active_patients.place(x=40, y=300)
+        active_patients.place(x=40, y=320)
 
         active_icon_label = ctk.CTkLabel(
             active_patients,
@@ -552,16 +630,32 @@ class HomePageContent(ctk.CTkFrame):
         )
         active_icon_label.place(x=15, y=20)
 
+        active_count = ctk.CTkLabel(
+            active_patients,
+            text="189",
+            font=("Arial", 24, "bold"),
+            text_color="#4CAF50"
+        )
+        active_count.place(x=70, y=15)
+
+        active_label = ctk.CTkLabel(
+            active_patients,
+            text="Active Patients",
+            font=("Arial", 12),
+            text_color="#666666"
+        )
+        active_label.place(x=70, y=45)
+
         inactive_patients = ctk.CTkFrame(
             fifth_frame,
             width=270,
             height=80,
             fg_color="white",
             border_width=2,
-            border_color="gray",
+            border_color="#FF5722",
             corner_radius=10
         )
-        inactive_patients.place(x=40, y=400)
+        inactive_patients.place(x=40, y=420)
 
         inactive_icon_label = ctk.CTkLabel(
             inactive_patients,
@@ -570,7 +664,23 @@ class HomePageContent(ctk.CTkFrame):
         )
         inactive_icon_label.place(x=15, y=20)
 
-        # Sixth frame with animated reminder carousel
+        inactive_count = ctk.CTkLabel(
+            inactive_patients,
+            text="58",
+            font=("Arial", 24, "bold"),
+            text_color="#FF5722"
+        )
+        inactive_count.place(x=70, y=15)
+
+        inactive_label = ctk.CTkLabel(
+            inactive_patients,
+            text="Inactive Patients",
+            font=("Arial", 12),
+            text_color="#666666"
+        )
+        inactive_label.place(x=70, y=45)
+
+        # Reminder Frame 
         sixth_frame = ctk.CTkFrame(
             self,
             width=350,
@@ -647,19 +757,26 @@ class HomePageContent(ctk.CTkFrame):
             height=120,
             fg_color="white",
             border_width=2,
-            border_color="gray",
+            border_color="#68EDC6",
             corner_radius=10
         )
         self.first_box.place(x=30, y=60)
 
+        name_icon = ctk.CTkLabel(
+            self.first_box,
+            text="👤",
+            font=("Arial", 20)
+        )
+        name_icon.place(relx=0.5, rely=0.25, anchor="center")
+
         self.name_value = ctk.CTkLabel(
             self.first_box,
             text="No Patient",
-            font=("Merriweather", 11),
+            font=("Merriweather", 10, "bold"),
             text_color="black",
             justify="center"
         )
-        self.name_value.place(relx=0.5, rely=0.55, anchor="center")
+        self.name_value.place(relx=0.5, rely=0.7, anchor="center")
 
         # Second Patient Box - Age
         self.second_box = ctk.CTkFrame(
@@ -668,18 +785,26 @@ class HomePageContent(ctk.CTkFrame):
             height=120,
             fg_color="white",
             border_width=2,
-            border_color="gray",
+            border_color="#68EDC6",
             corner_radius=10
         )
         self.second_box.place(x=155, y=60)
 
+        age_label = ctk.CTkLabel(
+            self.second_box,
+            text="Age",
+            font=("Arial", 12),
+            text_color="#666666"
+        )
+        age_label.place(relx=0.5, rely=0.25, anchor="center")
+
         self.age_value = ctk.CTkLabel(
             self.second_box,
             text="--",
-            font=("Merriweather", 16, "bold"),
+            font=("Merriweather", 20, "bold"),
             text_color="black"
         )
-        self.age_value.place(relx=0.5, rely=0.55, anchor="center")
+        self.age_value.place(relx=0.5, rely=0.65, anchor="center")
 
         # Third Patient Box - Gender
         self.third_box = ctk.CTkFrame(
@@ -688,18 +813,26 @@ class HomePageContent(ctk.CTkFrame):
             height=120,
             fg_color="white",
             border_width=2,
-            border_color="gray",
+            border_color="#68EDC6",
             corner_radius=10
         )
         self.third_box.place(x=280, y=60)
 
+        gender_label = ctk.CTkLabel(
+            self.third_box,
+            text="Gender",
+            font=("Arial", 12),
+            text_color="#666666"
+        )
+        gender_label.place(relx=0.5, rely=0.25, anchor="center")
+
         self.gender_value = ctk.CTkLabel(
             self.third_box,
             text="--",
-            font=("Merriweather", 14, "bold"),
+            font=("Merriweather", 16, "bold"),
             text_color="black"
         )
-        self.gender_value.place(relx=0.5, rely=0.55, anchor="center")
+        self.gender_value.place(relx=0.5, rely=0.65, anchor="center")
 
     def refresh_recent_patient(self):
         """Refresh the recent patient data from database"""
