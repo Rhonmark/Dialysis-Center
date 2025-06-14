@@ -3642,6 +3642,25 @@ class MaintenancePage(ctk.CTkFrame):
         label_Title = ctk.CTkLabel(Maintenance_MainFrame, bg_color="transparent",text="Maintenance",text_color="black",font=Title_font)
         label_Title.place(x=100,y=50)
 
+        # Choose Destination Button Function
+        def choose_destination_action():
+            print("Clicked Choose destination")
+
+        # Choose Destination Button 
+        ChooseDestination_Button = ctk.CTkButton(Maintenance_MainFrame,
+                                                bg_color="transparent",
+                                                fg_color="#6C757D",
+                                                hover_color="#5A6268",
+                                                width=150,
+                                                height=35,
+                                                corner_radius=15,
+                                                text="Choose Destination",
+                                                text_color="white",
+                                                cursor="hand2",
+                                                command=choose_destination_action,
+                                                font=("Merriweather Bold", 12))
+        ChooseDestination_Button.place(x=800, y=50)
+
         #Option Frame
         option_frame = ctk.CTkFrame(Maintenance_MainFrame,
                                     bg_color="transparent" ,
@@ -3791,23 +3810,133 @@ class MaintenancePage(ctk.CTkFrame):
 
         def manual_backup_action():
             update_last_backup_time
-            CTkMessagebox(
-                title="Backup Status",
-                message="Manual backup was successful.",
-                icon="check",
-                option_1="OK",
-                header=False,
-                width=400,
-                height=200,
-                button_color="#68EDC6",
-                button_text_color="white",
-                button_hover_color="#1A374D",
-                fg_color="white",
-                bg_color="white",
-                text_color="black",
-                font=Messagebox_font
-            )
-            print("Manual Back-up was successful")
+            print("Clicked Manual Backup")
+
+        # Schedule Backup Frame Function
+        def schedule_backup_action():
+            # Create Schedule Backup Frame
+            global schedule_backup_frame
+            schedule_backup_frame = ctk.CTkFrame(self,
+                                               bg_color="transparent",
+                                               fg_color="#FFFFFF",
+                                               width=1000,
+                                               height=450,
+                                               corner_radius=20)
+            schedule_backup_frame.place(x=100, y=180)
+            
+            # Left bar for Schedule Frame
+            leftbar_frame = ctk.CTkFrame(schedule_backup_frame,
+                                       bg_color="transparent",
+                                       fg_color="#1A374D",
+                                       width=25,
+                                       height=450,
+                                       corner_radius=20)
+            leftbar_frame.place(x=0)
+            
+            # Title
+            title_label = ctk.CTkLabel(schedule_backup_frame,
+                                     bg_color="transparent",
+                                     text="Date and Time",
+                                     text_color="black",
+                                     font=Title_font)
+            title_label.place(x=100, y=50)
+            
+            # Subtitle
+            subtitle_label = ctk.CTkLabel(schedule_backup_frame,
+                                        bg_color="transparent",
+                                        text="Select the schedule for the next backup.",
+                                        text_color="black",
+                                        font=SubTitle_font)
+            subtitle_label.place(x=100, y=100)
+            
+            # Date Label
+            date_label = ctk.CTkLabel(schedule_backup_frame,
+                                    bg_color="transparent",
+                                    text="Date",
+                                    text_color="black",
+                                    font=("Merriweather Sans bold", 15))
+            date_label.place(x=100, y=180)
+            
+            # Date Entry Field 
+            from tkcalendar import DateEntry
+            self.entry_date = DateEntry(schedule_backup_frame, 
+                                      width=18, 
+                                      font=("Merriweather light", 12), 
+                                      bg="white", 
+                                      date_pattern="yyyy-MM-dd", 
+                                      state="normal")
+            self.entry_date.place(x=100, y=220, height=25)
+            
+            # Time Label
+            time_label = ctk.CTkLabel(schedule_backup_frame,
+                                    bg_color="transparent",
+                                    text="Time",
+                                    text_color="black",
+                                    font=("Merriweather Sans bold", 15))
+            time_label.place(x=100, y=280)
+            
+            # Time Entry Fields 
+            # Hour Entry
+            self.entry_hour = ctk.CTkEntry(schedule_backup_frame,
+                                         width=50,
+                                         height=25,
+                                         placeholder_text="HH",
+                                         font=("Merriweather light", 12))
+            self.entry_hour.place(x=100, y=320)
+            
+            # Colon Label
+            colon_label = ctk.CTkLabel(schedule_backup_frame,
+                                     bg_color="transparent",
+                                     text=":",
+                                     text_color="black",
+                                     font=("Merriweather Sans bold", 15))
+            colon_label.place(x=160, y=320)
+            
+            # Minute Entry
+            self.entry_minute = ctk.CTkEntry(schedule_backup_frame,
+                                           width=50,
+                                           height=25,
+                                           placeholder_text="MM",
+                                           font=("Merriweather light", 12))
+            self.entry_minute.place(x=180, y=320)
+            
+            # Back Button 
+            def back_to_maintenance():
+                schedule_backup_frame.place_forget()
+            
+            # Back Button
+            back_button = ctk.CTkButton(schedule_backup_frame,
+                                      bg_color="transparent",
+                                      fg_color="#6C757D",
+                                      hover_color="#5A6268",
+                                      width=100,
+                                      height=35,
+                                      corner_radius=15,
+                                      text="Back",
+                                      text_color="white",
+                                      cursor="hand2",
+                                      command=back_to_maintenance,
+                                      font=("Merriweather Bold", 12))
+            back_button.place(x=100, y=380)
+            
+            # Select Button Function
+            def select_schedule():
+                print(f"Selected schedule")
+            
+            # Select Button 
+            select_button = ctk.CTkButton(schedule_backup_frame,
+                                        bg_color="transparent",
+                                        fg_color="#00C88D",
+                                        hover_color="#00B07B",
+                                        width=120,
+                                        height=40,
+                                        corner_radius=15,
+                                        text="Select",
+                                        text_color="white",
+                                        cursor="hand2",
+                                        command=select_schedule,
+                                        font=("Merriweather Bold", 14))
+            select_button.place(x=850, y=380)
 
         
         ManualBackup_Button = ctk.CTkButton(option_frame,
@@ -3835,6 +3964,7 @@ class MaintenancePage(ctk.CTkFrame):
                                             text="Schedule Backup",
                                             text_color="white",
                                             cursor="hand2",
+                                            command=schedule_backup_action,
                                             font=button_font,
                                             )
         ScheduleBackup_Button.place(x=300,y=80)
