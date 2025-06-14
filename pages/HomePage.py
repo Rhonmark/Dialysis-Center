@@ -16,7 +16,9 @@ from customtkinter import CTkInputDialog
 import datetime
 import shutil
 import os
-
+import pandas as pd
+from datetime import date, timedelta
+import matplotlib.pyplot as plt
 
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("blue")
@@ -229,6 +231,96 @@ class Sidebar(ctk.CTkFrame):
 class HomePageContent(ctk.CTkFrame):
     def __init__(self, parent):
         super().__init__(parent, fg_color="#E8FBFC")
+
+        def show_overall_usage():
+            try:
+                connect = db()
+                query = """
+                    SELECT
+                        s.item_name, 
+                        SUM(iu.quantity_used) AS total_used 
+                    FROM item_usage iu
+                    JOIN supply s ON iu.item_id = s.item_id
+                    GROUP BY s.item_name
+                    ORDER by total_used;
+                """
+
+                df = pd.read_sql(query, connect)
+
+                plt.figure(figsize=(10, 6))
+                plt.bar(df['item_name'], df['total_used'], color='#C0DABE')
+
+                plt.xlabel('Item Name')
+                plt.ylabel('Used Quantity')
+                plt.xticks(rotation=45)
+
+                ax = plt.gca()
+                for spine in ax.spines.values():
+                    spine.set_visible(False)
+
+                plt.tight_layout()
+                plt.show()
+
+            except Exception as e:
+                print('Error retrieving the overall usage', e)
+
+            finally: 
+                connect.close()
+
+        show_overall_usage()
+
+        def show_yesterday_usage():
+            try:
+                connect = db()
+                query = """
+                    SELECT 
+                        s.item_name,
+                        DATE(iu.usage_date) AS usage_date, 
+                        SUM(iu.quantity_used) AS total_used 
+                    FROM item_usage iu
+                    JOIN supply s ON iu.item_id = s.item_id
+                    GROUP BY iu.item_id, DATE(usage_date)
+                    ORDER BY total_used;
+                """
+
+                df = pd.read_sql(query, connect)
+
+                df['edit_date'] = pd.to_datetime(df['usage_date'])
+
+                yesterday = date.today() - timedelta(days=1)
+                df_yesterday = df[df['edit_date'].dt.date == yesterday]
+            
+                df_yesterday = df_yesterday.sort_values(by='total_used', ascending=False)
+
+                plt.figure(figsize=(10, 6))
+                plt.bar(df_yesterday['item_name'], df_yesterday['total_used'], color='#C0DABE')
+
+                plt.xlabel('Item Name')
+                plt.ylabel('Used Quantity')
+                plt.xticks(rotation=45)
+
+                ax = plt.gca()
+                for spine in ax.spines.values():
+                    spine.set_visible(False)
+
+#                 plt.text(
+#                     0.01, 0.98,
+#                     f"Date: {yesterday.strftime('%Y-%m-%d')}",
+#                     transform=ax.transAxes,
+#                     ha='left', va='top',
+#                     fontsize=10,
+#                     color='gray'
+# )
+                plt.tight_layout()
+                plt.show()
+
+            except Exception as e:
+                print('Error retrieving yesterday usage', e)
+
+            finally: 
+                connect.close()
+
+        show_yesterday_usage()
 
         def get_name():
             # Commented out backend database call
