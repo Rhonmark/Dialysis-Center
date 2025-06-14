@@ -19,6 +19,9 @@ import os
 import pandas as pd
 from datetime import date, timedelta
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
+
 
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("blue")
@@ -232,95 +235,15 @@ class HomePageContent(ctk.CTkFrame):
     def __init__(self, parent):
         super().__init__(parent, fg_color="#E8FBFC")
 
-        def show_overall_usage():
-            try:
-                connect = db()
-                query = """
-                    SELECT
-                        s.item_name, 
-                        SUM(iu.quantity_used) AS total_used 
-                    FROM item_usage iu
-                    JOIN supply s ON iu.item_id = s.item_id
-                    GROUP BY s.item_name
-                    ORDER by total_used;
-                """
+        # Initialize reminder carousel variables
+        self.current_reminder_index = 0
+        self.reminder_images = []
+        self.reminder_animation_job = None
+        self.fade_animation_job = None
 
-                df = pd.read_sql(query, connect)
-
-                plt.figure(figsize=(10, 6))
-                plt.bar(df['item_name'], df['total_used'], color='#C0DABE')
-
-                plt.xlabel('Item Name')
-                plt.ylabel('Used Quantity')
-                plt.xticks(rotation=45)
-
-                ax = plt.gca()
-                for spine in ax.spines.values():
-                    spine.set_visible(False)
-
-                plt.tight_layout()
-                plt.show()
-
-            except Exception as e:
-                print('Error retrieving the overall usage', e)
-
-            finally: 
-                connect.close()
-
-        show_overall_usage()
-
-        def show_yesterday_usage():
-            try:
-                connect = db()
-                query = """
-                    SELECT 
-                        s.item_name,
-                        DATE(iu.usage_date) AS usage_date, 
-                        SUM(iu.quantity_used) AS total_used 
-                    FROM item_usage iu
-                    JOIN supply s ON iu.item_id = s.item_id
-                    GROUP BY iu.item_id, DATE(usage_date)
-                    ORDER BY total_used;
-                """
-
-                df = pd.read_sql(query, connect)
-
-                df['edit_date'] = pd.to_datetime(df['usage_date'])
-
-                yesterday = date.today() - timedelta(days=1)
-                df_yesterday = df[df['edit_date'].dt.date == yesterday]
-            
-                df_yesterday = df_yesterday.sort_values(by='total_used', ascending=False)
-
-                plt.figure(figsize=(10, 6))
-                plt.bar(df_yesterday['item_name'], df_yesterday['total_used'], color='#C0DABE')
-
-                plt.xlabel('Item Name')
-                plt.ylabel('Used Quantity')
-                plt.xticks(rotation=45)
-
-                ax = plt.gca()
-                for spine in ax.spines.values():
-                    spine.set_visible(False)
-
-#                 plt.text(
-#                     0.01, 0.98,
-#                     f"Date: {yesterday.strftime('%Y-%m-%d')}",
-#                     transform=ax.transAxes,
-#                     ha='left', va='top',
-#                     fontsize=10,
-#                     color='gray'
-# )
-                plt.tight_layout()
-                plt.show()
-
-            except Exception as e:
-                print('Error retrieving yesterday usage', e)
-
-            finally: 
-                connect.close()
-
-        show_yesterday_usage()
+        # Initialize graph canvases
+        self.most_used_canvas = None
+        self.yesterday_canvas = None
 
         def get_name():
             # Commented out backend database call
@@ -354,14 +277,140 @@ class HomePageContent(ctk.CTkFrame):
 
         first_name, full_name = get_name()
 
-        # Initialize reminder carousel variables
-        self.current_reminder_index = 0
-        self.reminder_images = []
-        self.reminder_animation_job = None
-        self.fade_animation_job = None
-
         # Setup UI
         self.setup_ui(first_name, full_name)
+        
+        # Load initial graphs
+        self.show_overall_usage()
+        self.show_yesterday_usage()
+
+    def show_overall_usage(self):
+        """Show overall usage chart in container"""
+        try:
+            connect = db()
+            query = """
+                SELECT
+                    s.item_name, 
+                    SUM(iu.quantity_used) AS total_used 
+                FROM item_usage iu
+                JOIN supply s ON iu.item_id = s.item_id
+                GROUP BY s.item_name
+                ORDER by total_used;
+            """
+
+            df = pd.read_sql(query, connect)
+
+            # Clear existing canvas if it exists
+            if self.most_used_canvas:
+                self.most_used_canvas.get_tk_widget().destroy()
+
+            # Create new figure
+            fig = Figure(figsize=(10, 3.5), dpi=100)
+            ax = fig.add_subplot(111)
+            
+            # Create bar chart
+            ax.bar(df['item_name'], df['total_used'], color='#C0DABE')
+            ax.set_xlabel('Item Name')
+            ax.set_ylabel('Used Quantity')
+            ax.tick_params(axis='x', rotation=45)
+            
+            # Remove spines
+            for spine in ax.spines.values():
+                spine.set_visible(False)
+                
+            fig.tight_layout()
+
+            # Create canvas and embed in frame
+            self.most_used_canvas = FigureCanvasTkAgg(fig, self.most_used_frame)
+            self.most_used_canvas.draw()
+            self.most_used_canvas.get_tk_widget().place(x=20, y=100, width=1010, height=320)
+
+        except Exception as e:
+            print('Error retrieving the overall usage', e)
+            # Show error message in container
+            if hasattr(self, 'most_used_frame'):
+                error_label = ctk.CTkLabel(
+                    self.most_used_frame,
+                    text=f"Error loading data: {str(e)}",
+                    font=("Arial", 14),
+                    text_color="red"
+                )
+                error_label.place(x=400, y=250)
+
+        finally: 
+            if 'connect' in locals():
+                connect.close()
+
+    def show_yesterday_usage(self):
+        """Show yesterday's usage chart in container"""
+        try:
+            connect = db()
+            query = """
+                SELECT 
+                    s.item_name,
+                    DATE(iu.usage_date) AS usage_date, 
+                    SUM(iu.quantity_used) AS total_used 
+                FROM item_usage iu
+                JOIN supply s ON iu.item_id = s.item_id
+                GROUP BY iu.item_id, DATE(usage_date)
+                ORDER BY total_used;
+            """
+
+            df = pd.read_sql(query, connect)
+
+            df['edit_date'] = pd.to_datetime(df['usage_date'])
+
+            from datetime import date, timedelta
+            yesterday = date.today() - timedelta(days=1)
+            df_yesterday = df[df['edit_date'].dt.date == yesterday]
+        
+            df_yesterday = df_yesterday.sort_values(by='total_used', ascending=False)
+
+            # Clear existing canvas if it exists
+            if self.yesterday_canvas:
+                self.yesterday_canvas.get_tk_widget().destroy()
+
+            # Create new figure
+            fig = Figure(figsize=(5.5, 3.5), dpi=100)
+            ax = fig.add_subplot(111)
+            
+            # Create bar chart
+            if not df_yesterday.empty:
+                ax.bar(df_yesterday['item_name'], df_yesterday['total_used'], color='#C0DABE')
+                ax.set_xlabel('Item Name')
+                ax.set_ylabel('Used Quantity')
+                ax.tick_params(axis='x', rotation=45)
+            else:
+                ax.text(0.5, 0.5, 'No data for yesterday', 
+                       horizontalalignment='center', verticalalignment='center',
+                       transform=ax.transAxes, fontsize=14, color='gray')
+            
+            # Remove spines
+            for spine in ax.spines.values():
+                spine.set_visible(False)
+                
+            fig.tight_layout()
+
+            # Create canvas and embed in frame
+            self.yesterday_canvas = FigureCanvasTkAgg(fig, self.yesterday_usage_frame)
+            self.yesterday_canvas.draw()
+            self.yesterday_canvas.get_tk_widget().place(x=20, y=100, width=560, height=320)
+
+        except Exception as e:
+            print('Error retrieving yesterday usage', e)
+            # Show error message in container
+            if hasattr(self, 'yesterday_usage_frame'):
+                error_label = ctk.CTkLabel(
+                    self.yesterday_usage_frame,
+                    text=f"Error loading data: {str(e)}",
+                    font=("Arial", 14),
+                    text_color="red"
+                )
+                error_label.place(x=200, y=250)
+
+        finally: 
+            if 'connect' in locals():
+                connect.close()
 
     def setup_ui(self, first_name, full_name):
         """Setup all the UI elements"""
@@ -501,13 +550,41 @@ class HomePageContent(ctk.CTkFrame):
         )
         most_used_top_bar.place(x=0, y=0)
 
-        # Most Used Items title and subtitle
+        # Most Used Items title
         MUsedItems_label = ctk.CTkLabel(
             self.most_used_frame,
             text="Most Used Items",
             font=("Merriweather", 20, "bold")
         )
         MUsedItems_label.place(x=20, y=40)
+
+        # Most Used Items icon 
+        try:
+            most_used_icon = ctk.CTkImage(light_image=Image.open("assets/refresh.png"), size=(24, 24))
+            most_used_icon_btn = ctk.CTkButton(
+                self.most_used_frame,
+                image=most_used_icon,
+                text="",
+                width=30,
+                height=30,
+                fg_color="transparent",
+                hover_color="#f0f0f0",
+                command=self.show_overall_usage
+            )
+            most_used_icon_btn.place(x=210, y=38)
+        except:
+            # If icon fails to load, use emoji fallback
+            most_used_icon_btn = ctk.CTkButton(
+                self.most_used_frame,
+                text="🔄",
+                font=("Arial", 16),
+                width=30,
+                height=30,
+                fg_color="transparent",
+                hover_color="#f0f0f0",
+                command=self.show_overall_usage
+            )
+            most_used_icon_btn.place(x=210, y=38)
 
         # Subtitle for Most Used Items
         MUsedItems_subtitle = ctk.CTkLabel(
@@ -521,11 +598,11 @@ class HomePageContent(ctk.CTkFrame):
         # Refresh indicator for Most Used Items
         refresh_indicator_most = ctk.CTkLabel(
             self.most_used_frame,
-            text="The graph refreshes\nevery 00:00",
+            text="Click refresh icon to update",
             font=("Arial", 10),
             text_color="#888888"
         )
-        refresh_indicator_most.place(x=900, y=50)
+        refresh_indicator_most.place(x=850, y=50)
 
         # Yesterday Item Usage Frame
         self.yesterday_usage_frame = ctk.CTkFrame(
@@ -547,13 +624,41 @@ class HomePageContent(ctk.CTkFrame):
         )
         yesterday_top_bar.place(x=0, y=0)
 
-        # Yesterday Item Usage title and subtitle
+        # Yesterday Item Usage title
         YItemUsage_label = ctk.CTkLabel(
             self.yesterday_usage_frame,
             text="Yesterday Item Usage",
             font=("Merriweather", 20, "bold")
         )
         YItemUsage_label.place(x=20, y=40)
+
+        # Yesterday Item Usage icon 
+        try:
+            yesterday_icon = ctk.CTkImage(light_image=Image.open("assets/refresh.png"), size=(24, 24))
+            yesterday_icon_btn = ctk.CTkButton(
+                self.yesterday_usage_frame,
+                image=yesterday_icon,
+                text="",
+                width=30,
+                height=30,
+                fg_color="transparent",
+                hover_color="#f0f0f0",
+                command=self.show_yesterday_usage
+            )
+            yesterday_icon_btn.place(x=240, y=38)
+        except:
+            # If icon fails to load, use emoji fallback
+            yesterday_icon_btn = ctk.CTkButton(
+                self.yesterday_usage_frame,
+                text="🔄",
+                font=("Arial", 16),
+                width=30,
+                height=30,
+                fg_color="transparent",
+                hover_color="#f0f0f0",
+                command=self.show_yesterday_usage
+            )
+            yesterday_icon_btn.place(x=240, y=38)
 
         # Subtitle for Yesterday Item Usage
         YItemUsage_subtitle = ctk.CTkLabel(
@@ -567,11 +672,11 @@ class HomePageContent(ctk.CTkFrame):
         # Refresh indicator for Yesterday Item Usage
         refresh_indicator_yesterday = ctk.CTkLabel(
             self.yesterday_usage_frame,
-            text="The graph refreshes\nevery 00:00",
+            text="Click refresh icon to update",
             font=("Arial", 10),
             text_color="#888888"
         )
-        refresh_indicator_yesterday.place(x=460, y=50)
+        refresh_indicator_yesterday.place(x=400, y=50)
 
         # Backup Information Frame
         self.backup_frame = ctk.CTkFrame(
@@ -1040,6 +1145,11 @@ class HomePageContent(ctk.CTkFrame):
     def destroy(self):
         """Clean up when the widget is destroyed"""
         self.stop_reminder_carousel()
+        # Clean up matplotlib canvases
+        if self.most_used_canvas:
+            self.most_used_canvas.get_tk_widget().destroy()
+        if self.yesterday_canvas:
+            self.yesterday_canvas.get_tk_widget().destroy()
         super().destroy()
 
 class PatientPage(ctk.CTkFrame):
