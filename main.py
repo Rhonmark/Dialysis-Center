@@ -57,7 +57,7 @@ def main():
 
     position_window(1280, 720)
 
-    navigate_to("HomePage")  # Start with the HomePage
+    navigate_to("HomePage") 
     root.mainloop()
 
 if __name__ == "__main__":

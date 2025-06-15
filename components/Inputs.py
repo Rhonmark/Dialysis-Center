@@ -125,17 +125,19 @@ class PatientInfoWindow(BaseWindow):
         self.entry_middlename.place(x=720, y=200, height=25)
         tk.Frame(self, bg="#979797", height=1, width=150).place(x=720, y=230)
 
-        # Status, Type of Access, Birthdate, Age
+        # Status (Active/Inactive)
         tk.Label(self, text="Status *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=270)
-        self.entry_status = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_status.place(x=120, y=320, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=350)
+        self.status_var = tk.StringVar(value="active")
+        tk.Radiobutton(self, text="Active", variable=self.status_var, value="active", bg="white", font=("Merriweather Sans", 12)).place(x=120, y=320)
+        tk.Radiobutton(self, text="Inactive", variable=self.status_var, value="inactive", bg="white", font=("Merriweather Sans", 12)).place(x=200, y=320)
 
+        # Type of Access
         tk.Label(self, text="Type of Access *", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=270)
-        self.entry_access = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
+        self.access_options = ["L AVF", "R AVF", "L AVG", "R AVG", "L CVC", "R CVC", "L PDC", "R PDC"]
+        self.entry_access = ttk.Combobox(self, values=self.access_options, width=17, font=("Merriweather light", 12), state="readonly")
         self.entry_access.place(x=420, y=320, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=350)
 
+        # Birthdate
         tk.Label(self, text="Birthdate *", font=("Merriweather Sans bold", 15), bg="white").place(x=720, y=270)
         self.entry_birthdate = DateEntry(self, width=18, font=("Merriweather light", 12), bg="white", date_pattern="yyyy-MM-dd", state="normal")
         self.entry_birthdate.place(x=720, y=320, height=25)
@@ -199,12 +201,10 @@ class PatientInfoWindow(BaseWindow):
                 self.entry_middlename.insert(0, self.data.get("patient_middle_name"))
                 
             if self.data.get("patient_status"):
-                self.entry_status.delete(0, tk.END)
-                self.entry_status.insert(0, self.data.get("patient_status"))
+                self.status_var.set(self.data.get("patient_status"))
                 
             if self.data.get("patient_access"):
-                self.entry_access.delete(0, tk.END)
-                self.entry_access.insert(0, self.data.get("patient_access"))
+                self.entry_access.set(self.data.get("patient_access"))
                 
             if self.data.get("patient_birthdate"):
                 from datetime import datetime
@@ -244,8 +244,8 @@ class PatientInfoWindow(BaseWindow):
             self.data["patient_last_name"] = self.entry_lastname.get().strip()
             self.data["patient_first_name"] = self.entry_firstname.get().strip()
             self.data["patient_middle_name"] = self.entry_middlename.get().strip()
-            self.data["patient_status"] = self.entry_status.get().strip()
-            self.data["patient_access"] = self.entry_access.get().strip()
+            self.data["patient_status"] = self.status_var.get()
+            self.data["patient_access"] = self.entry_access.get()
             self.data["patient_birthdate"] = self.entry_birthdate.get_date().strftime("%Y-%m-%d")
             self.data["patient_age"] = self.entry_age.get().strip()
             self.data["patient_gender"] = self.entry_gender.get().strip()
@@ -289,12 +289,10 @@ class PatientInfoWindow(BaseWindow):
                         self.entry_middlename.insert(0, patient_data[2])
                     
                     if patient_data[3] and patient_data[3] != 'Type Here':
-                        self.entry_status.delete(0, tk.END)
-                        self.entry_status.insert(0, patient_data[3])
+                        self.status_var.set(patient_data[3])
                     
                     if patient_data[4] and patient_data[4] != 'Type Here':
-                        self.entry_access.delete(0, tk.END)
-                        self.entry_access.insert(0, patient_data[4])
+                        self.entry_access.set(patient_data[4])
                     
                     # Handle birthdate
                     if patient_data[5]:
@@ -345,8 +343,8 @@ class PatientInfoWindow(BaseWindow):
             self.data["patient_last_name"] = self.entry_lastname.get().strip()
             self.data["patient_first_name"] = self.entry_firstname.get().strip()
             self.data["patient_middle_name"] = self.entry_middlename.get().strip()
-            self.data["patient_status"] = self.entry_status.get().strip()
-            self.data["patient_access"] = self.entry_access.get().strip()
+            self.data["patient_status"] = self.status_var.get()
+            self.data["patient_access"] = self.entry_access.get()
             self.data["patient_birthdate"] = self.entry_birthdate.get_date().strftime("%Y-%m-%d")  
             self.data["patient_age"] = self.entry_age.get().strip()
             self.data["patient_gender"] = self.entry_gender.get().strip()
@@ -1151,16 +1149,17 @@ class PatientHistory3Window(BaseWindow):
         self.entry_dialysis = DateEntry(self, width=18, font=("Merriweather light", 12), bg="white", date_pattern="yyyy-MM-dd", state="readonly")
         self.entry_dialysis.place(x=750, y=240, height=25)
 
-        # Mode & Access
+        # Mode (Peritoneal/Hemodialysis)
         tk.Label(self, text="Mode *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=310)
-        self.entry_mode = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_mode.place(x=120, y=360, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=390)
+        self.mode_var = tk.StringVar(value="hemodialysis")  # Default to hemodialysis
+        tk.Radiobutton(self, text="Peritoneal", variable=self.mode_var, value="peritoneal", bg="white", font=("Merriweather Sans", 12)).place(x=120, y=360)
+        tk.Radiobutton(self, text="Hemodialysis", variable=self.mode_var, value="hemodialysis", bg="white", font=("Merriweather Sans", 12)).place(x=220, y=360)
 
-        tk.Label(self, text="Access *", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=310)
-        self.entry_access = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_access.place(x=420, y=360, height=30)
-        tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=390)
+        # Type of Access 
+        tk.Label(self, text="Type of Access *", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=310)
+        self.access_options = ["L AVF", "R AVF", "L AVG", "R AVG", "L CVC", "R CVC", "L PDC", "R PDC"]
+        self.entry_access = ttk.Combobox(self, values=self.access_options, width=17, font=("Merriweather light", 12), state="readonly")
+        self.entry_access.place(x=420, y=360, height=25)
 
         # Chronic Hemodialysis & Clinical Impression
         tk.Label(self, text="Date of First Chronic Hemodialysis", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=430)
@@ -1191,12 +1190,10 @@ class PatientHistory3Window(BaseWindow):
                 self.entry_dialysis.set_date(date_dialysis)
                 
             if self.data.get("mode"):
-                self.entry_mode.delete(0, tk.END)
-                self.entry_mode.insert(0, self.data.get("mode"))
+                self.mode_var.set(self.data.get("mode"))
                 
             if self.data.get("access"):
-                self.entry_access.delete(0, tk.END)
-                self.entry_access.insert(0, self.data.get("access"))
+                self.entry_access.set(self.data.get("access"))
                 
             if self.data.get("date_chronic"):
                 date_chronic = datetime.strptime(self.data.get("date_chronic"), "%Y-%m-%d").date()
@@ -1214,8 +1211,8 @@ class PatientHistory3Window(BaseWindow):
         try:
             self.data["date_diagnosed"] = self.entry_diagnosed.get_date().strftime("%Y-%m-%d")
             self.data["date_dialysis"] = self.entry_dialysis.get_date().strftime("%Y-%m-%d")
-            self.data["mode"] = self.entry_mode.get().strip()
-            self.data["access"] = self.entry_access.get().strip()
+            self.data["mode"] = self.mode_var.get()
+            self.data["access"] = self.entry_access.get()
             self.data["date_chronic"] = self.entry_chronic.get_date().strftime("%Y-%m-%d")
             self.data["clinical_impression"] = self.entry_clinical.get().strip()
             
@@ -1244,11 +1241,9 @@ class PatientHistory3Window(BaseWindow):
                     if history_data[1]:
                         self.entry_dialysis.set_date(history_data[1])
                     if history_data[2] and history_data[2] != 'Type Here':
-                        self.entry_mode.delete(0, tk.END)
-                        self.entry_mode.insert(0, history_data[2])
+                        self.mode_var.set(history_data[2])
                     if history_data[3] and history_data[3] != 'Type Here':
-                        self.entry_access.delete(0, tk.END)
-                        self.entry_access.insert(0, history_data[3])
+                        self.entry_access.set(history_data[3])
                     if history_data[4]:
                         self.entry_chronic.set_date(history_data[4])
                     if history_data[5] and history_data[5] != 'Type Here':
@@ -1265,8 +1260,8 @@ class PatientHistory3Window(BaseWindow):
         try:
             self.data["date_diagnosed"] = self.entry_diagnosed.get_date().strftime("%Y-%m-%d")
             self.data["date_dialysis"] = self.entry_dialysis.get_date().strftime("%Y-%m-%d")
-            self.data["mode"] = self.entry_mode.get().strip()
-            self.data["access"] = self.entry_access.get().strip()
+            self.data["mode"] = self.mode_var.get()
+            self.data["access"] = self.entry_access.get()
             self.data["date_chronic"] = self.entry_chronic.get_date().strftime("%Y-%m-%d")
             self.data["clinical_impression"] = self.entry_clinical.get().strip()
 
@@ -1436,19 +1431,29 @@ class MedicationWindow(BaseWindow):
         self.canvas.bind_all("<Button-5>", lambda e: self.canvas.yview_scroll(1, "units"))
 
     def refresh_homepage_recent_patient(self):
-        """Refresh the homepage recent patient display after adding/updating a patient"""
+        """Refresh the homepage recent patient display AND patient table after adding/updating a patient"""
         try:
             # Find the main application window (HomePage)
             current_window = self.master
             while current_window and not hasattr(current_window, 'pages'):
                 current_window = current_window.master
             
-            # If we found the HomePage and it has a Home page
-            if current_window and hasattr(current_window, 'pages') and 'Home' in current_window.pages:
-                home_page = current_window.pages['Home']
-                if hasattr(home_page, 'refresh_recent_patient'):
-                    home_page.refresh_recent_patient()
-                    print("✅ Homepage recent patient refreshed successfully!")
+            # If we found the HomePage and it has pages
+            if current_window and hasattr(current_window, 'pages'):
+                # Refresh Home page recent patient
+                if 'Home' in current_window.pages:
+                    home_page = current_window.pages['Home']
+                    if hasattr(home_page, 'refresh_recent_patient'):
+                        home_page.refresh_recent_patient()
+                        print("✅ Homepage recent patient refreshed successfully!")
+                
+                # Refresh Patient page table
+                if 'Patient' in current_window.pages:
+                    patient_page = current_window.pages['Patient']
+                    if hasattr(patient_page, 'refresh_table'):
+                        patient_page.refresh_table()
+                        print("✅ Patient page table refreshed successfully!")
+                        
         except Exception as e:
             print(f"❌ Error refreshing homepage: {e}")
 
@@ -1830,7 +1835,7 @@ class MedicationWindow(BaseWindow):
 
             if create_patient_medications:
                 print("Step 6 input successfully created")
-                self.refresh_homepage_recent_patient()
+                self.refresh_homepage_recent_patient()  
             else:
                 print("Error with step 6 input creation")
                 return

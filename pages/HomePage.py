@@ -162,6 +162,27 @@ class HomePage(ctk.CTkFrame):
         if page_name == "Patient":
             self.pages["Patient"].show_table_view()
 
+    def refresh_all_patient_data(self):
+        """Refresh both home page recent patient and patient page table"""
+        try:
+            # Refresh home page recent patient
+            if hasattr(self, 'pages') and 'Home' in self.pages:
+                home_page = self.pages['Home']
+                if hasattr(home_page, 'refresh_recent_patient'):
+                    home_page.refresh_recent_patient()
+                    print("✅ Home page recent patient refreshed!")
+            
+            # Refresh patient page table
+            if hasattr(self, 'pages') and 'Patient' in self.pages:
+                patient_page = self.pages['Patient']
+                if hasattr(patient_page, 'refresh_table'):
+                    patient_page.refresh_table()
+                    print("✅ Patient page table refreshed!")
+                    
+        except Exception as e:
+            print(f"❌ Error refreshing patient data: {e}")
+
+
 class Sidebar(ctk.CTkFrame):
     def __init__(self, parent, shared_state):
         super().__init__(parent, fg_color="#1A374D", width=300, corner_radius=0)
@@ -1787,9 +1808,11 @@ class PatientPage(ctk.CTkFrame):
         self.button_frame.place(x=20, y=50, anchor="nw") 
         self.navbar.pack(fill="x", side="top")
         self.table_frame.place(x=20, y=150, relwidth=0.95, relheight=0.8) 
-
         """Refresh the patient table with latest data"""
         try:
+            # Make sure we're in table view
+            self.show_table_view()
+            
             # Clear existing table data
             for row in self.tree.get_children():
                 self.tree.delete(row)
@@ -1798,9 +1821,10 @@ class PatientPage(ctk.CTkFrame):
             fresh_data = self.fetch_patient_data()
             self.populate_table(fresh_data)
             
-            print("✅ Table refreshed with latest data")
+            print("✅ Patient table refreshed with latest data")
+            
         except Exception as e:
-            print(f"❌ Error refreshing table: {e}")
+            print(f"❌ Error refreshing table: {e}")                
 
     def enable_buttons(self):
         self.add_button.configure(state="normal")
