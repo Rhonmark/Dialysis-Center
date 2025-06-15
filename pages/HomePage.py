@@ -733,7 +733,7 @@ class HomePageContent(ctk.CTkFrame):
         # Subtitle for Yesterday Item Usage
         YItemUsage_subtitle = ctk.CTkLabel(
             self.yesterday_usage_frame,
-            text="2025/06/13",
+            text=date.today() - timedelta(days=1),
             font=("Arial", 12),
             text_color="#666666"
         )
