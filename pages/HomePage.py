@@ -155,6 +155,8 @@ class HomePage(ctk.CTkFrame):
         # Refresh recent patient data when navigating to Home page
         if page_name == "Home":
             self.pages["Home"].refresh_recent_patient()
+            # refresh patient data and pie chart
+            self.pages["Home"].refresh_patient_data_and_chart()
             
         self.current_page = self.pages[page_name]
         self.current_page.pack(fill="both", expand=True)
@@ -171,6 +173,10 @@ class HomePage(ctk.CTkFrame):
                 if hasattr(home_page, 'refresh_recent_patient'):
                     home_page.refresh_recent_patient()
                     print("✅ Home page recent patient refreshed!")
+                
+                # refresh the pie chart data
+                if hasattr(home_page, 'refresh_patient_data_and_chart'):
+                    home_page.refresh_patient_data_and_chart()
             
             # Refresh patient page table
             if hasattr(self, 'pages') and 'Patient' in self.pages:
@@ -265,55 +271,12 @@ class HomePageContent(ctk.CTkFrame):
         # Initialize graph canvases
         self.most_used_canvas = None
         self.yesterday_canvas = None
+        self.pie_chart_canvas = None  
 
-        def pie_chart():
-            try:
-                connect = db()
-                cursor = connect.cursor()
-
-                cursor.execute("""
-                    UPDATE patient_info pi
-                    JOIN (
-                        SELECT patient_id
-                        FROM item_usage
-                        GROUP BY patient_id
-                        HAVING DATEDIFF(CURDATE(), MAX(usage_date)) > 30
-                    ) inactive_patients ON pi.patient_id = inactive_patients.patient_id
-                    SET pi.status = 'Inactive'
-                """)
-
-                connect.commit()
-
-                cursor.execute("SELECT status, COUNT(*) FROM patient_info GROUP BY status")
-
-                status_count_result = cursor.fetchall()
-                label = [label[0] for label in status_count_result]
-                value = [value[1] for value in status_count_result]
-
-                active_value = value[0]
-                inactive_value = value[1]
-
-                print('active:', active_value)
-                print('inactive:', inactive_value)
-
-                total_patient = sum(value)
-
-                print('total patient: ', total_patient)
-
-                colors = ['#88BD8E', '#F4070B']
-
-                plt.pie(value, labels=label, colors=colors)
-                plt.axis('equal')
-                plt.show()
-
-            except Exception as e:
-                print('Error retrieving for pi chart', e)
-            finally:
-                cursor.close()
-                connect.close()
-
-        pie_chart()
-
+        # Initialize patient count variables
+        self.total_patients = 0
+        self.active_patients = 0
+        self.inactive_patients = 0
 
         def get_name():
             # Commented out backend database call
@@ -350,9 +313,142 @@ class HomePageContent(ctk.CTkFrame):
         # Setup UI
         self.setup_ui(first_name, full_name)
         
-        # Load initial graphs
+        # Load initial graphs and patient data
         self.show_overall_usage()
         self.show_yesterday_usage()
+        self.load_patient_data_and_pie_chart()
+
+    def load_patient_data_and_pie_chart(self):
+        """Load patient data and create pie chart"""
+        try:
+            connect = db()
+            cursor = connect.cursor()
+
+            # Update inactive patients based on usage
+            cursor.execute("""
+                UPDATE patient_info pi
+                JOIN (
+                    SELECT patient_id
+                    FROM item_usage
+                    GROUP BY patient_id
+                    HAVING DATEDIFF(CURDATE(), MAX(usage_date)) > 30
+                ) inactive_patients ON pi.patient_id = inactive_patients.patient_id
+                SET pi.status = 'Inactive'
+            """)
+
+            connect.commit()
+
+            # Get patient counts 
+            cursor.execute("SELECT status, COUNT(*) FROM patient_info GROUP BY status ORDER BY status")
+            status_count_result = cursor.fetchall()
+            
+            if status_count_result:
+                labels = [label[0] for label in status_count_result]
+                values = [value[1] for value in status_count_result]
+
+                # Initialize values
+                self.active_patients = 0
+                self.inactive_patients = 0
+                
+                # Properly map the values based on actual labels
+                for i, label in enumerate(labels):
+                    if label == 'Active':
+                        self.active_patients = values[i]
+                    elif label == 'Inactive':
+                        self.inactive_patients = values[i]
+
+                self.total_patients = sum(values)
+
+                print('active:', self.active_patients)
+                print('inactive:', self.inactive_patients)
+                print('total patient:', self.total_patients)
+
+                # Update the labels
+                self.update_patient_labels()
+                
+                # Create pie chart
+                self.create_pie_chart(labels, values)
+            else:
+                # No data found
+                self.total_patients = 0
+                self.active_patients = 0
+                self.inactive_patients = 0
+                self.update_patient_labels()
+                
+                # Create empty pie chart
+                self.create_pie_chart([], [])
+
+        except Exception as e:
+            print('Error retrieving patient data for pie chart:', e)
+            # Set default values on error
+            self.total_patients = 0
+            self.active_patients = 0
+            self.inactive_patients = 0
+            self.update_patient_labels()
+        finally:
+            if 'cursor' in locals():
+                cursor.close()
+            if 'connect' in locals():
+                connect.close()
+
+    def create_pie_chart(self, labels, values):
+        """Recommended: Clean pie chart with external legend"""
+        try:
+            if self.pie_chart_canvas:
+                self.pie_chart_canvas.get_tk_widget().destroy()
+
+            fig = Figure(figsize=(3.2, 2.8), dpi=100)
+            ax = fig.add_subplot(111)
+            
+            if values and sum(values) > 0:
+                colors = []
+                for label in labels:
+                    if label == 'Active':
+                        colors.append('#4CAF50')
+                    else:
+                        colors.append('#FF5722')
+                
+                # Clean pie chart - no labels, just percentages
+                wedges, texts, autotexts = ax.pie(
+                    values, 
+                    colors=colors,
+                    autopct='%1.1f%%',
+                    startangle=90,
+                    pctdistance=0.8,
+                    textprops={'fontsize': 11, 'weight': 'bold', 'color': 'white'}
+                )
+                pass  
+                    
+            else:
+                ax.text(0.5, 0.5, 'No Data', 
+                    horizontalalignment='center', verticalalignment='center',
+                    transform=ax.transAxes, fontsize=12, color='gray',
+                    weight='bold')
+            
+            ax.axis('equal')
+            fig.tight_layout()
+
+            self.pie_chart_canvas = FigureCanvasTkAgg(fig, self.fifth_frame)
+            self.pie_chart_canvas.draw()
+            self.pie_chart_canvas.get_tk_widget().place(x=25, y=100, width=300, height=200)
+
+        except Exception as e:
+            print('Error creating pie chart:', e)
+
+    def update_patient_labels(self):
+        """Update the patient count labels"""
+        try:
+            # Update total count
+            self.total_count_label.configure(text=str(self.total_patients))
+            
+            # Update active count
+            self.active_count.configure(text=str(self.active_patients))
+            
+            # Update inactive count
+            self.inactive_count.configure(text=str(self.inactive_patients))
+            
+        except Exception as e:
+            print('Error updating patient labels:', e)
 
     def show_overall_usage(self):
         """Show overall usage chart in container"""
@@ -844,30 +940,30 @@ class HomePageContent(ctk.CTkFrame):
         self.setup_patient_boxes()
 
         # Total Patients Frame
-        fifth_frame = ctk.CTkFrame(
+        self.fifth_frame = ctk.CTkFrame(
             self,
             width=350,
             height=520,
             fg_color="white",
             corner_radius=20
         )
-        fifth_frame.place(x=1200, y=150)
+        self.fifth_frame.place(x=1200, y=150)
 
         totalPatients_label = ctk.CTkLabel(
-            fifth_frame,
+            self.fifth_frame,
             text="Total Patients",
             font=("Merriweather", 20, "bold")
         )
-        totalPatients_label.place(x=140, y=40)
+        totalPatients_label.place(x=120, y=40)
 
-        # Patient count display
-        total_count_label = ctk.CTkLabel(
-            fifth_frame,
-            text="247",
+        # Patient count display 
+        self.total_count_label = ctk.CTkLabel(
+            self.fifth_frame,
+            text="0",  # Will be updated
             font=("Arial", 48, "bold"),
             text_color="#68EDC6"
         )
-        total_count_label.place(x=40, y=20)
+        self.total_count_label.place(x=40, y=20)
 
         active_icon_image = ctk.CTkImage(
             light_image=Image.open("assets/active_patients.png"),
@@ -880,7 +976,7 @@ class HomePageContent(ctk.CTkFrame):
         )
 
         active_patients = ctk.CTkFrame(
-            fifth_frame,
+            self.fifth_frame,
             width=270,
             height=80,
             fg_color="white",
@@ -897,13 +993,13 @@ class HomePageContent(ctk.CTkFrame):
         )
         active_icon_label.place(x=15, y=20)
 
-        active_count = ctk.CTkLabel(
+        self.active_count = ctk.CTkLabel(
             active_patients,
-            text="189",
+            text="0", 
             font=("Arial", 24, "bold"),
             text_color="#4CAF50"
         )
-        active_count.place(x=70, y=15)
+        self.active_count.place(x=70, y=15)
 
         active_label = ctk.CTkLabel(
             active_patients,
@@ -914,7 +1010,7 @@ class HomePageContent(ctk.CTkFrame):
         active_label.place(x=70, y=45)
 
         inactive_patients = ctk.CTkFrame(
-            fifth_frame,
+            self.fifth_frame,
             width=270,
             height=80,
             fg_color="white",
@@ -931,13 +1027,13 @@ class HomePageContent(ctk.CTkFrame):
         )
         inactive_icon_label.place(x=15, y=20)
 
-        inactive_count = ctk.CTkLabel(
+        self.inactive_count = ctk.CTkLabel(
             inactive_patients,
-            text="58",
+            text="0",  # Will be updated
             font=("Arial", 24, "bold"),
             text_color="#FF5722"
         )
-        inactive_count.place(x=70, y=15)
+        self.inactive_count.place(x=70, y=15)
 
         inactive_label = ctk.CTkLabel(
             inactive_patients,
@@ -1015,6 +1111,13 @@ class HomePageContent(ctk.CTkFrame):
         # Start the carousel animation and refresh recent patient
         self.start_reminder_carousel()
         self.refresh_recent_patient()
+
+
+     # Add method to auto-refresh patient data when needed
+    def refresh_patient_data_and_chart(self):
+        """Method to be called from other pages when patient data changes"""
+        self.load_patient_data_and_pie_chart()
+        print("✅ Patient data and pie chart automatically refreshed!")
 
     def setup_patient_boxes(self):
         # First Patient Box - Name
@@ -1839,6 +1942,29 @@ class PatientPage(ctk.CTkFrame):
         self.navbar.pack(fill="x", side="top")
         self.table_frame.place(x=20, y=150, relwidth=0.95, relheight=0.8)
 
+    def refresh_after_update(self):
+        """Called after a patient is updated to refresh the table and view"""
+        print("🔄 Refreshing patient data after update...")
+        
+        # Store current patient_id if we were viewing details
+        current_patient_id = self.patient_id_value.cget("text") if hasattr(self, 'patient_id_value') else None
+        
+        # Refresh the table
+        self.refresh_table()
+        
+        # FIXED: Trigger automatic refresh of home page pie chart
+        # Access the main HomePage instance and refresh patient data
+        if hasattr(self.master, 'master') and hasattr(self.master.master, 'pages'):
+            home_page = self.master.master.pages.get('Home')
+            if home_page and hasattr(home_page, 'refresh_patient_data_and_chart'):
+                home_page.refresh_patient_data_and_chart()
+        
+        # If we were viewing a patient's details, refresh that view too
+        if current_patient_id:
+            self.show_detailed_info(current_patient_id)
+        
+        print("✅ Patient data refreshed successfully!")
+
     def open_input_window(self, window_class, data=None):
         input_window = window_class(self.master, data or {})
         input_window.grab_set()
@@ -1846,11 +1972,16 @@ class PatientPage(ctk.CTkFrame):
 
         def on_close():
             input_window.destroy()
+            # FIXED: Automatically refresh after any patient input operation
+            self.refresh_after_update()
 
         input_window.protocol("WM_DELETE_WINDOW", on_close)
         self.wait_window(input_window)
         self.refresh_table()
         self.enable_buttons()
+        
+        # FIXED: Additional refresh after input window closes
+        self.refresh_after_update()
 
     def refresh_table(self):
         self.detailed_info_frame.place_forget() 
@@ -3287,42 +3418,12 @@ class SupplyPage(ctk.CTkFrame):
         self.button_frame.place(x=20, y=50, anchor="nw")
         self.navbar.pack(fill="x", side="top")
         self.populate_table(self.fetch_supply_data())
-
     def open_add_window(self):
         add_window = SupplyWindow(self)
         add_window.grab_set()
         add_window.focus_force()
         self.wait_window(add_window)
         self.refresh_table()
-
-    # FOR TESTING
-    def clear_supply_table(self):
-        """Clear all supply data from the table and reset ID to start from 1"""
-        try:
-            connect = db()
-            cursor = connect.cursor()
-            
-            # Delete all records from supply table
-            cursor.execute("DELETE FROM supply")
- 
-            cursor.execute("ALTER TABLE supply AUTO_INCREMENT = 1")
-
-            connect.commit()
-            
-            print("Supply table cleared successfully. Next ID will start from 1.")
-
-            self.populate_table([])
-            if hasattr(self, 'Main_Supply_Frame'):
-                self.show_table_view()
-                
-            cursor.close()
-            connect.close()
-            
-            return True
-            
-        except Exception as e:
-            print(f"Error clearing supply table: {e}")
-            return False
 
     def open_edit_window(self):
         """Open edit window with current detailed supply data"""
