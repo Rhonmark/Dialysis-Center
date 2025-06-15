@@ -607,7 +607,7 @@ class HomePageContent(ctk.CTkFrame):
             border_width=2.5,
             border_color="#E0E0E0"
         )
-        self.search_container.place(x=450, y=70, anchor="w")
+        self.search_container.place(x=480, y=70, anchor="w")
 
         # Search icon
         try:
@@ -1383,15 +1383,23 @@ class PatientPage(ctk.CTkFrame):
         )
         self.add_button.pack(side="left", padx=10)
 
-        # Guide Button
-        self.guide_button = ctk.CTkButton(
+        # Sort By 
+        self.sort_label = ctk.CTkLabel(
             self.button_frame,
-            text="Guide",
-            font=ctk.CTkFont("Arial", 16, "bold"),
-            width=180,
-            height=50
+            text="SORT BY:",
+            font=ctk.CTkFont("Arial", 14, "bold")
         )
-        self.guide_button.pack(side="left", padx=10)
+        self.sort_label.pack(side="left", padx=(10, 5))
+
+        self.sort_dropdown = ctk.CTkComboBox(
+            self.button_frame,
+            values=["Name", "Date", "Size", "Type"],
+            font=ctk.CTkFont("Arial", 14),
+            width=150,
+            height=35,
+            bg_color="white"
+        )
+        self.sort_dropdown.pack(side="left", padx=(0, 10))
 
          # Search container
         self.search_container = ctk.CTkFrame(
@@ -1403,7 +1411,7 @@ class PatientPage(ctk.CTkFrame):
             border_width=2.5,
             border_color="#E0E0E0"
         )
-        self.search_container.place(x=450, y=70, anchor="w")
+        self.search_container.place(x=480, y=70, anchor="w")
 
         # Search icon
         try:
@@ -2595,15 +2603,23 @@ class SupplyPage(ctk.CTkFrame):
         )
         self.add_button.pack(side="left", padx=10)
 
-        # Guide Button
-        self.guide_button = ctk.CTkButton(
+        # Sort By 
+        self.sort_label = ctk.CTkLabel(
             self.button_frame,
-            text="Guide",
-            font=ctk.CTkFont("Arial", 16, "bold"),
-            width=180,
-            height=50
+            text="SORT BY:",
+            font=ctk.CTkFont("Arial", 14, "bold")
         )
-        self.guide_button.pack(side="left", padx=10)
+        self.sort_label.pack(side="left", padx=(10, 5))
+
+        self.sort_dropdown = ctk.CTkComboBox(
+            self.button_frame,
+            values=["Name", "Date", "Size", "Type"],
+            font=ctk.CTkFont("Arial", 14),
+            width=150,
+            height=35,
+            bg_color="white"
+        )
+        self.sort_dropdown.pack(side="left", padx=(0, 10))
 
          # Search container
         self.search_container = ctk.CTkFrame(
@@ -2615,7 +2631,7 @@ class SupplyPage(ctk.CTkFrame):
             border_width=2.5,
             border_color="#E0E0E0"
         )
-        self.search_container.place(x=450, y=70, anchor="w")
+        self.search_container.place(x=480, y=70, anchor="w")
 
         # Search icon
         try:
