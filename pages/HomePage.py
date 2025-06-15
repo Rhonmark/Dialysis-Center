@@ -266,6 +266,55 @@ class HomePageContent(ctk.CTkFrame):
         self.most_used_canvas = None
         self.yesterday_canvas = None
 
+        def pie_chart():
+            try:
+                connect = db()
+                cursor = connect.cursor()
+
+                cursor.execute("""
+                    UPDATE patient_info pi
+                    JOIN (
+                        SELECT patient_id
+                        FROM item_usage
+                        GROUP BY patient_id
+                        HAVING DATEDIFF(CURDATE(), MAX(usage_date)) > 30
+                    ) inactive_patients ON pi.patient_id = inactive_patients.patient_id
+                    SET pi.status = 'Inactive'
+                """)
+
+                connect.commit()
+
+                cursor.execute("SELECT status, COUNT(*) FROM patient_info GROUP BY status")
+
+                status_count_result = cursor.fetchall()
+                label = [label[0] for label in status_count_result]
+                value = [value[1] for value in status_count_result]
+
+                active_value = value[0]
+                inactive_value = value[1]
+
+                print('active:', active_value)
+                print('inactive:', inactive_value)
+
+                total_patient = sum(value)
+
+                print('total patient: ', total_patient)
+
+                colors = ['#88BD8E', '#F4070B']
+
+                plt.pie(value, labels=label, colors=colors)
+                plt.axis('equal')
+                plt.show()
+
+            except Exception as e:
+                print('Error retrieving for pi chart', e)
+            finally:
+                cursor.close()
+                connect.close()
+
+        pie_chart()
+
+
         def get_name():
             # Commented out backend database call
             # username = login_shared_states.get('logged_username', None)
