@@ -318,6 +318,7 @@ class HomePageContent(ctk.CTkFrame):
         self.show_overall_usage()
         self.show_yesterday_usage()
         self.load_patient_data_and_pie_chart()
+        
 
     def load_patient_data_and_pie_chart(self):
         """Load patient data and create pie chart"""
@@ -398,7 +399,7 @@ class HomePageContent(ctk.CTkFrame):
             if self.pie_chart_canvas:
                 self.pie_chart_canvas.get_tk_widget().destroy()
 
-            merriweather_font = fm.FontProperties(fname='font/MerriweatherSans-Bold.ttf')
+            tick_font = fm.FontProperties(fname='font/Inter_18pt-Italic.ttf')
 
             fig = Figure(figsize=(3.2, 2.8), dpi=100)
             ax = fig.add_subplot(111)
@@ -418,7 +419,7 @@ class HomePageContent(ctk.CTkFrame):
                     autopct='%1.1f%%',
                     startangle=90,
                     pctdistance=0.5,
-                    textprops={'fontsize': 13, 'fontproperties': merriweather_font, 'color': 'white'}
+                    textprops={'fontsize': 13, 'fontproperties': tick_font, 'color': 'white'}
                 )
                 pass  
                     
@@ -3623,7 +3624,6 @@ class ReportPage(ctk.CTkFrame):
         SupplyCountLabel = ctk.CTkLabel(SupplyCountLabel_bg,font=label_font,text="Supply Count",text_color="#104E44",bg_color="transparent",height=10)
         SupplyCountLabel.place(relx=.5,rely=.4,anchor="center")
 
-
         Lowstock_BG = ctk.CTkFrame(SupplyReport_frame,width=155,height=55,corner_radius=10,fg_color="#D08B40",bg_color="transparent")
         Lowstock_BG.place(x=270,y=65)
 
@@ -3713,6 +3713,81 @@ class ReportPage(ctk.CTkFrame):
                                            fg_color="#FFFFFF",
                                            bg_color="transparent")
         Discrepancies_frame.place(x=1340,y=445)
+
+        def low_stock_graph():
+            try:
+                connect = db()
+
+                query = """
+                    SELECT item_name, current_stock FROM supply
+                    WHERE stock_level_status = 'Low Stock Level'
+                """
+
+                df = pd.read_sql(query, connect)
+
+                fig = Figure(figsize=(10, 3.5), dpi=100)
+                ax = fig.add_subplot(111)
+        
+                tick_font = fm.FontProperties(fname='font/Inter_18pt-Italic.ttf')
+
+                ax.bar(df['item_name'], df['current_stock'], color='#C0DABE')
+                ax.tick_params(axis='x', pad=10)
+                ax.margins(y=0.15)
+
+                for label in ax.get_xticklabels() + ax.get_yticklabels():
+                    label.set_fontproperties(tick_font)
+                    label.set_fontsize(11)
+
+                for spine in ax.spines.values():
+                    spine.set_visible(False)
+
+                fig.tight_layout()
+
+                self.low_stock_canvas = FigureCanvasTkAgg(fig, self. LowOnStock_frame)
+                self.low_stock_canvas.draw()
+                self.low_stock_canvas.get_tk_widget().place(x=20, y=100, width=1010, height=320)
+            except Exception as e:
+                print('Error retrieving low stock levels graph', e)
+            finally:
+                connect.close()
+
+        def critical_stock_graph():
+            try:
+                connect = db()
+
+                query = """
+                    SELECT item_name, current_stock FROM supply
+                    WHERE stock_level_status = 'Critical Stock Level'
+                """
+
+                df = pd.read_sql(query, connect)
+        
+                fig = Figure(figsize=(10, 3.5), dpi=100)
+                ax = fig.add_subplot(111)
+
+                tick_font = fm.FontProperties(fname='font/Inter_18pt-Italic.ttf')
+
+                ax.bar(df['item_name'], df['current_stock'], color='#C0DABE')
+                ax.tick_params(axis='x', pad=10)
+                ax.margins(y=0.15)
+
+                for label in ax.get_xticklabels() + ax.get_yticklabels():
+                    label.set_fontproperties(tick_font)
+                    label.set_fontsize(11)
+
+                for spine in ax.spines.values():
+                    spine.set_visible(False)
+
+                fig.tight_layout()
+
+                self.critical_stock_canvas = FigureCanvasTkAgg(fig, self.CriticalStock_frame)
+                self.critical_stock_canvas.draw()
+                self.critical_stock_canvas.get_tk_widget().place(x=20, y=100, width=1010, height=320)
+
+            except Exception as e:
+                print('Error retrieving low stock levels graph', e)
+            finally:
+                connect.close()
 
     #Low Stock Level items
         LowOnStock_frame = ctk.CTkFrame(self,
