@@ -9,7 +9,7 @@ from components.state import login_shared_states
 import customtkinter as ctk
 from components.buttons import CTkButtonSelectable, apply_selected_state
 
-class LoginPage(tk.Frame):
+class LoginPage(ctk.CTkFrame):
     def __init__(self, parent, shared_state):
         super().__init__(parent)    
 
@@ -18,13 +18,20 @@ class LoginPage(tk.Frame):
         self.rowconfigure(0, weight=1)
         self.shared_state = shared_state  
 
+        Title_font = ("Merriweather", 34)
+        SubTitle_font = ("Merriweather Sans light " ,16)
+        Entry_font = ("Merriweather Sans light" ,12)
+        button_font = ("Merriweather Bold",15)
+        label_font = ("Merriweather Sans light", 13)
+
         # Access the selected role
         selected_role = self.shared_state.get("selected_role", "None")
         print(selected_role)
 
         # Left container 
-        left_container = tk.Frame(self)
+        left_container = ctk.CTkFrame(self,width=900,height=720)
         left_container.grid(row=0, column=0, sticky="nsew")
+
 
         self.canvas = tk.Canvas(left_container)
         self.canvas.place(relx=0, rely=0, relwidth=1, relheight=1)
@@ -88,38 +95,38 @@ class LoginPage(tk.Frame):
         apply_selected_state(self.shared_state, left_container)
 
         # Right container
-        right_container = tk.Frame(self, bg="#1A374D")  
+        right_container = ctk.CTkFrame(self,fg_color="#1A374D")  
         right_container.grid(row=0, column=1, sticky="nsew")
 
         # Title label 
-        title = tk.Label(right_container, text="LOGIN", font=("Arial", 36, "bold"), fg="#68EDC6", bg="#1A374D")
+        title = ctk.CTkLabel(right_container, text="L O G I N",text_color="#68EDC6", font=Title_font, bg_color="#1A374D")
         title.place(relx=0.5, rely=0, anchor="n", y=50)
 
         # Subtitle label 
-        subtitle = tk.Label(
+        subtitle = ctk.CTkLabel(
             right_container,
             text="Make sure to create an\naccount first",
-            font=("Arial", 11),
-            fg="white",
-            bg="#1A374D",
-            wraplength=250  
+            text_color="#FFFFff",
+            font=SubTitle_font,
+            bg_color="#1A374D",
+              
         )
-        subtitle.place(relx=0.5, rely=0.15, anchor="n")
+        subtitle.place(relx=0.5, rely=0.165, anchor="n")
 
         # Username Label
-        username_label = tk.Label(right_container, text="Username", font=("Arial", 12), fg="white", bg="#1A374D")
-        username_label.place(relx=0.23, rely=0.35, anchor="n")
-        self.username_field = TextField(right_container, placeholder="Username must be at least 8 characters", font=("Arial", 12), width=25)
-        self.username_field.place(relx=0.5, rely=0.39, anchor="n", width=300, height=50)
+        username_label = ctk.CTkLabel(right_container, text="Username",text_color="#FFFFFF", font=label_font, bg_color="#1A374D")
+        username_label.place(relx=0.23, rely=0.34, anchor="n")
+        self.username_field = ctk.CTkEntry(right_container, placeholder_text="Username must be at least 8 characters",text_color="#BBBBBB",font=Entry_font,width=300,height=40,corner_radius=20,bg_color="#1A374D",fg_color="#FFFFFF",border_width=0)
+        self.username_field.place(relx=0.5, rely=0.39, anchor="n")
 
         # Password Label
-        password_label = tk.Label(right_container, text="Password", font=("Arial", 12), fg="white", bg="#1A374D")
+        password_label = ctk.CTkLabel(right_container, text="Password",text_color="#FFFFFF", font=label_font, bg_color="#1A374D")
         password_label.place(relx=0.23, rely=0.48, anchor="n") 
 
         # Password Field
         self.password_visible = False 
-        self.password_field = TextField(right_container, placeholder="Password must be at least 6 characters", font=("Arial", 12), width=25)
-        self.password_field.place(relx=0.5, rely=0.52, anchor="n", width=300, height=50)
+        self.password_field = ctk.CTkEntry(right_container, placeholder_text="Password must be at least 6 characters,",text_color="#BBBBBB",font=Entry_font, width=300,height=40,corner_radius=20,bg_color="#1A374D",fg_color="#FFFFFF",border_width=0)
+        self.password_field.place(relx=0.5, rely=0.53, anchor="n")
 
         # Load eye icons
         self.eye_open_icon = ImageTk.PhotoImage(Image.open("assets/eye_open.png").resize((20, 20)))
@@ -134,12 +141,12 @@ class LoginPage(tk.Frame):
         self.password_field.bind("<KeyRelease>", self.check_password_input)
 
         # Forgot Password
-        forgot_password_label = tk.Label(
+        forgot_password_label = ctk.CTkLabel(
             right_container,
             text="Forgot Password?",
-            font=("Arial", 12,),
-            fg="white",
-            bg="#1A374D",
+            text_color="#FFFFFF",
+            font=label_font,
+            bg_color="#1A374D",
             cursor="hand2"
         )
         forgot_password_label.place(relx=0.7, rely=0.591, anchor="n") 
@@ -150,22 +157,32 @@ class LoginPage(tk.Frame):
         self.error_label.place(relx=0.5, rely=0.65, anchor="n")
 
         # Login Button
-        login_button = CTkButtonSelectable(
+        login_button = ctk.CTkButton(
             right_container,
             text="Login",
+            font=button_font,
+            text_color="#FfFFFF",
             command=self.on_login_click,
             width=230,  
-            height=50   
+            height=50,
+            corner_radius=25,
+            bg_color="#1A374D",
+            fg_color="#00C88D"
         )
         login_button.place(relx=0.5, rely=0.71, anchor="n")  
 
         # Signup Button
-        signup_button = CTkButtonSelectable(
+        signup_button = ctk.CTkButton(
             right_container,
             text="Register",
+            font=button_font,
+            text_color="#FFFFFF",
             command=self.on_signup_click,
             width=230, 
-            height=50  
+            height=50,
+            corner_radius=25,
+            bg_color="#1A374D",
+            fg_color="#00C88D"
         )
         signup_button.place(relx=0.5, rely=0.8, anchor="n")  
 
@@ -176,7 +193,7 @@ class LoginPage(tk.Frame):
         if current_text:  
             self.eye_label.place(relx=0.8, rely=0.54, anchor="n")  
             self.password_visible = False  
-            self.password_field.config(show="*")  
+            self.password_field.configure(show="*")  
             self.eye_label.config(image=self.eye_closed_icon) 
         else:
             self.eye_label.place_forget()  

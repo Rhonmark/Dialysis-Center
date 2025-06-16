@@ -737,12 +737,13 @@ class HomePageContent(ctk.CTkFrame):
         self.namev2_label = ctk.CTkLabel(self.navbar, text=full_name, text_color="black", font=("Arial", 30, "bold"))
         self.namev2_label.place(relx=0.85, rely=0.5, anchor="e")
 
+        self.notif_frame = NotificationFrame(self)
         notif_img = ctk.CTkImage(light_image=Image.open("assets/notif.png"), size=(42, 42))
         settings_img = ctk.CTkImage(light_image=Image.open("assets/settingsv2.png"), size=(42, 42))
 
         icon_y = 62
 
-        notif_btn = ctk.CTkButton(self.navbar, image=notif_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5")
+        notif_btn = ctk.CTkButton(self.navbar, image=notif_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5",command=self.notif_frame.toggle)
         notif_btn.place(relx=1.0, x=-110, y=icon_y, anchor="center")
 
         settings_btn = ctk.CTkButton(self.navbar, image=settings_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5", command=self.toggle_dropdown)
@@ -1189,7 +1190,6 @@ class HomePageContent(ctk.CTkFrame):
         self.start_reminder_carousel()
         self.refresh_recent_patient()
 
-
      # Add method to auto-refresh patient data when needed
     def refresh_patient_data_and_chart(self):
         """Method to be called from other pages when patient data changes"""
@@ -1401,6 +1401,134 @@ class HomePageContent(ctk.CTkFrame):
         if self.yesterday_canvas:
             self.yesterday_canvas.get_tk_widget().destroy()
         super().destroy()
+
+class NotificationFrame(ctk.CTkFrame):
+    def __init__(self, parent, **kwargs):
+        super().__init__(parent, width=400, height=400, **kwargs)
+        self.place(relx=0.7, rely=0.08)
+        self.visible = False  
+        self.place_forget()   
+        self.lift()
+
+        #Header Frame
+        header_frame = ctk.CTkFrame(self, width=400, height=60, fg_color="#04B17E", corner_radius=0)
+        header_frame.place(y=0)
+        header_title = ctk.CTkLabel(header_frame, font=("Merriweather Bold", 18), text="Notification", text_color="#FFFFFF")
+        header_title.place(relx=0.1, rely=0.25)
+        clear_button = ctk.CTkButton(header_frame,width=70,height=30,fg_color="#1A374D",bg_color="#04B17E",text="Clear All",font=("Merriweather Bold",11),corner_radius=20)
+        clear_button.place(relx=.8,rely=.5,anchor="center")
+
+        #Scrollable Notification Frame
+        notification_frame = ctk.CTkScrollableFrame(
+            self,
+            width=400,
+            height=340,
+            fg_color="#f4f4f4",
+            scrollbar_button_color="#f4f4f4",
+            scrollbar_fg_color="#f4f4f4",
+            corner_radius=0
+        )
+        notification_frame.place(y=60)
+
+    #Icons
+        Patient_Icon = ctk.CTkImage(light_image=Image.open("assets/PatientIcon.png"), size=(25, 25))
+        StockLevels_Icon = ctk.CTkImage(light_image=Image.open("assets/StockLevelsIcon.png"), size=(25, 25))
+        Backups_Icon = ctk.CTkImage(light_image=Image.open("assets/BackupNotificationIcon.png"), size=(25, 25))
+        Audit_Icon = ctk.CTkImage(light_image=Image.open("assets/AuditIcon.png"), size=(25, 25))
+
+#Patient Notifcation 
+        Notification_Patient_Box= ctk.CTkFrame(notification_frame,width=350,height=60,fg_color="#FFFFFF",corner_radius=10,bg_color="#F4f4f4")
+        Notification_Patient_Box.pack(padx=10,pady=(10,6))
+        Patient_Colorcoding = ctk.CTkFrame(Notification_Patient_Box,width=60,height=60,fg_color="#009BB7",corner_radius=10,bg_color="#F4f4f4")
+        Patient_Colorcoding.place(x=0)
+
+        #Icon
+        Patient_Icon_Label = ctk.CTkLabel(Patient_Colorcoding,image=Patient_Icon,text="")
+        Patient_Icon_Label.place(relx=.5,rely=.5,anchor="center")
+
+    
+         #Title
+        Patient_title = ctk.CTkLabel(Notification_Patient_Box,text="Patient Notification",font=("Merriweather sans Bold",11),height=1,text_color="#000000")
+        Patient_title.place (relx=.23,rely=.1)
+
+    #Output Text
+        Patient_Output = ctk.CTkLabel(Notification_Patient_Box,
+                                      text="Sample Message ",
+                                      font=("Merriweather sans",10),
+                                      text_color="#104E44")
+        Patient_Output.place(relx=.23,rely=.35 )
+
+#Stock Level Notification
+        Notification_StockLevels_Box = ctk.CTkFrame(notification_frame,width=350,height=60,fg_color="#FFFFFF",corner_radius=10,bg_color="#F4f4f4")
+        Notification_StockLevels_Box.pack(padx=10,pady=6)
+        Stocklevels_Colorcoding = ctk.CTkFrame(Notification_StockLevels_Box,width=60,height=60,fg_color="#FFACAC",corner_radius=10,bg_color="#f4f4f4")
+        Stocklevels_Colorcoding.place(x=0)
+
+        #Icon
+        StockLevels_Icon_Label = ctk.CTkLabel(Stocklevels_Colorcoding,image=StockLevels_Icon,text="")
+        StockLevels_Icon_Label.place(relx=.5,rely=.5,anchor="center")
+
+         #Title
+        StockLevel_title = ctk.CTkLabel(Notification_StockLevels_Box,text="Stock Level Notification",font=("Merriweather sans Bold",11),height=1,text_color="#000000")
+        StockLevel_title.place (relx=.23,rely=.1)
+
+    #Output Text
+        StockLevel_Output = ctk.CTkLabel(Notification_StockLevels_Box,
+                                         text="Sample Message",
+                                         font=("Merriweather sans",10),
+                                         text_color="#104E44")
+        StockLevel_Output.place(relx=.23,rely=.35)
+
+#Backup Notification
+        Notification_Backups_Box = ctk.CTkFrame(notification_frame,width=350,height=60,fg_color="#FFFFFF",corner_radius=10,bg_color="#F4f4f4")
+        Notification_Backups_Box.pack(padx=10,pady=6)
+        Backup_Colorcoding = ctk.CTkFrame(Notification_Backups_Box,width=60,height=60,fg_color="#81D7B1",corner_radius=10,bg_color="#f4f4f4")
+        Backup_Colorcoding.place(x=0)
+
+        #Icon
+        Backup_Icon_Label = ctk.CTkLabel(Backup_Colorcoding,image=Backups_Icon,text="")
+        Backup_Icon_Label.place(relx=.5,rely=.5,anchor="center")
+
+        #Title
+        Backup_title = ctk.CTkLabel(Notification_Backups_Box,text="Backup Notification",font=("Merriweather sans Bold",11),height=11)
+        Backup_title.place (relx=.23,rely=.1)
+
+    #Output Text
+        Backup_Output = ctk.CTkLabel(Notification_Backups_Box,
+                                     text="Sample Message",
+                                     font=("Merriweather sans",10),
+                                     text_color="#104E44")
+        Backup_Output.place(relx=.23,rely=.35 )
+
+#Audit Notification
+        Notification_Audit_Box = ctk.CTkFrame(notification_frame,width=350,height=60,fg_color="#FFFFFF",corner_radius=10,bg_color="#F4f4f4")
+        Notification_Audit_Box.pack(padx=10,pady=6)
+        Audit_Colorcoding = ctk.CTkFrame(Notification_Audit_Box,width=60,height=60,fg_color="#FFDA94",corner_radius=10,bg_color="#f4f4f4")
+        Audit_Colorcoding.place(x=0)
+
+        #Icon
+        Audit_Icon_Label = ctk.CTkLabel(Audit_Colorcoding,image=Audit_Icon,text="")
+        Audit_Icon_Label.place(relx=.5,rely=.5,anchor="center")
+
+        #Title
+        Audit_title = ctk.CTkLabel(Notification_Audit_Box,text="Audit Notification",font=("Merriweather sans Bold",11),height=11)
+        Audit_title.place (relx=.23,rely=.1)
+
+    #Output Text
+        Audit_Output = ctk.CTkLabel(Notification_Audit_Box,
+                                    text="Sample Message",
+                                    font=("Merriweather sans",10),
+                                    text_color="#104E44")
+        Audit_Output.place(relx=.23,rely=.35)
+
+    def toggle(self):
+        if self.visible:
+            self.place_forget()
+            self.visible = False
+        else:
+            self.place(relx=0.7, rely=0.08)
+            self.lift()
+            self.visible = True
 
 class PatientPage(ctk.CTkFrame):
     def __init__(self, parent, shared_state):
