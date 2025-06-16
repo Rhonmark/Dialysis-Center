@@ -331,10 +331,6 @@ class SupplyWindow(SupplyBaseWindow):
                 CTkMessageBox.show_error("Input Error", "Delivery time must be a valid number.", parent=self)
                 return
 
-            # Handle date field - set to None if empty or placeholder
-            # if not restock_date or restock_date == "Select date":
-            #     restock_date = None
-
             supply_information = {
                 'item_name': item_name,
                 'category': category,
@@ -373,17 +369,17 @@ class SupplyWindow(SupplyBaseWindow):
                         new_current_stock = current_stock_before + restock_quantity
                         print(f"Updated supply item with ID: {self.edit_data['item_id']} and added {restock_quantity} to stock")
                         print(f"Stock changed from {current_stock_before} to {new_current_stock}")  
+
+                        # Only update max_supply when we're actually adding new stock
+                        max_supply_current = retrieve_supply_data(cursor, 'max_supply', self.edit_data['item_id'])
+                        if max_supply_current is None or new_current_stock > max_supply_current:
+                            set_supply_data(cursor, 'max_supply', new_current_stock, self.edit_data['item_id'])
+                            print(f"Max supply updated from {max_supply_current} to {new_current_stock}")
                     else:
                         new_current_stock = current_stock_before
                         print(f"Updated supply item with ID: {self.edit_data['item_id']} without changing stock")
 
                     set_supply_data(cursor, 'current_stock', new_current_stock, self.edit_data['item_id'])
-
-                    # Update max_supply if the new stock is higher
-                    #cursor, column, unique_id
-                    max_supply_current = retrieve_supply_data(cursor, 'max_supply', self.edit_data['item_id'])
-                    if max_supply_current is None or new_current_stock > max_supply_current:
-                        set_supply_data(cursor, 'max_supply', new_current_stock, self.edit_data['item_id'])
 
                     # Get updated values for calculations
                     avg_weekly_usage_result = retrieve_supply_data(cursor, 'average_weekly_usage', self.edit_data['item_id'])
@@ -397,7 +393,7 @@ class SupplyWindow(SupplyBaseWindow):
                     CTkMessageBox.show_success("Success", "Supply information updated successfully!", parent=self)
 
                 else:
-
+                    # Add mode logic remains the same
                     check_uniqueness = get_existing_credentials(item_name, 'item_name', table_name='supply')
 
                     if check_uniqueness:

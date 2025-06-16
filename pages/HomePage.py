@@ -3896,12 +3896,20 @@ class SupplyPage(ctk.CTkFrame):
         try:
             connect = db()
             cursor = connect.cursor()
+            
             cursor.execute("""
-                SELECT item_id, item_name, category, current_stock, 
-                    date_registered, restock_quantity, average_daily_usage, average_weekly_usage, 
-                    average_monthly_usage, delivery_time_days, stock_level_status, max_supply
-                FROM supply
-                WHERE item_id = %s
+                SELECT s.item_id, s.item_name, s.category, s.current_stock, 
+                    COALESCE(
+                        (SELECT MAX(rl.restock_date) 
+                        FROM restock_logs rl 
+                        WHERE rl.item_id = s.item_id), 
+                        'No Restock'
+                    ) as restock_date,
+                    s.date_registered, s.restock_quantity, s.average_daily_usage, 
+                    s.average_weekly_usage, s.average_monthly_usage, s.delivery_time_days, 
+                    s.stock_level_status, s.max_supply
+                FROM supply s 
+                WHERE s.item_id = %s
             """, (self.selected_supply_id,))
             
             updated_data = cursor.fetchone()
@@ -3911,17 +3919,16 @@ class SupplyPage(ctk.CTkFrame):
                     'item_name': updated_data[1],
                     'category': updated_data[2],
                     'current_stock': updated_data[3],
-                    'date_registered': updated_data[4],
-                    'restock_quantity': updated_data[5],
-                    'average_daily_usage': updated_data[6] if updated_data[6] else 0,
-                    'average_weekly_usage': updated_data[7] if updated_data[7] else 0,
-                    'average_monthly_usage': updated_data[8] if updated_data[8] else 0,
-                    'delivery_time_days': updated_data[9] if updated_data[9] else 0,
-                    'stock_level_status': updated_data[10],
-                    'max_supply': updated_data[11]
+                    'restock_date': updated_data[4],         
+                    'date_registered': updated_data[5],     
+                    'restock_quantity': updated_data[6],     
+                    'average_daily_usage': updated_data[7] if updated_data[7] else 0,
+                    'average_weekly_usage': updated_data[8] if updated_data[8] else 0,
+                    'average_monthly_usage': updated_data[9] if updated_data[9] else 0,
+                    'delivery_time_days': updated_data[10] if updated_data[10] else 0,
+                    'stock_level_status': updated_data[11],
+                    'max_supply': updated_data[12] if updated_data[12] else 0
                 }
-                
-                # Refresh the detailed view display
                 self.show_detailed_info(updated_data)
                 
             cursor.close()
