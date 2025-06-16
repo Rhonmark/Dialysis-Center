@@ -3959,7 +3959,7 @@ class ReportPage(ctk.CTkFrame):
                                         corner_radius=20,
                                         fg_color="#FFFFFF",
                                         bg_color="transparent")
-        PatientReport_frame.place(x=120,y=75)
+        PatientReport_frame.place(x=70,y=60)
         left_bar = ctk.CTkFrame(PatientReport_frame,width=20,height=335,fg_color="#1A374D",bg_color="transparent")
         left_bar.place(x=0)
 
@@ -4001,23 +4001,23 @@ class ReportPage(ctk.CTkFrame):
 #------------------------------------------------------------------------------------------------------------------------------------------
     #Active Patient Table
         Activepatient_frame = ctk.CTkFrame(self,
-                                           width=515,
+                                           width=580,
                                            height=335,
                                            corner_radius=20,
                                            fg_color="#FFFFFF",
                                            bg_color="transparent")
-        Activepatient_frame.place(x=400,y=75)
+        Activepatient_frame.place(x=355,y=60)
        
 
 
     #Inactive Patient Table
         Inactivepatient_frame = ctk.CTkFrame(self,
-                                             width=515,
+                                             width=580,
                                              height=335,
                                              corner_radius=20,
                                              fg_color="#FFFFFF",
                                              bg_color="transparent")
-        Inactivepatient_frame.place(x=965,y=75)
+        Inactivepatient_frame.place(x=970,y=60)
         
 
 
@@ -4025,19 +4025,19 @@ class ReportPage(ctk.CTkFrame):
 
     #Supply Report
         SupplyReport_frame = ctk.CTkFrame(self,
-                                          width=675,
+                                          width=730,
                                           height=165,
                                           corner_radius=20,
                                           fg_color="#FFFFFF",
                                           bg_color="transparent")
-        SupplyReport_frame.place(x=120,y=445)
+        SupplyReport_frame.place(x=70,y=435)
         left_bar = ctk.CTkFrame(SupplyReport_frame,width=20,height=165,fg_color="#1A374D",bg_color="transparent")
         left_bar.place(x=0)
 
         SupplyReport_title = ctk.CTkLabel(SupplyReport_frame,font=Title_font,text="Supply Report")
         SupplyReport_title.place(x=43,y=17)
 
-        SupplyCount_BG = ctk.CTkFrame(SupplyReport_frame,width=155,height=55,corner_radius=10,fg_color="#818C7D",bg_color="transparent")
+        SupplyCount_BG = ctk.CTkFrame(SupplyReport_frame,width=165,height=55,corner_radius=10,fg_color="#818C7D",bg_color="transparent")
         SupplyCount_BG.place(x=70,y=65)
 
         #Output Supply Count
@@ -4048,12 +4048,12 @@ class ReportPage(ctk.CTkFrame):
         SupplyCount_SubLabel.place(relx=.5,rely=.7,anchor="center")
 
         SupplyCountLabel_bg = ctk.CTkFrame(SupplyReport_frame,width=140,height=25,corner_radius=10,fg_color="#FFFFFF",bg_color="transparent",border_width=1.5,border_color="#BBBBBB",)
-        SupplyCountLabel_bg.place(x=77,y=125)
+        SupplyCountLabel_bg.place(x=79,y=125)
         SupplyCountLabel = ctk.CTkLabel(SupplyCountLabel_bg,font=label_font,text="Supply Count",text_color="#104E44",bg_color="transparent",height=10)
         SupplyCountLabel.place(relx=.5,rely=.4,anchor="center")
 
-        Lowstock_BG = ctk.CTkFrame(SupplyReport_frame,width=155,height=55,corner_radius=10,fg_color="#D08B40",bg_color="transparent")
-        Lowstock_BG.place(x=270,y=65)
+        Lowstock_BG = ctk.CTkFrame(SupplyReport_frame,width=165,height=55,corner_radius=10,fg_color="#D08B40",bg_color="transparent")
+        Lowstock_BG.place(x=285,y=65)
 
         #Output Low Stock
         LowStockIcon_image = ctk.CTkImage(Image.open("assets/LowStockIcon.png"), size=(15,15))
@@ -4064,13 +4064,13 @@ class ReportPage(ctk.CTkFrame):
 
 
         LowStockLabel_bg = ctk.CTkFrame(SupplyReport_frame,width=140,height=25,corner_radius=10,fg_color="#FFFFFF",bg_color="transparent",border_width=1.5,border_color="#BBBBBB",)
-        LowStockLabel_bg.place(x=277,y=125)
+        LowStockLabel_bg.place(x=295,y=125)
         LowStockLabel = ctk.CTkLabel(LowStockLabel_bg,font=label_font,text="Low Stock",text_color="#104E44",bg_color="transparent",height=10)
         LowStockLabel.place(relx=.5,rely=.4,anchor="center")
 
 
-        CriticalStock_BG = ctk.CTkFrame(SupplyReport_frame,width=155,height=55,corner_radius=10,fg_color="#AC1616",bg_color="transparent")
-        CriticalStock_BG.place(x=470,y=65)
+        CriticalStock_BG = ctk.CTkFrame(SupplyReport_frame,width=165,height=55,corner_radius=10,fg_color="#AC1616",bg_color="transparent")
+        CriticalStock_BG.place(x=495,y=65)
 
         #Output Critical Stock
         CriticalStockIcon_image = ctk.CTkImage(Image.open("assets/CriticalStockIcon.png"), size=(15,15))
@@ -4080,7 +4080,7 @@ class ReportPage(ctk.CTkFrame):
         CriticalStockCount_SubLabel.place(relx=.5,rely=.7,anchor="center")
 
         CriticalStockLabel_bg = ctk.CTkFrame(SupplyReport_frame,width=140,height=25,corner_radius=10,fg_color="#FFFFFF",bg_color="transparent",border_width=1.5,border_color="#BBBBBB",)
-        CriticalStockLabel_bg.place(x=477,y=125)
+        CriticalStockLabel_bg.place(x=507,y=125)
         CriticalStockLabel = ctk.CTkLabel(CriticalStockLabel_bg,font=label_font,text="Critical Stock",text_color="#104E44",bg_color="transparent",height=10)
         CriticalStockLabel.place(relx=.5,rely=.4,anchor="center")
 
@@ -4089,12 +4089,12 @@ class ReportPage(ctk.CTkFrame):
     #Backup Report
 
         BackupReport_frame = ctk.CTkFrame(self,
-                                        width=485,
+                                        width=515,
                                         height=165,
                                         corner_radius=20,
                                         fg_color="#FFFFFF",
                                         bg_color="transparent")
-        BackupReport_frame.place(x=825,y=445)
+        BackupReport_frame.place(x=830,y=435)
         left_bar = ctk.CTkFrame(BackupReport_frame,width=20,height=165,fg_color="#1A374D",bg_color="transparent")
         left_bar.place(x=0)
 
@@ -4135,26 +4135,37 @@ class ReportPage(ctk.CTkFrame):
 
     #Discrepancies
         Discrepancies_frame = ctk.CTkFrame(self,
-                                           width=145,
+                                           width=175,
                                            height=165,
                                            corner_radius=20,
                                            fg_color="#FFFFFF",
                                            bg_color="transparent")
-        Discrepancies_frame.place(x=1340,y=445)
+        Discrepancies_frame.place(x=1380,y=435)
 
+        discrenpancies_title = ctk.CTkLabel(Discrepancies_frame,text="Discrepancies",text_color="#104E44",font=("Merriweather Bold",11))
+        discrenpancies_title.place(relx=.175,rely=.125)
+
+        msg_label = ctk.CTkLabel(Discrepancies_frame,font=SubLabel_font,text="If there are erros in thereport,\ncotact the developers.",text_color="#104E44")
+        msg_label.place(relx=.125,rely=.3)
+
+        click_label= ctk.CTkLabel(Discrepancies_frame,text="Click to find developers\ncontact:",font=SubLabel_font,text_color="#104E44")
+        click_label.place(relx=.125,rely=.525)
+
+        Goto_settings = ctk.CTkButton(Discrepancies_frame,fg_color="#88BD8E",text="Go to Settings",font=SubLabel_font,text_color="#ffffff",corner_radius=10,bg_color="#FFFFFF")
+        Goto_settings.place(relx=.125,rely=.725)
     #Low Stock Level items
         self.LowOnStock_frame = ctk.CTkFrame(self,
-                                        width=525,
+                                        width=580,
                                         height=390,
                                         corner_radius=20,
                                         fg_color="#FFFFFF",
                                         bg_color="transparent")
-        self.LowOnStock_frame.place(x=120,y=645)
+        self.LowOnStock_frame.place(x=70,y=645)
 
         # Top bar for Low Stock Frame
         low_stock_top_bar = ctk.CTkFrame(
             self.LowOnStock_frame,
-            width=525,
+            width=630,
             height=20,
             fg_color="#D08B40",
             corner_radius=0
@@ -4196,17 +4207,17 @@ class ReportPage(ctk.CTkFrame):
 
     #Critical Stock Level Items
         self.CriticalStock_frame = ctk.CTkFrame(self,
-                                           width=525,
+                                           width=580,
                                            height=390,
                                            corner_radius=20,
                                            fg_color="#FFFFFF",
                                            bg_color="transparent")
-        self.CriticalStock_frame.place(x=680,y=645)
+        self.CriticalStock_frame.place(x=695,y=645)
 
         # Top bar for Critical Stock Frame
         critical_stock_top_bar = ctk.CTkFrame(
             self.CriticalStock_frame,
-            width=525,
+            width=630,
             height=20,
             fg_color="#AC1616",
             corner_radius=0
@@ -4255,7 +4266,7 @@ class ReportPage(ctk.CTkFrame):
                                                 corner_radius=20,
                                                 fg_color="#FFFFFF",
                                                 bg_color="transparent")
-        NotificationReport_frame.place(x=1240,y=645)
+        NotificationReport_frame.place(x=1325,y=645)
         left_bar = ctk.CTkFrame(NotificationReport_frame,width=20,height=390,fg_color="#1A374D",bg_color="transparent")
         left_bar.place(x=0)
 
