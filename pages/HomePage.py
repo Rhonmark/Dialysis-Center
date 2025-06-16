@@ -3688,7 +3688,7 @@ class ReportPage(ctk.CTkFrame):
         BackupCountLabel = ctk.CTkLabel(BackupCountLabel_bg,font=label_font,text="Backup Count",text_color="#104E44",bg_color="transparent",height=10)
         BackupCountLabel.place(relx=.5,rely=.4,anchor="center")
 
-        MostRecentBackup_BG = ctk.CTkFrame(BackupReport_frame,width=195,height=55,corner_radius=10,fg_color="#93E176",bg_color="transparent")
+        MostRecentBackup_BG = ctk.CTkFrame(BackupReport_frame,width=195,height=55,corner_radius=10,fg_color="#90C587",bg_color="transparent")
         MostRecentBackup_BG.place(x=265,y=65)
 
         #Output Recent backup Date
