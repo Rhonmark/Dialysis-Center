@@ -921,6 +921,55 @@ class HomePageContent(ctk.CTkFrame):
         )
         left_bar.place(x=0, y=0)
 
+        # Recent Patient Frame 
+        self.fourth_frame = ctk.CTkFrame(
+            self,
+            width=410,
+            height=200,
+            fg_color="white",
+            corner_radius=20
+        )
+        self.fourth_frame.place(x=710, y=610)  
+
+        top_bar = ctk.CTkFrame(
+            self.fourth_frame,
+            width=410,
+            height=40,
+            fg_color="#68EDC6",
+            corner_radius=0
+        )
+        top_bar.place(x=0, y=0)
+
+        recent_label = ctk.CTkLabel(
+            top_bar,
+            text="RECENT PATIENT",
+            font=("Merriweather", 17, "bold"),
+            text_color="white"
+        )
+        recent_label.place(relx=0.27, rely=0.5, anchor="center")
+
+        # Setup patient info boxes
+        self.setup_patient_boxes()
+
+        # Backup Information Frame 
+        self.backup_frame = ctk.CTkFrame(
+            self,
+            width=410,
+            height=200,
+            fg_color="white",
+            corner_radius=20
+        )
+        self.backup_frame.place(x=710, y=845) 
+
+        left_bar = ctk.CTkFrame(
+            self.backup_frame,
+            width=20,
+            height=200,
+            fg_color="#68EDC6",
+            corner_radius=0
+        )
+        left_bar.place(x=0, y=0)
+
         # Backup labels with dates
         RecentManual_label = ctk.CTkLabel(
             self.backup_frame,
@@ -966,36 +1015,6 @@ class HomePageContent(ctk.CTkFrame):
             text_color="#000000"
         )
         UpcomingSched_date.place(x=295, y=117)
-
-        # Recent Patient Frame
-        self.fourth_frame = ctk.CTkFrame(
-            self,
-            width=410,
-            height=200,
-            fg_color="white",
-            corner_radius=20
-        )
-        self.fourth_frame.place(x=710, y=845)
-
-        top_bar = ctk.CTkFrame(
-            self.fourth_frame,
-            width=410,
-            height=40,
-            fg_color="#68EDC6",
-            corner_radius=0
-        )
-        top_bar.place(x=0, y=0)
-
-        recent_label = ctk.CTkLabel(
-            top_bar,
-            text="RECENT PATIENT",
-            font=("Merriweather", 17, "bold"),
-            text_color="white"
-        )
-        recent_label.place(relx=0.27, rely=0.5, anchor="center")
-
-        # Setup patient info boxes
-        self.setup_patient_boxes()
 
         # Total Patients Frame
         self.fifth_frame = ctk.CTkFrame(
