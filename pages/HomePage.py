@@ -1587,7 +1587,7 @@ class PatientPage(ctk.CTkFrame):
         tree_container = ctk.CTkFrame(self.table_frame, fg_color="black")
         tree_container.pack(fill="both", expand=True, padx=1, pady=1)
 
-        columns = ("patient_id", "patient_name", "age", "gender", "type_of_access", "date_registered")
+        columns = ("item_id", "item_name", "category", "current_stock", "restock_date", "date_registered")
         self.tree = ttk.Treeview(tree_container, columns=columns, show="headings", height=12)
         self.tree.pack(side="left", fill="both", expand=True)
 
@@ -1597,6 +1597,7 @@ class PatientPage(ctk.CTkFrame):
             ("AGE", 80),
             ("GENDER", 120),
             ("TYPE OF ACCESS", 180),
+            ("RESTOCK DATE", 150),
             ("DATE REGISTERED", 250)
         ]
 
@@ -2835,17 +2836,16 @@ class SupplyPage(ctk.CTkFrame):
         tree_container = ctk.CTkFrame(self.table_frame, fg_color="black")
         tree_container.pack(fill="both", expand=True, padx=1, pady=1)
 
-        # Updated columns - removed restock_date
-        columns = ("item_id", "item_name", "category", "current_stock", "date_registered")
+        columns = ("item_id", "item_name", "category", "current_stock", "restock_date", "date_registered")
         self.tree = ttk.Treeview(tree_container, columns=columns, show="headings", height=12)
         self.tree.pack(side="left", fill="both", expand=True)
 
-        # Updated headers - removed restock date
         headers = [
             ("ITEM ID", 120),
             ("ITEM NAME", 180),
             ("CATEGORY", 140),
             ("REMAINING STOCK", 150),
+            ("RESTOCK DATE", 150),        
             ("DATE REGISTERED", 150),
         ]
         
@@ -3271,15 +3271,22 @@ class SupplyPage(ctk.CTkFrame):
             print("Please select a supply item first.")
 
     def fetch_supply_data(self):
-        """Fetch supply data from database including all fields"""
+        """Fetch supply data from database including restock_date"""
         try:
             connect = db()
             cursor = connect.cursor()
             cursor.execute("""
-                SELECT item_id, item_name, category, current_stock, 
-                    date_registered, restock_quantity, average_daily_usage, average_weekly_usage, 
-                    average_monthly_usage, delivery_time_days, stock_level_status, max_supply
-                FROM supply
+                SELECT s.item_id, s.item_name, s.category, s.current_stock, 
+                    COALESCE(
+                        (SELECT MAX(rl.restock_date) 
+                        FROM restock_logs rl 
+                        WHERE rl.item_id = s.item_id), 
+                        'No Restock'
+                    ) as restock_date,
+                    s.date_registered, s.restock_quantity, s.average_daily_usage, 
+                    s.average_weekly_usage, s.average_monthly_usage, s.delivery_time_days, 
+                    s.stock_level_status, s.max_supply
+                FROM supply s
             """)
             return cursor.fetchall()
         except Exception as e:
@@ -3287,19 +3294,18 @@ class SupplyPage(ctk.CTkFrame):
             return []
 
     def populate_table(self, data):
-        """Populate the table with supply data (excluding restock_date)"""
+        """Populate the table with supply data including restock_date"""
         # Clear existing data
         for row in self.tree.get_children():
             self.tree.delete(row)
         
-        # Insert new data - only include relevant columns for display
         for row in data:
-            # Only show: item_id, item_name, category, current_stock, date_registered
-            display_row = (row[0], row[1], row[2], row[3], row[4])
+            # Show: item_id, item_name, category, current_stock, restock_date, date_registered
+            display_row = (row[0], row[1], row[2], row[3], row[4], row[5])
             self.tree.insert("", "end", values=display_row)
 
     def on_row_select(self, event):
-        """Handle row selection"""
+        """Handle row selection with updated column structure"""
         selection = self.tree.selection()
         if selection:
             item = selection[0]
@@ -3310,10 +3316,18 @@ class SupplyPage(ctk.CTkFrame):
                 connect = db()
                 cursor = connect.cursor()
                 cursor.execute("""
-                    SELECT item_id, item_name, category, current_stock, 
-                        date_registered, restock_quantity, average_daily_usage, average_weekly_usage, 
-                        average_monthly_usage, delivery_time_days, stock_level_status, max_supply
-                    FROM supply WHERE item_id = %s
+                    SELECT s.item_id, s.item_name, s.category, s.current_stock, 
+                        COALESCE(
+                            (SELECT MAX(rl.restock_date) 
+                            FROM restock_logs rl 
+                            WHERE rl.item_id = s.item_id), 
+                            'No Restock'
+                        ) as restock_date,
+                        s.date_registered, s.restock_quantity, s.average_daily_usage, 
+                        s.average_weekly_usage, s.average_monthly_usage, s.delivery_time_days, 
+                        s.stock_level_status, s.max_supply
+                    FROM supply s 
+                    WHERE s.item_id = %s
                 """, (supply_data[0],))
                 
                 full_data = cursor.fetchone()
@@ -3323,14 +3337,15 @@ class SupplyPage(ctk.CTkFrame):
                         'item_name': full_data[1],
                         'category': full_data[2],
                         'current_stock': full_data[3],
-                        'date_registered': full_data[4],
-                        'restock_quantity': full_data[5],
-                        'average_daily_usage': full_data[6] if full_data[6] else 0,
-                        'average_weekly_usage': full_data[7] if full_data[7] else 0,
-                        'average_monthly_usage': full_data[8] if full_data[8] else 0,
-                        'delivery_time_days': full_data[9] if full_data[9] else 0,
-                        'stock_level_status': full_data[10],
-                        'max_supply': full_data[11] if full_data[11] else 0
+                        'restock_date': full_data[4],         
+                        'date_registered': full_data[5],      
+                        'restock_quantity': full_data[6],       
+                        'average_daily_usage': full_data[7] if full_data[7] else 0,
+                        'average_weekly_usage': full_data[8] if full_data[8] else 0,
+                        'average_monthly_usage': full_data[9] if full_data[9] else 0,
+                        'delivery_time_days': full_data[10] if full_data[10] else 0,
+                        'stock_level_status': full_data[11],
+                        'max_supply': full_data[12] if full_data[12] else 0
                     }
                 cursor.close()
                 connect.close()
@@ -3420,7 +3435,7 @@ class SupplyPage(ctk.CTkFrame):
             )
 
     def on_row_click(self, event):
-        """Handle row click to show detailed info"""
+        """Handle row click to show detailed info with updated column structure"""
         item_id = self.tree.identify_row(event.y)
         if item_id:
             supply_data = self.tree.item(item_id, 'values')
@@ -3429,15 +3444,22 @@ class SupplyPage(ctk.CTkFrame):
             
             self.selected_supply_id = supply_id
             
-            # Get full data including max_supply for detailed view
             try:
                 connect = db()
                 cursor = connect.cursor()
                 cursor.execute("""
-                    SELECT item_id, item_name, category, current_stock, 
-                        date_registered, restock_quantity, average_daily_usage, average_weekly_usage, 
-                        average_monthly_usage, delivery_time_days, stock_level_status, max_supply
-                    FROM supply WHERE item_id = %s
+                    SELECT s.item_id, s.item_name, s.category, s.current_stock, 
+                        COALESCE(
+                            (SELECT MAX(rl.restock_date) 
+                            FROM restock_logs rl 
+                            WHERE rl.item_id = s.item_id), 
+                            'No Restock'
+                        ) as restock_date,
+                        s.date_registered, s.restock_quantity, s.average_daily_usage, 
+                        s.average_weekly_usage, s.average_monthly_usage, s.delivery_time_days, 
+                        s.stock_level_status, s.max_supply
+                    FROM supply s 
+                    WHERE s.item_id = %s
                 """, (supply_id,))
                 
                 full_supply_data = cursor.fetchone()
@@ -3460,12 +3482,13 @@ class SupplyPage(ctk.CTkFrame):
         self.Supply_Name_Output.configure(text=supply_data[1])
         self.Category_Output.configure(text=supply_data[2])
         
-        # Get data safely
+        # Get data safely with updated indices
         current_stock = supply_data[3] if len(supply_data) > 3 else 0
-        date_registered = supply_data[4] if len(supply_data) > 4 and supply_data[4] else "N/A"
-        average_weekly_usage = supply_data[7] if len(supply_data) > 7 and supply_data[7] else "N/A"
-        delivery_time_days = supply_data[9] if len(supply_data) > 9 and supply_data[9] else "N/A"
-        max_supply = supply_data[11] if len(supply_data) > 11 and supply_data[11] else 0
+        restock_date = supply_data[4] if len(supply_data) > 4 and supply_data[4] else "No Restock" 
+        date_registered = supply_data[5] if len(supply_data) > 5 and supply_data[5] else "N/A"     
+        average_weekly_usage = supply_data[8] if len(supply_data) > 8 and supply_data[8] else "N/A" 
+        delivery_time_days = supply_data[10] if len(supply_data) > 10 and supply_data[10] else "N/A" 
+        max_supply = supply_data[12] if len(supply_data) > 12 and supply_data[12] else 0            
         
         # Display current stock as remaining stock
         self.currentstock_Output.configure(text=str(current_stock))
