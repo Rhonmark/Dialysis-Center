@@ -21,6 +21,7 @@ from datetime import date, timedelta
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
+from matplotlib import font_manager as fm
 
 
 ctk.set_appearance_mode("light")
@@ -397,6 +398,8 @@ class HomePageContent(ctk.CTkFrame):
             if self.pie_chart_canvas:
                 self.pie_chart_canvas.get_tk_widget().destroy()
 
+            merriweather_font = fm.FontProperties(fname='font/MerriweatherSans-Bold.ttf')
+
             fig = Figure(figsize=(3.2, 2.8), dpi=100)
             ax = fig.add_subplot(111)
             
@@ -404,9 +407,9 @@ class HomePageContent(ctk.CTkFrame):
                 colors = []
                 for label in labels:
                     if label == 'Active':
-                        colors.append('#4CAF50')
+                        colors.append('#88BD8E')
                     else:
-                        colors.append('#FF5722')
+                        colors.append('#F25B5B')
                 
                 # Clean pie chart - no labels, just percentages
                 wedges, texts, autotexts = ax.pie(
@@ -414,8 +417,8 @@ class HomePageContent(ctk.CTkFrame):
                     colors=colors,
                     autopct='%1.1f%%',
                     startangle=90,
-                    pctdistance=0.8,
-                    textprops={'fontsize': 11, 'weight': 'bold', 'color': 'white'}
+                    pctdistance=0.5,
+                    textprops={'fontsize': 13, 'fontproperties': merriweather_font, 'color': 'white'}
                 )
                 pass  
                     
@@ -430,7 +433,7 @@ class HomePageContent(ctk.CTkFrame):
 
             self.pie_chart_canvas = FigureCanvasTkAgg(fig, self.fifth_frame)
             self.pie_chart_canvas.draw()
-            self.pie_chart_canvas.get_tk_widget().place(x=25, y=100, width=300, height=200)
+            self.pie_chart_canvas.get_tk_widget().place(x=20, y=90, width=320, height=220)
 
         except Exception as e:
             print('Error creating pie chart:', e)
@@ -465,6 +468,8 @@ class HomePageContent(ctk.CTkFrame):
             """
 
             df = pd.read_sql(query, connect)
+            df_10 = df.sort_values(by='total_used', ascending=False).head(10)
+            df_10 = df_10.sort_values(by='total_used', ascending=True)
 
             # Clear existing canvas if it exists
             if self.most_used_canvas:
@@ -474,11 +479,15 @@ class HomePageContent(ctk.CTkFrame):
             fig = Figure(figsize=(10, 3.5), dpi=100)
             ax = fig.add_subplot(111)
             
+            tick_font = fm.FontProperties(fname='font/Inter_18pt-Italic.ttf')
+
             # Create bar chart
-            ax.bar(df['item_name'], df['total_used'], color='#C0DABE')
-            ax.set_xlabel('Item Name')
-            ax.set_ylabel('Used Quantity')
-            ax.tick_params(axis='x', rotation=45)
+            ax.bar(df_10['item_name'], df_10['total_used'], color='#C0DABE')
+            ax.tick_params(axis='x', pad=10)
+            ax.margins(y=0.15) 
+            for label in ax.get_xticklabels() + ax.get_yticklabels():
+                        label.set_fontproperties(tick_font)
+                        label.set_fontsize(11)
             
             # Remove spines
             for spine in ax.spines.values():
@@ -523,7 +532,6 @@ class HomePageContent(ctk.CTkFrame):
             """
 
             df = pd.read_sql(query, connect)
-
             df['edit_date'] = pd.to_datetime(df['usage_date'])
 
             from datetime import date, timedelta
@@ -540,12 +548,16 @@ class HomePageContent(ctk.CTkFrame):
             fig = Figure(figsize=(5.5, 3.5), dpi=100)
             ax = fig.add_subplot(111)
             
+            tick_font = fm.FontProperties(fname='font/Inter_18pt-Italic.ttf')
+
             # Create bar chart
             if not df_yesterday.empty:
-                ax.bar(df_yesterday['item_name'], df_yesterday['total_used'], color='#C0DABE')
-                ax.set_xlabel('Item Name')
-                ax.set_ylabel('Used Quantity')
-                ax.tick_params(axis='x', rotation=45)
+                    ax.bar(df_yesterday['item_name'], df_yesterday['total_used'], color='#C0DABE')
+                    ax.tick_params(axis='x', pad=10)
+                    ax.margins(y=0.15)    
+                    for label in ax.get_xticklabels() + ax.get_yticklabels():
+                        label.set_fontproperties(tick_font)
+                        label.set_fontsize(11)
             else:
                 ax.text(0.5, 0.5, 'No data for yesterday', 
                        horizontalalignment='center', verticalalignment='center',
