@@ -3569,6 +3569,10 @@ class ReportPage(ctk.CTkFrame):
         SubLabel_font = ("Merriweather Sans Light" ,9)
         SubSubLabel_font = ("Poppins Regular" ,9)
 
+        # Initialize graph canvases
+        self.low_stock_canvas = None
+        self.critical_stock_canvas = None
+
     #Patient Report
         PatientReport_frame = ctk.CTkFrame(self,
                                         width=245,
@@ -3759,111 +3763,109 @@ class ReportPage(ctk.CTkFrame):
                                            bg_color="transparent")
         Discrepancies_frame.place(x=1340,y=445)
 
-        def low_stock_graph():
-            try:
-                connect = db()
-
-                query = """
-                    SELECT item_name, current_stock FROM supply
-                    WHERE stock_level_status = 'Low Stock Level'
-                """
-
-                df = pd.read_sql(query, connect)
-
-                fig = Figure(figsize=(10, 3.5), dpi=100)
-                ax = fig.add_subplot(111)
-        
-                tick_font = fm.FontProperties(fname='font/Inter_18pt-Italic.ttf')
-
-                ax.bar(df['item_name'], df['current_stock'], color='#C0DABE')
-                ax.tick_params(axis='x', pad=10)
-                ax.margins(y=0.15)
-
-                for label in ax.get_xticklabels() + ax.get_yticklabels():
-                    label.set_fontproperties(tick_font)
-                    label.set_fontsize(11)
-
-                for spine in ax.spines.values():
-                    spine.set_visible(False)
-
-                fig.tight_layout()
-
-                self.low_stock_canvas = FigureCanvasTkAgg(fig, self. LowOnStock_frame)
-                self.low_stock_canvas.draw()
-                self.low_stock_canvas.get_tk_widget().place(x=20, y=100, width=1010, height=320)
-            except Exception as e:
-                print('Error retrieving low stock levels graph', e)
-            finally:
-                connect.close()
-
-        def critical_stock_graph():
-            try:
-                connect = db()
-
-                query = """
-                    SELECT item_name, current_stock FROM supply
-                    WHERE stock_level_status = 'Critical Stock Level'
-                """
-
-                df = pd.read_sql(query, connect)
-        
-                fig = Figure(figsize=(10, 3.5), dpi=100)
-                ax = fig.add_subplot(111)
-
-                tick_font = fm.FontProperties(fname='font/Inter_18pt-Italic.ttf')
-
-                ax.bar(df['item_name'], df['current_stock'], color='#C0DABE')
-                ax.tick_params(axis='x', pad=10)
-                ax.margins(y=0.15)
-
-                for label in ax.get_xticklabels() + ax.get_yticklabels():
-                    label.set_fontproperties(tick_font)
-                    label.set_fontsize(11)
-
-                for spine in ax.spines.values():
-                    spine.set_visible(False)
-
-                fig.tight_layout()
-
-                self.critical_stock_canvas = FigureCanvasTkAgg(fig, self.CriticalStock_frame)
-                self.critical_stock_canvas.draw()
-                self.critical_stock_canvas.get_tk_widget().place(x=20, y=100, width=1010, height=320)
-
-            except Exception as e:
-                print('Error retrieving low stock levels graph', e)
-            finally:
-                connect.close()
-
     #Low Stock Level items
-        LowOnStock_frame = ctk.CTkFrame(self,
+        self.LowOnStock_frame = ctk.CTkFrame(self,
                                         width=525,
                                         height=390,
                                         corner_radius=20,
                                         fg_color="#FFFFFF",
                                         bg_color="transparent")
-        LowOnStock_frame.place(x=120,y=645)
+        self.LowOnStock_frame.place(x=120,y=645)
 
-        LowonStock_title = ctk.CTkLabel(LowOnStock_frame,font=Title_font,text="Low Stock Levels Items")
-        LowonStock_title.place(x=43,y=17)
+        # Top bar for Low Stock Frame
+        low_stock_top_bar = ctk.CTkFrame(
+            self.LowOnStock_frame,
+            width=525,
+            height=20,
+            fg_color="#D08B40",
+            corner_radius=0
+        )
+        low_stock_top_bar.place(x=0, y=0)
 
-        LowonStock_sublabel = ctk.CTkLabel(LowOnStock_frame,font=SubSubLabel_font,text="Current Data")
-        LowonStock_sublabel.place(x=43,y=45)
+        LowonStock_title = ctk.CTkLabel(self.LowOnStock_frame,font=Title_font,text="Low Stock Level Items")
+        LowonStock_title.place(x=20,y=40)
 
+        # Refresh icon for Low Stock
+        try:
+            low_stock_refresh_icon = ctk.CTkImage(light_image=Image.open("assets/refresh.png"), size=(20, 20))
+            low_stock_refresh_btn = ctk.CTkButton(
+                self.LowOnStock_frame,
+                image=low_stock_refresh_icon,
+                text="",
+                width=25,
+                height=25,
+                fg_color="transparent",
+                hover_color="#f0f0f0",
+                command=self.low_stock_graph
+            )
+            low_stock_refresh_btn.place(x=220, y=40)
+        except:
+            low_stock_refresh_btn = ctk.CTkButton(
+                self.LowOnStock_frame,
+                text="🔄",
+                font=("Arial", 14),
+                width=25,
+                height=25,
+                fg_color="transparent",
+                hover_color="#f0f0f0",
+                command=self.low_stock_graph
+            )
+            low_stock_refresh_btn.place(x=220, y=40)
 
-    #Low Stock Level Items
-        CriticalStock_frame = ctk.CTkFrame(self,
+        LowonStock_sublabel = ctk.CTkLabel(self.LowOnStock_frame,font=SubSubLabel_font,text="Current Data")
+        LowonStock_sublabel.place(x=20,y=65)
+
+    #Critical Stock Level Items
+        self.CriticalStock_frame = ctk.CTkFrame(self,
                                            width=525,
                                            height=390,
                                            corner_radius=20,
                                            fg_color="#FFFFFF",
                                            bg_color="transparent")
-        CriticalStock_frame.place(x=680,y=645)
+        self.CriticalStock_frame.place(x=680,y=645)
 
-        CriticalStock_title = ctk.CTkLabel(CriticalStock_frame,font=Title_font,text="Critical stock Level Items")
-        CriticalStock_title.place(x=43,y=17)
+        # Top bar for Critical Stock Frame
+        critical_stock_top_bar = ctk.CTkFrame(
+            self.CriticalStock_frame,
+            width=525,
+            height=20,
+            fg_color="#AC1616",
+            corner_radius=0
+        )
+        critical_stock_top_bar.place(x=0, y=0)
 
-        CriticalStock_sublabel = ctk.CTkLabel(CriticalStock_frame,font=SubSubLabel_font,text="Current Data")
-        CriticalStock_sublabel.place(x=43,y=45)
+        CriticalStock_title = ctk.CTkLabel(self.CriticalStock_frame,font=Title_font,text="Critical Stock Level Items")
+        CriticalStock_title.place(x=20,y=40)
+
+        # Refresh icon for Critical Stock
+        try:
+            critical_stock_refresh_icon = ctk.CTkImage(light_image=Image.open("assets/refresh.png"), size=(20, 20))
+            critical_stock_refresh_btn = ctk.CTkButton(
+                self.CriticalStock_frame,
+                image=critical_stock_refresh_icon,
+                text="",
+                width=25,
+                height=25,
+                fg_color="transparent",
+                hover_color="#f0f0f0",
+                command=self.critical_stock_graph
+            )
+            critical_stock_refresh_btn.place(x=250, y=40)
+        except:
+            critical_stock_refresh_btn = ctk.CTkButton(
+                self.CriticalStock_frame,
+                text="🔄",
+                font=("Arial", 14),
+                width=25,
+                height=25,
+                fg_color="transparent",
+                hover_color="#f0f0f0",
+                command=self.critical_stock_graph
+            )
+            critical_stock_refresh_btn.place(x=250, y=40)
+
+        CriticalStock_sublabel = ctk.CTkLabel(self.CriticalStock_frame,font=SubSubLabel_font,text="Current Data")
+        CriticalStock_sublabel.place(x=20,y=65)
 
 #------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -3927,6 +3929,159 @@ class ReportPage(ctk.CTkFrame):
         RecentBackuplabel_bg.place(x=62,y=340)
         RecentBackuplabel = ctk.CTkLabel(RecentBackuplabel_bg,font=label_font,text="Back Up",text_color="#104E44",bg_color="transparent",height=11)
         RecentBackuplabel.place(relx=.5,rely=.4,anchor="center")
+
+        # Load initial graphs
+        self.low_stock_graph()
+        self.critical_stock_graph()
+
+    def low_stock_graph(self):
+        """Show low stock items chart in LowOnStock_frame"""
+        try:
+            connect = db()
+            query = """
+                SELECT item_name, current_stock FROM supply
+                WHERE stock_level_status = 'Low Stock Level'
+                ORDER BY current_stock ASC
+            """
+
+            df = pd.read_sql(query, connect)
+
+            # Clear existing canvas if it exists
+            if self.low_stock_canvas:
+                self.low_stock_canvas.get_tk_widget().destroy()
+
+            # Create new figure
+            fig = Figure(figsize=(5.2, 3.0), dpi=100)
+            ax = fig.add_subplot(111)
+            
+            tick_font = fm.FontProperties(fname='font/Inter_18pt-Italic.ttf')
+
+            if not df.empty:
+                # Create bar chart
+                bars = ax.bar(df['item_name'], df['current_stock'], color='#D08B40')
+                ax.tick_params(axis='x', pad=10)
+                ax.margins(y=0.15)
+                
+                # Set font for labels
+                for label in ax.get_xticklabels() + ax.get_yticklabels():
+                    label.set_fontproperties(tick_font)
+                    label.set_fontsize(9)
+                
+                # Rotate x-axis labels if too many items
+                if len(df) > 5:
+                    ax.tick_params(axis='x', rotation=45)
+                    
+            else:
+                # No low stock items
+                ax.text(0.5, 0.5, 'No Low Stock Items', 
+                       horizontalalignment='center', verticalalignment='center',
+                       transform=ax.transAxes, fontsize=14, color='gray',
+                       weight='bold')
+
+            # Remove spines for cleaner look
+            for spine in ax.spines.values():
+                spine.set_visible(False)
+                
+            fig.tight_layout()
+
+            # Create canvas and embed in LowOnStock_frame
+            self.low_stock_canvas = FigureCanvasTkAgg(fig, self.LowOnStock_frame)
+            self.low_stock_canvas.draw()
+            self.low_stock_canvas.get_tk_widget().place(x=20, y=95, width=485, height=280)
+
+        except Exception as e:
+            print('Error retrieving low stock levels graph:', e)
+            # Show error message in frame
+            if hasattr(self, 'LowOnStock_frame'):
+                error_label = ctk.CTkLabel(
+                    self.LowOnStock_frame,
+                    text=f"Error loading data: {str(e)}",
+                    font=("Arial", 12),
+                    text_color="red"
+                )
+                error_label.place(x=150, y=200)
+        finally:
+            if 'connect' in locals():
+                connect.close()
+
+    def critical_stock_graph(self):
+        """Show critical stock items chart in CriticalStock_frame"""
+        try:
+            connect = db()
+            query = """
+                SELECT item_name, current_stock FROM supply
+                WHERE stock_level_status = 'Critical Stock Level'
+                ORDER BY current_stock ASC
+            """
+
+            df = pd.read_sql(query, connect)
+
+            # Clear existing canvas if it exists
+            if self.critical_stock_canvas:
+                self.critical_stock_canvas.get_tk_widget().destroy()
+
+            # Create new figure
+            fig = Figure(figsize=(5.2, 3.0), dpi=100)
+            ax = fig.add_subplot(111)
+
+            tick_font = fm.FontProperties(fname='font/Inter_18pt-Italic.ttf')
+
+            if not df.empty:
+                # Create bar chart with red color for critical items
+                bars = ax.bar(df['item_name'], df['current_stock'], color='#AC1616')
+                ax.tick_params(axis='x', pad=10)
+                ax.margins(y=0.15)
+                
+                # Set font for labels
+                for label in ax.get_xticklabels() + ax.get_yticklabels():
+                    label.set_fontproperties(tick_font)
+                    label.set_fontsize(9)
+                
+                # Rotate x-axis labels if too many items
+                if len(df) > 5:
+                    ax.tick_params(axis='x', rotation=45)
+                    
+            else:
+                # No critical stock items
+                ax.text(0.5, 0.5, 'No Critical Stock Items', 
+                       horizontalalignment='center', verticalalignment='center',
+                       transform=ax.transAxes, fontsize=14, color='gray',
+                       weight='bold')
+
+            # Remove spines for cleaner look
+            for spine in ax.spines.values():
+                spine.set_visible(False)
+                
+            fig.tight_layout()
+
+            # Create canvas and embed in CriticalStock_frame
+            self.critical_stock_canvas = FigureCanvasTkAgg(fig, self.CriticalStock_frame)
+            self.critical_stock_canvas.draw()
+            self.critical_stock_canvas.get_tk_widget().place(x=20, y=95, width=485, height=280)
+
+        except Exception as e:
+            print('Error retrieving critical stock levels graph:', e)
+            # Show error message in frame
+            if hasattr(self, 'CriticalStock_frame'):
+                error_label = ctk.CTkLabel(
+                    self.CriticalStock_frame,
+                    text=f"Error loading data: {str(e)}",
+                    font=("Arial", 12),
+                    text_color="red"
+                )
+                error_label.place(x=150, y=200)
+        finally:
+            if 'connect' in locals():
+                connect.close()
+
+    def destroy(self):
+        """Clean up when the widget is destroyed"""
+        # Clean up matplotlib canvases
+        if self.low_stock_canvas:
+            self.low_stock_canvas.get_tk_widget().destroy()
+        if self.critical_stock_canvas:
+            self.critical_stock_canvas.get_tk_widget().destroy()
+        super().destroy()
 
 class MaintenancePage(ctk.CTkFrame):
     def __init__(self, parent):
