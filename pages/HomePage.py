@@ -319,6 +319,51 @@ class HomePageContent(ctk.CTkFrame):
         self.show_yesterday_usage()
         self.load_patient_data_and_pie_chart()
         
+    try:
+        connect = db()
+        cursor = connect.cursor()
+
+        name = 'toni'
+
+        cursor.execute("""
+            SELECT * FROM (
+                SELECT 
+                    patient_name as name,
+                    age,
+                    gender,
+                    access_type,
+                    NULL as category,
+                    'patient' as record_type
+                FROM patient_list
+                       
+                UNION
+                       
+                SELECT
+                    item_name as name,
+                    NULL as age,
+                    NULL as gender,
+                    NULL as access_type,
+                    category,
+                    'supply' as record_type
+                FROM supply
+            ) AS search_result
+            WHERE name LIKE %s
+        """, (f'%{name}%',))
+
+        search_result = cursor.fetchall()
+        
+        for search in search_result:
+            if search[5] == 'patient':
+                print(f'{search [0]} is a patient!')
+            elif search[5] == 'supply':
+                print(f'{search[0]} is a supply!')
+
+    except Exception as e:
+        print('Error searching', e)
+
+    finally:
+        cursor.close()
+        connect.close()
 
     def load_patient_data_and_pie_chart(self):
         """Load patient data and create pie chart"""
