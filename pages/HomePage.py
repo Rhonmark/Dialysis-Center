@@ -2707,23 +2707,17 @@ class SupplyPage(ctk.CTkFrame):
         )
         self.add_button.pack(side="left", padx=10)
 
-        # Sort By 
-        self.sort_label = ctk.CTkLabel(
+        # Sort dropdown that looks like a button
+        self.sort_dropdown = ctk.CTkOptionMenu(
             self.button_frame,
-            text="SORT BY:",
-            font=ctk.CTkFont("Arial", 14, "bold")
+            values=["Item ID", "Item Name", "Category", "Remaining Stock", "Restock Date", "Date Registered"],
+            font=ctk.CTkFont("Arial", 16, "bold"),
+            width=180,
+            height=50,
+            command=self.sort_by_option_simple
         )
-        self.sort_label.pack(side="left", padx=(10, 5))
-
-        self.sort_dropdown = ctk.CTkComboBox(
-            self.button_frame,
-            values=["Item ID", 'Item Name', 'Category', 'Remaining Stock', 'Restock Date', 'Date Registered'],
-            font=ctk.CTkFont("Arial", 14),
-            width=150,
-            height=35,
-            bg_color="white"
-        )
-        self.sort_dropdown.pack(side="left", padx=(0, 10))
+        self.sort_dropdown.pack(side="left", padx=10)
+        self.sort_dropdown.set("Sort By")
 
         def sort_by_func(sort_type):
             try:
@@ -3244,6 +3238,115 @@ class SupplyPage(ctk.CTkFrame):
         self.button_frame.place(x=20, y=50, anchor="nw")  
         self.navbar.pack(fill="x", side="top")
         self.table_frame.place(x=20, y=150, relwidth=0.95, relheight=0.8)
+    
+    def perform_sort(self, sort_option):
+        """Perform the actual sorting based on the selected option"""
+        try:
+            connect = db()
+            cursor = connect.cursor()
+            
+            # Map display names to database column names
+            column_mapping = {
+                "Item ID": "item_id",
+                "Item Name": "item_name", 
+                "Category": "category",
+                "Remaining Stock": "current_stock",
+                "Restock Date": "restock_date",
+                "Date Registered": "date_registered"
+            }
+            
+            db_column = column_mapping.get(sort_option, "item_id")
+            
+            # Special handling for restock_date since it's from a subquery
+            if sort_option == "Restock Date":
+                cursor.execute("""
+                    SELECT s.item_id, s.item_name, s.category, s.current_stock, 
+                        COALESCE(
+                            (SELECT MAX(rl.restock_date) 
+                            FROM restock_logs rl 
+                            WHERE rl.item_id = s.item_id), 
+                            'No Restock'
+                        ) as restock_date,
+                        s.date_registered, s.restock_quantity, s.average_daily_usage, 
+                        s.average_weekly_usage, s.average_monthly_usage, s.delivery_time_days, 
+                        s.stock_level_status, s.max_supply
+                    FROM supply s
+                    ORDER BY 
+                        CASE 
+                            WHEN COALESCE(
+                                (SELECT MAX(rl.restock_date) 
+                                FROM restock_logs rl 
+                                WHERE rl.item_id = s.item_id), 
+                                'No Restock'
+                            ) = 'No Restock' THEN 1 
+                            ELSE 0 
+                        END,
+                        COALESCE(
+                            (SELECT MAX(rl.restock_date) 
+                            FROM restock_logs rl 
+                            WHERE rl.item_id = s.item_id), 
+                            '1900-01-01'
+                        ) DESC
+                """)
+            elif sort_option == "Remaining Stock":
+                # Sort numerically for stock quantities
+                cursor.execute("""
+                    SELECT s.item_id, s.item_name, s.category, s.current_stock, 
+                        COALESCE(
+                            (SELECT MAX(rl.restock_date) 
+                            FROM restock_logs rl 
+                            WHERE rl.item_id = s.item_id), 
+                            'No Restock'
+                        ) as restock_date,
+                        s.date_registered, s.restock_quantity, s.average_daily_usage, 
+                        s.average_weekly_usage, s.average_monthly_usage, s.delivery_time_days, 
+                        s.stock_level_status, s.max_supply
+                    FROM supply s
+                    ORDER BY s.current_stock DESC
+                """)
+            else:
+                # Standard sorting for other columns
+                cursor.execute(f"""
+                    SELECT s.item_id, s.item_name, s.category, s.current_stock, 
+                        COALESCE(
+                            (SELECT MAX(rl.restock_date) 
+                            FROM restock_logs rl 
+                            WHERE rl.item_id = s.item_id), 
+                            'No Restock'
+                        ) as restock_date,
+                        s.date_registered, s.restock_quantity, s.average_daily_usage, 
+                        s.average_weekly_usage, s.average_monthly_usage, s.delivery_time_days, 
+                        s.stock_level_status, s.max_supply
+                    FROM supply s
+                    ORDER BY s.{db_column} ASC
+                """)
+            
+            sorted_data = cursor.fetchall()
+            
+            # Update the table with sorted data
+            self.populate_table(sorted_data)
+            
+            # Update the dropdown text to show current sort
+            self.sort_dropdown.set(f"{sort_option}")
+            
+            print(f"Table sorted by: {sort_option}")
+            
+            cursor.close()
+            connect.close()
+            
+        except Exception as e:
+            print(f'Error sorting by {sort_option}:', e)
+            # Reset dropdown on error
+            self.sort_dropdown.set("Sort By")
+
+    def sort_by_option_simple(self, option):
+        """Handle sorting for the simple dropdown"""
+        print(f"Sorting by: {option}")
+        
+        if option == "Sort By":
+            return
+            
+        self.perform_sort(option)
 
     # Navbar methods 
     def toggle_dropdown(self):
