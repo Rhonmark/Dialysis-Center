@@ -1451,7 +1451,7 @@ class PatientPage(ctk.CTkFrame):
 
         self.sort_dropdown = ctk.CTkComboBox(
             self.button_frame,
-            values=["Name", "Date", "Size", "Type"],
+            values=["Patient ID", "Patient Name", "Age", "Gender", "Type of Access", 'Date Registered'],
             font=ctk.CTkFont("Arial", 14),
             width=150,
             height=35,
@@ -1459,6 +1459,32 @@ class PatientPage(ctk.CTkFrame):
         )
         self.sort_dropdown.pack(side="left", padx=(0, 10))
 
+        def sort_by_func(sort_type):
+            try:
+                connect = db()
+                cursor = connect.cursor()
+
+                cursor.execute("""
+                    SELECT * FROM patient_list
+                    ORDER BY %s
+                """, (sort_type,))
+
+                sorting_result = cursor.fetchall()
+                return sorting_result
+
+            except Exception as e:
+                print(f'Error sorting by {sort_type}', e)
+            finally:
+                cursor.close()
+                connect.close()
+        
+        patient_id_sort = sort_by_func('patient_id')
+        patient_name_sort = sort_by_func ('patient_name')
+        age_sort = sort_by_func('age')
+        gender_sort = sort_by_func('gender')
+        access_sort = sort_by_func('access_type')
+        date_sort = sort_by_func('date_registered')
+ 
          # Search container
         self.search_container = ctk.CTkFrame(
             self.navbar, 
@@ -2671,13 +2697,39 @@ class SupplyPage(ctk.CTkFrame):
 
         self.sort_dropdown = ctk.CTkComboBox(
             self.button_frame,
-            values=["Name", "Date", "Size", "Type"],
+            values=["Item ID", 'Item Name', 'Category', 'Remaining Stock', 'Restock Date', 'Date Registered'],
             font=ctk.CTkFont("Arial", 14),
             width=150,
             height=35,
             bg_color="white"
         )
         self.sort_dropdown.pack(side="left", padx=(0, 10))
+
+        def sort_by_func(sort_type):
+            try:
+                connect = db()
+                cursor = connect.cursor()
+
+                cursor.execute("""
+                    SELECT * FROM supply
+                    ORDER BY %s
+                """, (sort_type,))
+
+                sorting_result = cursor.fetchall()
+                return sorting_result
+
+            except Exception as e:
+                print(f'Error sorting by {sort_type}', e)
+            finally:
+                cursor.close()
+                connect.close()
+        
+        item_id_sort = sort_by_func('item_id')
+        item_name_sort = sort_by_func('item_name')
+        category = sort_by_func('category')
+        current_stock_sort = sort_by_func('current_stock')
+        restock_date_sort = sort_by_func('restock_date')
+        register_date_sort = sort_by_func('date_registered')
 
          # Search container
         self.search_container = ctk.CTkFrame(
