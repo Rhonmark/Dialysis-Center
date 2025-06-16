@@ -1588,49 +1588,17 @@ class PatientPage(ctk.CTkFrame):
         )
         self.add_button.pack(side="left", padx=10)
 
-        # Sort By 
-        self.sort_label = ctk.CTkLabel(
+        # Sort dropdown
+        self.sort_dropdown = ctk.CTkOptionMenu(
             self.button_frame,
-            text="SORT BY:",
-            font=ctk.CTkFont("Arial", 14, "bold")
+            values=["Patient ID", "Patient Name", "Age", "Gender", "Type of Access", "Date Registered"],
+            font=ctk.CTkFont("Arial", 16, "bold"),
+            width=180,
+            height=50,
+            command=self.sort_by_option_simple
         )
-        self.sort_label.pack(side="left", padx=(10, 5))
-
-        self.sort_dropdown = ctk.CTkComboBox(
-            self.button_frame,
-            values=["Patient ID", "Patient Name", "Age", "Gender", "Type of Access", 'Date Registered'],
-            font=ctk.CTkFont("Arial", 14),
-            width=150,
-            height=35,
-            bg_color="white"
-        )
-        self.sort_dropdown.pack(side="left", padx=(0, 10))
-
-        def sort_by_func(sort_type):
-            try:
-                connect = db()
-                cursor = connect.cursor()
-
-                cursor.execute("""
-                    SELECT * FROM patient_list
-                    ORDER BY %s
-                """, (sort_type,))
-
-                sorting_result = cursor.fetchall()
-                return sorting_result
-
-            except Exception as e:
-                print(f'Error sorting by {sort_type}', e)
-            finally:
-                cursor.close()
-                connect.close()
-        
-        patient_id_sort = sort_by_func('patient_id')
-        patient_name_sort = sort_by_func ('patient_name')
-        age_sort = sort_by_func('age')
-        gender_sort = sort_by_func('gender')
-        access_sort = sort_by_func('access_type')
-        date_sort = sort_by_func('date_registered')
+        self.sort_dropdown.pack(side="left", padx=10)
+        self.sort_dropdown.set("Sort By")
  
          # Search container
         self.search_container = ctk.CTkFrame(
@@ -1715,7 +1683,7 @@ class PatientPage(ctk.CTkFrame):
         tree_container = ctk.CTkFrame(self.table_frame, fg_color="black")
         tree_container.pack(fill="both", expand=True, padx=1, pady=1)
 
-        columns = ("item_id", "item_name", "category", "current_stock", "restock_date", "date_registered")
+        columns = ("patient_id", "patient_name", "age", "gender", "access_type", "date_registered")
         self.tree = ttk.Treeview(tree_container, columns=columns, show="headings", height=12)
         self.tree.pack(side="left", fill="both", expand=True)
 
@@ -1725,7 +1693,6 @@ class PatientPage(ctk.CTkFrame):
             ("AGE", 80),
             ("GENDER", 120),
             ("TYPE OF ACCESS", 180),
-            ("RESTOCK DATE", 150),
             ("DATE REGISTERED", 250)
         ]
 
@@ -2023,6 +1990,86 @@ class PatientPage(ctk.CTkFrame):
         self.table_frame.place(x=20, y=150, relwidth=0.95, relheight=0.8)
 
         self.populate_table(self.fetch_patient_data())
+
+    def sort_by_option_simple(self, option):
+        """Handle sorting for the patient table"""
+        print(f"Sorting patients by: {option}")
+        
+        # Don't sort if "Sort By" placeholder is selected
+        if option == "Sort By":
+            return
+            
+        self.perform_sort(option)
+
+    def perform_sort(self, sort_option):
+        """Perform the actual sorting based on the selected option for patient table"""
+        try:
+            connect = db()
+            cursor = connect.cursor()
+            
+            # Map display names to database column names for patient_list
+            column_mapping = {
+                "Patient ID": "patient_id",
+                "Patient Name": "patient_name",
+                "Age": "age",
+                "Gender": "gender", 
+                "Type of Access": "access_type",
+                "Date Registered": "date_registered"
+            }
+            
+            db_column = column_mapping.get(sort_option, "patient_id")
+            
+            # Special handling for different data types
+            if sort_option == "Age":
+                # Sort numerically for age
+                cursor.execute("""
+                    SELECT patient_id, patient_name, age, gender, access_type, date_registered
+                    FROM patient_list
+                    ORDER BY CAST(age AS UNSIGNED) DESC
+                """)
+            elif sort_option == "Patient ID":
+                # Sort numerically for patient ID
+                cursor.execute("""
+                    SELECT patient_id, patient_name, age, gender, access_type, date_registered
+                    FROM patient_list
+                    ORDER BY CAST(patient_id AS UNSIGNED) ASC
+                """)
+            elif sort_option == "Date Registered":
+                # Sort by date (newest first)
+                cursor.execute("""
+                    SELECT patient_id, patient_name, age, gender, access_type, date_registered
+                    FROM patient_list
+                    ORDER BY date_registered DESC
+                """)
+            else:
+                # Standard alphabetical sorting for other columns
+                cursor.execute(f"""
+                    SELECT patient_id, patient_name, age, gender, access_type, date_registered
+                    FROM patient_list
+                    ORDER BY {db_column} ASC
+                """)
+            
+            sorted_data = cursor.fetchall()
+            
+            # Clear and repopulate the table with sorted data
+            for row in self.tree.get_children():
+                self.tree.delete(row)
+            
+            for row in sorted_data:
+                self.tree.insert("", "end", values=row)
+            
+            # Update the dropdown text to show current sort
+            self.sort_dropdown.set(f"{sort_option}")
+            
+            print(f"Patient table sorted by: {sort_option}")
+            
+            cursor.close()
+            connect.close()
+            
+        except Exception as e:
+            print(f'Error sorting patients by {sort_option}:', e)
+            # Reset dropdown on error
+            self.sort_dropdown.set("Sort By")
 
     # Navbar methods 
     def toggle_dropdown(self):
@@ -2835,7 +2882,7 @@ class SupplyPage(ctk.CTkFrame):
         )
         self.add_button.pack(side="left", padx=10)
 
-        # Sort dropdown that looks like a button
+        # Sort dropdown
         self.sort_dropdown = ctk.CTkOptionMenu(
             self.button_frame,
             values=["Item ID", "Item Name", "Category", "Remaining Stock", "Restock Date", "Date Registered"],
