@@ -259,6 +259,273 @@ class Sidebar(ctk.CTkFrame):
         self.highlight_selected(page_name)
         self.master.show_page(page_name)
 
+
+class SearchResultsFrame(ctk.CTkFrame):
+    def __init__(self, parent, **kwargs):
+        super().__init__(parent, width=400, height=400, fg_color="white", corner_radius=10, **kwargs)
+        self.place_forget()  # Initially hidden
+        self.visible = False
+        
+        # Header Frame
+        header_frame = ctk.CTkFrame(self, width=400, height=50, fg_color="#68EDC6", corner_radius=10)
+        header_frame.place(x=0, y=0)
+        
+        header_title = ctk.CTkLabel(
+            header_frame, 
+            font=("Merriweather", 16, "bold"), 
+            text="Search Results", 
+            text_color="white"
+        )
+        header_title.place(x=20, y=15)
+        
+        # Close button
+        close_btn = ctk.CTkButton(
+            header_frame,
+            width=30,
+            height=30,
+            text="✕",
+            fg_color="transparent",
+            hover_color="#5AA3A3",
+            font=("Arial", 16),
+            command=self.hide
+        )
+        close_btn.place(x=350, y=10)
+        
+        # Scrollable Results Frame
+        self.results_frame = ctk.CTkScrollableFrame(
+            self,
+            width=380,
+            height=330,
+            fg_color="#f8f9fa",
+            corner_radius=0
+        )
+        self.results_frame.place(x=10, y=60)
+        
+        # No results label (initially hidden)
+        self.no_results_label = ctk.CTkLabel(
+            self.results_frame,
+            text="No results found",
+            font=("Arial", 14),
+            text_color="#666666"
+        )
+        
+    def show_results(self, search_text, results):
+        """Display search results in the frame"""
+        # Clear previous results
+        for widget in self.results_frame.winfo_children():
+            widget.destroy()
+            
+        if not results:
+            # Show no results message
+            self.no_results_label = ctk.CTkLabel(
+                self.results_frame,
+                text=f"No results found for '{search_text}'",
+                font=("Arial", 14),
+                text_color="#666666"
+            )
+            self.no_results_label.pack(pady=50)
+        else:
+            # Group results by type
+            patients = []
+            supplies = []
+            
+            for result in results:
+                name, age, gender, access_type, category, record_type = result
+                if record_type == 'patient':
+                    patients.append({
+                        'name': name,
+                        'age': age,
+                        'gender': gender,
+                        'access_type': access_type
+                    })
+                elif record_type == 'supply':
+                    supplies.append({
+                        'name': name,
+                        'category': category
+                    })
+            
+            # Display patients section
+            if patients:
+                patients_header = ctk.CTkLabel(
+                    self.results_frame,
+                    text=f"👥 PATIENTS ({len(patients)})",
+                    font=("Merriweather", 14, "bold"),
+                    text_color="#2E7D4F"
+                )
+                patients_header.pack(anchor="w", padx=10, pady=(10, 5))
+                
+                for patient in patients:
+                    self.create_patient_item(patient)
+                    
+            # Display supplies section
+            if supplies:
+                supplies_header = ctk.CTkLabel(
+                    self.results_frame,
+                    text=f"📦 SUPPLIES ({len(supplies)})",
+                    font=("Merriweather", 14, "bold"),
+                    text_color="#D2691E"
+                )
+                supplies_header.pack(anchor="w", padx=10, pady=(15, 5))
+                
+                for supply in supplies:
+                    self.create_supply_item(supply)
+        
+        # Show the frame
+        self.show()
+    
+    def create_patient_item(self, patient):
+        """Create a patient result item"""
+        patient_frame = ctk.CTkFrame(
+            self.results_frame,
+            width=360,
+            height=70,
+            fg_color="white",
+            corner_radius=8,
+            border_width=1,
+            border_color="#E0E0E0"
+        )
+        patient_frame.pack(fill="x", padx=10, pady=3)
+        patient_frame.pack_propagate(False)
+        
+        # Patient icon
+        icon_frame = ctk.CTkFrame(
+            patient_frame,
+            width=50,
+            height=50,
+            fg_color="#E3F2FD",
+            corner_radius=25
+        )
+        icon_frame.place(x=10, y=10)
+        
+        icon_label = ctk.CTkLabel(
+            icon_frame,
+            text="👤",
+            font=("Arial", 20)
+        )
+        icon_label.place(relx=0.5, rely=0.5, anchor="center")
+        
+        # Patient details
+        name_label = ctk.CTkLabel(
+            patient_frame,
+            text=patient['name'],
+            font=("Merriweather", 14, "bold"),
+            text_color="black"
+        )
+        name_label.place(x=70, y=12)
+        
+        details_text = f"Age: {patient['age']} • Gender: {patient['gender']} • Access: {patient['access_type']}"
+        details_label = ctk.CTkLabel(
+            patient_frame,
+            text=details_text,
+            font=("Arial", 11),
+            text_color="#666666"
+        )
+        details_label.place(x=70, y=35)
+        
+        # View button
+        view_btn = ctk.CTkButton(
+            patient_frame,
+            width=60,
+            height=25,
+            text="View",
+            font=("Arial", 11),
+            fg_color="#68EDC6",
+            hover_color="#5AA3A3",
+            corner_radius=5,
+            command=lambda p=patient: self.view_patient(p)
+        )
+        view_btn.place(x=290, y=22)
+    
+    def create_supply_item(self, supply):
+        """Create a supply result item"""
+        supply_frame = ctk.CTkFrame(
+            self.results_frame,
+            width=360,
+            height=60,
+            fg_color="white",
+            corner_radius=8,
+            border_width=1,
+            border_color="#E0E0E0"
+        )
+        supply_frame.pack(fill="x", padx=10, pady=3)
+        supply_frame.pack_propagate(False)
+        
+        # Supply icon
+        icon_frame = ctk.CTkFrame(
+            supply_frame,
+            width=40,
+            height=40,
+            fg_color="#FFF3E0",
+            corner_radius=20
+        )
+        icon_frame.place(x=10, y=10)
+        
+        icon_label = ctk.CTkLabel(
+            icon_frame,
+            text="📦",
+            font=("Arial", 16)
+        )
+        icon_label.place(relx=0.5, rely=0.5, anchor="center")
+        
+        # Supply details
+        name_label = ctk.CTkLabel(
+            supply_frame,
+            text=supply['name'],
+            font=("Merriweather", 13, "bold"),
+            text_color="black"
+        )
+        name_label.place(x=60, y=10)
+        
+        category_label = ctk.CTkLabel(
+            supply_frame,
+            text=f"Category: {supply['category']}",
+            font=("Arial", 11),
+            text_color="#666666"
+        )
+        category_label.place(x=60, y=30)
+        
+        # View button
+        view_btn = ctk.CTkButton(
+            supply_frame,
+            width=60,
+            height=25,
+            text="View",
+            font=("Arial", 11),
+            fg_color="#68EDC6",
+            hover_color="#5AA3A3",
+            corner_radius=5,
+            command=lambda s=supply: self.view_supply(s)
+        )
+        view_btn.place(x=290, y=17)
+    
+    def view_patient(self, patient):
+        """Handle viewing a patient - for testing, just print details"""
+        print(f"\n🔍 VIEWING PATIENT:")
+        print(f"   Name: {patient['name']}")
+        print(f"   Age: {patient['age']}")
+        print(f"   Gender: {patient['gender']}")
+        print(f"   Access Type: {patient['access_type']}")
+        print("=" * 40)
+    
+    def view_supply(self, supply):
+        """Handle viewing a supply - for testing, just print details"""
+        print(f"\n📦 VIEWING SUPPLY:")
+        print(f"   Name: {supply['name']}")
+        print(f"   Category: {supply['category']}")
+        print("=" * 40)
+
+    def show(self):
+        """Show the search results frame"""
+        self.place(x=480, y=130)  # Position below search bar
+        self.lift()
+        self.visible = True
+    
+    def hide(self):
+        """Hide the search results frame"""
+        self.place_forget()
+        self.visible = False
+
+
 class HomePageContent(ctk.CTkFrame):
     def __init__(self, parent):
         super().__init__(parent, fg_color="#E8FBFC")
@@ -278,6 +545,9 @@ class HomePageContent(ctk.CTkFrame):
         self.total_patients = 0
         self.active_patients = 0
         self.inactive_patients = 0
+
+        # Initialize search results frame
+        self.search_results_frame = SearchResultsFrame(self)
 
         def get_name():
             # Commented out backend database call
@@ -320,76 +590,74 @@ class HomePageContent(ctk.CTkFrame):
         self.load_patient_data_and_pie_chart()
 
         self.setup_search_functionality()
-        
-    try:
-        connect = db()
-        cursor = connect.cursor()
-
-        name = 'toni'
-
-        cursor.execute("""
-            SELECT * FROM (
-                SELECT 
-                    patient_name as name,
-                    age,
-                    gender,
-                    access_type,
-                    NULL as category,
-                    'patient' as record_type
-                FROM patient_list
-                       
-                UNION
-                       
-                SELECT
-                    item_name as name,
-                    NULL as age,
-                    NULL as gender,
-                    NULL as access_type,
-                    category,
-                    'supply' as record_type
-                FROM supply
-            ) AS search_result
-            WHERE name LIKE %s
-        """, (f'%{name}%',))
-
-        search_result = cursor.fetchall()
-        
-        for search in search_result:
-            if search[5] == 'patient':
-                print(f'{search [0]} is a patient!')
-            elif search[5] == 'supply':
-                print(f'{search[0]} is a supply!')
-
-    except Exception as e:
-        print('Error searching', e)
-
-    finally:
-        cursor.close()
-        connect.close()
 
     def setup_search_functionality(self):
         """Setup search functionality for the search entry"""
         # Bind the search entry to trigger search on key release
         self.search_entry.bind("<KeyRelease>", self.on_search_key_release)
         self.search_entry.bind("<Return>", self.perform_search)  # Enter key
+        self.search_entry.bind("<FocusOut>", self.on_search_focus_out)  # Hide results when focus lost
+        self.search_entry.bind("<Button-1>", self.on_search_click)  # Show results on click
+
+    def on_search_click(self, event):
+        """Handle click on search entry"""
+        search_text = self.search_entry.get().strip()
+        if len(search_text) >= 2:
+            # If there's already text, perform search to show results
+            self.perform_search(None)
 
     def on_search_key_release(self, event):
         """Handle key release events in search entry"""
         search_text = self.search_entry.get().strip()
         
-        # Only search if there's text and it's more than 2 characters
+        # Hide results if search is empty
+        if len(search_text) == 0:
+            self.search_results_frame.hide()
+            return
+            
+        # Only search if there's text and it's more than 1 character
         if len(search_text) >= 2:
             # Add a small delay to avoid searching on every keystroke
             if hasattr(self, 'search_timer'):
                 self.after_cancel(self.search_timer)
-            self.search_timer = self.after(500, lambda: self.perform_search(None))
+            self.search_timer = self.after(300, lambda: self.perform_search(None))
+        elif len(search_text) == 1:
+            # Hide results for single character
+            self.search_results_frame.hide()
+
+    def on_search_focus_out(self, event):
+        """Handle when search entry loses focus"""
+        # Add a small delay before hiding to allow clicking on results
+        self.after(200, self.check_and_hide_results)
+    
+    def check_and_hide_results(self):
+        """Check if we should hide the results frame"""
+        # Get the widget that currently has focus
+        focused_widget = self.focus_get()
+        
+        # If the focused widget is not part of the search results frame, hide it
+        if (focused_widget != self.search_entry and 
+            not self.is_widget_in_frame(focused_widget, self.search_results_frame)):
+            self.search_results_frame.hide()
+    
+    def is_widget_in_frame(self, widget, frame):
+        """Check if a widget is inside a specific frame"""
+        if widget is None:
+            return False
+        
+        parent = widget
+        while parent:
+            if parent == frame:
+                return True
+            parent = parent.master
+        return False
 
     def perform_search(self, event):
         """Perform the actual search operation"""
         search_text = self.search_entry.get().strip()
         
-        if not search_text:
-            print("Search field is empty")
+        if not search_text or len(search_text) < 2:
+            self.search_results_frame.hide()
             return
         
         try:
@@ -420,12 +688,16 @@ class HomePageContent(ctk.CTkFrame):
                     FROM supply
                 ) AS search_result
                 WHERE name LIKE %s
+                ORDER BY record_type, name
             """, (f'%{search_text}%',))
 
             search_results = cursor.fetchall()
             
-            print(f"\n=== Search Results for '{search_text}' ===")
+            # Show results in the search frame
+            self.search_results_frame.show_results(search_text, search_results)
             
+            # Keep the existing console output for debugging
+            print(f"\n=== Search Results for '{search_text}' ===")
             if search_results:
                 patients_found = []
                 supplies_found = []
@@ -449,14 +721,14 @@ class HomePageContent(ctk.CTkFrame):
                         })
                         print(f'📦 SUPPLY: {name} (Category: {category})')
                 
-                # Print summary
                 print(f"\nSummary: Found {len(patients_found)} patients and {len(supplies_found)} supplies")
-                
             else:
                 print(f"No results found for '{search_text}'")
 
         except Exception as e:
             print(f'Error performing search: {e}')
+            # Show error in search frame
+            self.search_results_frame.show_results(search_text, [])
         finally:
             if 'cursor' in locals():
                 cursor.close()
@@ -984,6 +1256,7 @@ class HomePageContent(ctk.CTkFrame):
             yesterday_icon_btn.place(x=240, y=38)
 
         # Subtitle for Yesterday Item Usage
+        from datetime import date, timedelta
         YItemUsage_subtitle = ctk.CTkLabel(
             self.yesterday_usage_frame,
             text=date.today() - timedelta(days=1),
@@ -1000,25 +1273,6 @@ class HomePageContent(ctk.CTkFrame):
             text_color="#888888"
         )
         refresh_indicator_yesterday.place(x=400, y=50)
-
-        # Backup Information Frame
-        self.backup_frame = ctk.CTkFrame(
-            self,
-            width=410,
-            height=200,
-            fg_color="white",
-            corner_radius=20
-        )
-        self.backup_frame.place(x=710, y=610)
-
-        left_bar = ctk.CTkFrame(
-            self.backup_frame,
-            width=20,
-            height=200,
-            fg_color="#68EDC6",
-            corner_radius=0
-        )
-        left_bar.place(x=0, y=0)
 
         # Recent Patient Frame 
         self.fourth_frame = ctk.CTkFrame(
@@ -1628,11 +1882,194 @@ class NotificationFrame(ctk.CTkFrame):
             self.lift()
             self.visible = True
 
+class PatientSearchResultsFrame(ctk.CTkFrame):
+    def __init__(self, parent, **kwargs):
+        super().__init__(parent, width=400, height=400, fg_color="white", corner_radius=10, **kwargs)
+        self.place_forget()  # Initially hidden
+        self.visible = False
+        self.parent = parent  # Reference to PatientPage
+        
+        # Header Frame
+        header_frame = ctk.CTkFrame(self, width=400, height=50, fg_color="#68EDC6", corner_radius=10)
+        header_frame.place(x=0, y=0)
+        
+        header_title = ctk.CTkLabel(
+            header_frame, 
+            font=("Merriweather", 16, "bold"), 
+            text="Patient Search Results", 
+            text_color="white"
+        )
+        header_title.place(x=20, y=15)
+        
+        # Close button
+        close_btn = ctk.CTkButton(
+            header_frame,
+            width=30,
+            height=30,
+            text="✕",
+            fg_color="transparent",
+            hover_color="#5AA3A3",
+            font=("Arial", 16),
+            command=self.hide
+        )
+        close_btn.place(x=350, y=10)
+        
+        # Scrollable Results Frame
+        self.results_frame = ctk.CTkScrollableFrame(
+            self,
+            width=380,
+            height=330,
+            fg_color="#f8f9fa",
+            corner_radius=0
+        )
+        self.results_frame.place(x=10, y=60)
+        
+        # No results label (initially hidden)
+        self.no_results_label = ctk.CTkLabel(
+            self.results_frame,
+            text="No results found",
+            font=("Arial", 14),
+            text_color="#666666"
+        )
+        
+    def show_results(self, search_text, results):
+        """Display search results in the frame"""
+        # Clear previous results
+        for widget in self.results_frame.winfo_children():
+            widget.destroy()
+            
+        if not results:
+            # Show no results message
+            self.no_results_label = ctk.CTkLabel(
+                self.results_frame,
+                text=f"No patients found for '{search_text}'",
+                font=("Arial", 14),
+                text_color="#666666"
+            )
+            self.no_results_label.pack(pady=50)
+        else:
+            # Display patients section
+            patients_header = ctk.CTkLabel(
+                self.results_frame,
+                text=f"👥 PATIENTS ({len(results)})",
+                font=("Merriweather", 14, "bold"),
+                text_color="#2E7D4F"
+            )
+            patients_header.pack(anchor="w", padx=10, pady=(10, 5))
+            
+            for patient in results:
+                self.create_patient_item(patient)
+        
+        # Show the frame
+        self.show()
+    
+    def create_patient_item(self, patient):
+        """Create a patient result item"""
+        patient_frame = ctk.CTkFrame(
+            self.results_frame,
+            width=360,
+            height=80,
+            fg_color="white",
+            corner_radius=8,
+            border_width=1,
+            border_color="#E0E0E0"
+        )
+        patient_frame.pack(fill="x", padx=10, pady=3)
+        patient_frame.pack_propagate(False)
+        
+        # Patient icon
+        icon_frame = ctk.CTkFrame(
+            patient_frame,
+            width=50,
+            height=50,
+            fg_color="#E3F2FD",
+            corner_radius=25
+        )
+        icon_frame.place(x=10, y=15)
+        
+        icon_label = ctk.CTkLabel(
+            icon_frame,
+            text="👤",
+            font=("Arial", 20)
+        )
+        icon_label.place(relx=0.5, rely=0.5, anchor="center")
+        
+        # Patient details
+        name_label = ctk.CTkLabel(
+            patient_frame,
+            text=patient['patient_name'],
+            font=("Merriweather", 14, "bold"),
+            text_color="black"
+        )
+        name_label.place(x=70, y=12)
+        
+        details_text = f"Age: {patient['age']} • Gender: {patient['gender']}"
+        details_label = ctk.CTkLabel(
+            patient_frame,
+            text=details_text,
+            font=("Arial", 11),
+            text_color="#666666"
+        )
+        details_label.place(x=70, y=32)
+        
+        access_label = ctk.CTkLabel(
+            patient_frame,
+            text=f"Access: {patient['access_type']}",
+            font=("Arial", 11),
+            text_color="#666666"
+        )
+        access_label.place(x=70, y=50)
+        
+        # View button
+        view_btn = ctk.CTkButton(
+            patient_frame,
+            width=60,
+            height=25,
+            text="View",
+            font=("Arial", 11),
+            fg_color="#68EDC6",
+            hover_color="#5AA3A3",
+            corner_radius=5,
+            command=lambda p=patient: self.view_patient(p)
+        )
+        view_btn.place(x=290, y=27)
+    
+    def view_patient(self, patient):
+        """Handle viewing a patient - redirect to detailed view"""
+        print(f"\n👤 VIEWING PATIENT:")
+        print(f"   ID: {patient['patient_id']}")
+        print(f"   Name: {patient['patient_name']}")
+        print(f"   Age: {patient['age']}")
+        print(f"   Gender: {patient['gender']}")
+        print(f"   Access Type: {patient['access_type']}")
+        print("=" * 40)
+        
+        # Hide search results
+        self.hide()
+        
+        # Show detailed patient view using existing method
+        import threading
+        threading.Thread(target=lambda: self.parent.show_detailed_info(patient['patient_id'])).start()
+    
+    def show(self):
+        """Show the search results frame"""
+        self.place(x=480, y=130)  # Position below search bar
+        self.lift()
+        self.visible = True
+    
+    def hide(self):
+        """Hide the search results frame"""
+        self.place_forget()
+        self.visible = False
+
 class PatientPage(ctk.CTkFrame):
     def __init__(self, parent, shared_state):
         super().__init__(parent, fg_color="#E8FBFC")
         self.shared_state = shared_state
         self.patient_id = None 
+
+        # Initialize search results frame
+        self.search_results_frame = PatientSearchResultsFrame(self)
 
         self.navbar = ctk.CTkFrame(self, fg_color="white", height=130)
         self.navbar.pack(fill="x", side="top")
@@ -1806,6 +2243,9 @@ class PatientPage(ctk.CTkFrame):
         self.tree.bind("<Motion>", self.on_hover)
         self.tree.bind("<Leave>", self.on_leave)
         self.tree.bind("<ButtonRelease-1>", self.on_row_click)
+
+        # Setup search functionality
+        self.setup_search_functionality()
 
         # Detailed info frame
         self.detailed_info_frame = ctk.CTkFrame(self, fg_color="#E8FBFC")
@@ -2089,6 +2529,125 @@ class PatientPage(ctk.CTkFrame):
 
         self.populate_table(self.fetch_patient_data())
 
+    # SEARCH FUNCTIONALITY METHODS
+    def setup_search_functionality(self):
+        """Setup search functionality for the search entry"""
+        # Bind the search entry to trigger search on key release
+        self.search_entry.bind("<KeyRelease>", self.on_search_key_release)
+        self.search_entry.bind("<Return>", self.perform_search)  # Enter key
+        self.search_entry.bind("<FocusOut>", self.on_search_focus_out)  # Hide results when focus lost
+        self.search_entry.bind("<Button-1>", self.on_search_click)  # Show results on click
+
+    def on_search_click(self, event):
+        """Handle click on search entry"""
+        search_text = self.search_entry.get().strip()
+        if len(search_text) >= 2:
+            # If there's already text, perform search to show results
+            self.perform_search(None)
+
+    def on_search_key_release(self, event):
+        """Handle key release events in search entry"""
+        search_text = self.search_entry.get().strip()
+        
+        # Hide results if search is empty
+        if len(search_text) == 0:
+            self.search_results_frame.hide()
+            return
+            
+        # Only search if there's text and it's more than 1 character
+        if len(search_text) >= 2:
+            # Add a small delay to avoid searching on every keystroke
+            if hasattr(self, 'search_timer'):
+                self.after_cancel(self.search_timer)
+            self.search_timer = self.after(300, lambda: self.perform_search(None))
+        elif len(search_text) == 1:
+            # Hide results for single character
+            self.search_results_frame.hide()
+
+    def on_search_focus_out(self, event):
+        """Handle when search entry loses focus"""
+        # Add a small delay before hiding to allow clicking on results
+        self.after(200, self.check_and_hide_results)
+    
+    def check_and_hide_results(self):
+        """Check if we should hide the results frame"""
+        # Get the widget that currently has focus
+        focused_widget = self.focus_get()
+        
+        # If the focused widget is not part of the search results frame, hide it
+        if (focused_widget != self.search_entry and 
+            not self.is_widget_in_frame(focused_widget, self.search_results_frame)):
+            self.search_results_frame.hide()
+    
+    def is_widget_in_frame(self, widget, frame):
+        """Check if a widget is inside a specific frame"""
+        if widget is None:
+            return False
+        
+        parent = widget
+        while parent:
+            if parent == frame:
+                return True
+            parent = parent.master
+        return False
+
+    def perform_search(self, event):
+        """Perform the actual search operation for patients only"""
+        search_text = self.search_entry.get().strip()
+        
+        if not search_text or len(search_text) < 2:
+            self.search_results_frame.hide()
+            return
+        
+        try:
+            connect = db()
+            cursor = connect.cursor()
+
+            # Search only in patient_list table
+            cursor.execute("""
+                SELECT patient_id, patient_name, age, gender, access_type, date_registered
+                FROM patient_list
+                WHERE patient_name LIKE %s OR CAST(patient_id AS CHAR) LIKE %s OR gender LIKE %s OR access_type LIKE %s
+                ORDER BY patient_name
+            """, (f'%{search_text}%', f'%{search_text}%', f'%{search_text}%', f'%{search_text}%'))
+
+            search_results = cursor.fetchall()
+            
+            # Convert results to patient dictionaries
+            patients = []
+            for result in search_results:
+                patients.append({
+                    'patient_id': result[0],
+                    'patient_name': result[1],
+                    'age': result[2],
+                    'gender': result[3],
+                    'access_type': result[4],
+                    'date_registered': result[5]
+                })
+            
+            # Show results in the search frame
+            self.search_results_frame.show_results(search_text, patients)
+            
+            # Keep the existing console output for debugging
+            print(f"\n=== Patient Search Results for '{search_text}' ===")
+            if patients:
+                for patient in patients:
+                    print(f'👥 PATIENT: {patient["patient_name"]} (Age: {patient["age"]}, Gender: {patient["gender"]}, Access: {patient["access_type"]})')
+                print(f"\nSummary: Found {len(patients)} patients")
+            else:
+                print(f"No patients found for '{search_text}'")
+
+        except Exception as e:
+            print(f'Error performing patient search: {e}')
+            # Show error in search frame
+            self.search_results_frame.show_results(search_text, [])
+        finally:
+            if 'cursor' in locals():
+                cursor.close()
+            if 'connect' in locals():
+                connect.close()
+
+    # EXISTING METHODS (unchanged)
     def sort_by_option_simple(self, option):
         """Handle sorting for the patient table"""
         print(f"Sorting patients by: {option}")
@@ -2402,22 +2961,6 @@ class PatientPage(ctk.CTkFrame):
     def open_add_window(self, data=None):
         self.disable_buttons()
         self.open_input_window(PatientInfoWindow, data)
-
-    def refresh_after_update(self):
-        """Called after a patient is updated to refresh the table and view"""
-        print("🔄 Refreshing patient data after update...")
-        
-        # Store current patient_id if we were viewing details
-        current_patient_id = self.patient_id_value.cget("text") if hasattr(self, 'patient_id_value') else None
-        
-        # Refresh the table
-        self.refresh_table()
-        
-        # If we were viewing a patient's details, refresh that view too
-        if current_patient_id:
-            self.show_detailed_info(current_patient_id)
-        
-        print("✅ Patient data refreshed successfully!")
 
     def open_edit_window(self, data=None):
         """Open edit window with current patient data"""
@@ -2916,10 +3459,217 @@ def create_exit_button(parent, command=None):
     exit_button.image = exit_ctk_image 
     return exit_button
 
+class SupplySearchResultsFrame(ctk.CTkFrame):
+    def __init__(self, parent, **kwargs):
+        super().__init__(parent, width=400, height=400, fg_color="white", corner_radius=10, **kwargs)
+        self.place_forget()  # Initially hidden
+        self.visible = False
+        self.parent = parent  # Reference to SupplyPage
+        
+        # Header Frame
+        header_frame = ctk.CTkFrame(self, width=400, height=50, fg_color="#68EDC6", corner_radius=10)
+        header_frame.place(x=0, y=0)
+        
+        header_title = ctk.CTkLabel(
+            header_frame, 
+            font=("Merriweather", 16, "bold"), 
+            text="Supply Search Results", 
+            text_color="white"
+        )
+        header_title.place(x=20, y=15)
+        
+        # Close button
+        close_btn = ctk.CTkButton(
+            header_frame,
+            width=30,
+            height=30,
+            text="✕",
+            fg_color="transparent",
+            hover_color="#5AA3A3",
+            font=("Arial", 16),
+            command=self.hide
+        )
+        close_btn.place(x=350, y=10)
+        
+        # Scrollable Results Frame
+        self.results_frame = ctk.CTkScrollableFrame(
+            self,
+            width=380,
+            height=330,
+            fg_color="#f8f9fa",
+            corner_radius=0
+        )
+        self.results_frame.place(x=10, y=60)
+        
+        # No results label (initially hidden)
+        self.no_results_label = ctk.CTkLabel(
+            self.results_frame,
+            text="No results found",
+            font=("Arial", 14),
+            text_color="#666666"
+        )
+        
+    def show_results(self, search_text, results):
+        """Display search results in the frame"""
+        # Clear previous results
+        for widget in self.results_frame.winfo_children():
+            widget.destroy()
+            
+        if not results:
+            # Show no results message
+            self.no_results_label = ctk.CTkLabel(
+                self.results_frame,
+                text=f"No supplies found for '{search_text}'",
+                font=("Arial", 14),
+                text_color="#666666"
+            )
+            self.no_results_label.pack(pady=50)
+        else:
+            # Display supplies section
+            supplies_header = ctk.CTkLabel(
+                self.results_frame,
+                text=f"📦 SUPPLIES ({len(results)})",
+                font=("Merriweather", 14, "bold"),
+                text_color="#D2691E"
+            )
+            supplies_header.pack(anchor="w", padx=10, pady=(10, 5))
+            
+            for supply in results:
+                self.create_supply_item(supply)
+        
+        # Show the frame
+        self.show()
+    
+    def create_supply_item(self, supply):
+        """Create a supply result item"""
+        supply_frame = ctk.CTkFrame(
+            self.results_frame,
+            width=360,
+            height=80,
+            fg_color="white",
+            corner_radius=8,
+            border_width=1,
+            border_color="#E0E0E0"
+        )
+        supply_frame.pack(fill="x", padx=10, pady=3)
+        supply_frame.pack_propagate(False)
+        
+        # Supply icon
+        icon_frame = ctk.CTkFrame(
+            supply_frame,
+            width=50,
+            height=50,
+            fg_color="#FFF3E0",
+            corner_radius=25
+        )
+        icon_frame.place(x=10, y=15)
+        
+        icon_label = ctk.CTkLabel(
+            icon_frame,
+            text="📦",
+            font=("Arial", 20)
+        )
+        icon_label.place(relx=0.5, rely=0.5, anchor="center")
+        
+        # Supply details
+        name_label = ctk.CTkLabel(
+            supply_frame,
+            text=supply['item_name'],
+            font=("Merriweather", 14, "bold"),
+            text_color="black"
+        )
+        name_label.place(x=70, y=12)
+        
+        category_label = ctk.CTkLabel(
+            supply_frame,
+            text=f"Category: {supply['category']}",
+            font=("Arial", 11),
+            text_color="#666666"
+        )
+        category_label.place(x=70, y=32)
+        
+        stock_label = ctk.CTkLabel(
+            supply_frame,
+            text=f"Stock: {supply['current_stock']}",
+            font=("Arial", 11),
+            text_color="#666666"
+        )
+        stock_label.place(x=70, y=50)
+        
+        # View button
+        view_btn = ctk.CTkButton(
+            supply_frame,
+            width=60,
+            height=25,
+            text="View",
+            font=("Arial", 11),
+            fg_color="#68EDC6",
+            hover_color="#5AA3A3",
+            corner_radius=5,
+            command=lambda s=supply: self.view_supply(s)
+        )
+        view_btn.place(x=290, y=27)
+    
+    def view_supply(self, supply):
+        """Handle viewing a supply - redirect to detailed view"""
+        print(f"\n📦 VIEWING SUPPLY:")
+        print(f"   ID: {supply['item_id']}")
+        print(f"   Name: {supply['item_name']}")
+        print(f"   Category: {supply['category']}")
+        print(f"   Stock: {supply['current_stock']}")
+        print("=" * 40)
+        
+        # Hide search results
+        self.hide()
+        
+        # Set the selected supply in parent and show detailed view
+        self.parent.selected_supply_id = supply['item_id']
+        
+        # Get full supply data and show detailed view
+        try:
+            connect = db()
+            cursor = connect.cursor()
+            cursor.execute("""
+                SELECT s.item_id, s.item_name, s.category, s.current_stock, 
+                    COALESCE(
+                        (SELECT MAX(rl.restock_date) 
+                        FROM restock_logs rl 
+                        WHERE rl.item_id = s.item_id), 
+                        'No Restock'
+                    ) as restock_date,
+                    s.date_registered, s.restock_quantity, s.average_daily_usage, 
+                    s.average_weekly_usage, s.average_monthly_usage, s.delivery_time_days, 
+                    s.stock_level_status, s.max_supply
+                FROM supply s 
+                WHERE s.item_id = %s
+            """, (supply['item_id'],))
+            
+            full_supply_data = cursor.fetchone()
+            if full_supply_data:
+                self.parent.show_detailed_info(full_supply_data)
+            cursor.close()
+            connect.close()
+        except Exception as e:
+            print("Error fetching supply details:", e)
+    
+    def show(self):
+        """Show the search results frame"""
+        self.place(x=480, y=130)  # Position below search bar
+        self.lift()
+        self.visible = True
+    
+    def hide(self):
+        """Hide the search results frame"""
+        self.place_forget()
+        self.visible = False
+
 class SupplyPage(ctk.CTkFrame):
     def __init__(self, parent, shared_state):
         super().__init__(parent, fg_color="#E8FBFC")
         self.shared_state = shared_state
+
+        # Initialize search results frame
+        self.search_results_frame = SupplySearchResultsFrame(self)
 
         self.navbar = ctk.CTkFrame(self, fg_color="white", height=130)
         self.navbar.pack(fill="x", side="top")
@@ -3021,7 +3771,7 @@ class SupplyPage(ctk.CTkFrame):
         # Search entry
         self.search_entry = ctk.CTkEntry(   
             self.search_container,
-            placeholder_text="Search patient",
+            placeholder_text="Search supply",
             width=170,
             height=40,
             border_width=0,
@@ -3102,6 +3852,11 @@ class SupplyPage(ctk.CTkFrame):
         self.tree.bind("<<TreeviewSelect>>", self.on_row_select)
         self.tree.bind("<ButtonRelease-1>", self.on_row_click)
         self.populate_table(self.fetch_supply_data())
+
+        # Setup search functionality
+        self.setup_search_functionality()
+
+        # Rest of your existing UI code...
         self.Main_Supply_Frame = ctk.CTkFrame(self, fg_color="#E8FBFC")
 
         self.back_button = ctk.CTkButton(self.Main_Supply_Frame, text="Back", font=button_font,
@@ -3534,7 +4289,133 @@ class SupplyPage(ctk.CTkFrame):
         self.button_frame.place(x=20, y=50, anchor="nw")  
         self.navbar.pack(fill="x", side="top")
         self.table_frame.place(x=20, y=150, relwidth=0.95, relheight=0.8)
+
+    # SEARCH FUNCTIONALITY METHODS
+    def setup_search_functionality(self):
+        """Setup search functionality for the search entry"""
+        # Bind the search entry to trigger search on key release
+        self.search_entry.bind("<KeyRelease>", self.on_search_key_release)
+        self.search_entry.bind("<Return>", self.perform_search)  # Enter key
+        self.search_entry.bind("<FocusOut>", self.on_search_focus_out)  # Hide results when focus lost
+        self.search_entry.bind("<Button-1>", self.on_search_click)  # Show results on click
+
+    def on_search_click(self, event):
+        """Handle click on search entry"""
+        search_text = self.search_entry.get().strip()
+        if len(search_text) >= 2:
+            # If there's already text, perform search to show results
+            self.perform_search(None)
+
+    def on_search_key_release(self, event):
+        """Handle key release events in search entry"""
+        search_text = self.search_entry.get().strip()
+        
+        # Hide results if search is empty
+        if len(search_text) == 0:
+            self.search_results_frame.hide()
+            return
+            
+        # Only search if there's text and it's more than 1 character
+        if len(search_text) >= 2:
+            # Add a small delay to avoid searching on every keystroke
+            if hasattr(self, 'search_timer'):
+                self.after_cancel(self.search_timer)
+            self.search_timer = self.after(300, lambda: self.perform_search(None))
+        elif len(search_text) == 1:
+            # Hide results for single character
+            self.search_results_frame.hide()
+
+    def on_search_focus_out(self, event):
+        """Handle when search entry loses focus"""
+        # Add a small delay before hiding to allow clicking on results
+        self.after(200, self.check_and_hide_results)
     
+    def check_and_hide_results(self):
+        """Check if we should hide the results frame"""
+        # Get the widget that currently has focus
+        focused_widget = self.focus_get()
+        
+        # If the focused widget is not part of the search results frame, hide it
+        if (focused_widget != self.search_entry and 
+            not self.is_widget_in_frame(focused_widget, self.search_results_frame)):
+            self.search_results_frame.hide()
+    
+    def is_widget_in_frame(self, widget, frame):
+        """Check if a widget is inside a specific frame"""
+        if widget is None:
+            return False
+        
+        parent = widget
+        while parent:
+            if parent == frame:
+                return True
+            parent = parent.master
+        return False
+
+    def perform_search(self, event):
+        """Perform the actual search operation for supplies only"""
+        search_text = self.search_entry.get().strip()
+        
+        if not search_text or len(search_text) < 2:
+            self.search_results_frame.hide()
+            return
+        
+        try:
+            connect = db()
+            cursor = connect.cursor()
+
+            # Search only in supply table
+            cursor.execute("""
+                SELECT item_id, item_name, category, current_stock, 
+                    COALESCE(
+                        (SELECT MAX(rl.restock_date) 
+                        FROM restock_logs rl 
+                        WHERE rl.item_id = s.item_id), 
+                        'No Restock'
+                    ) as restock_date,
+                    date_registered
+                FROM supply s
+                WHERE item_name LIKE %s OR category LIKE %s
+                ORDER BY item_name
+            """, (f'%{search_text}%', f'%{search_text}%'))
+
+            search_results = cursor.fetchall()
+            
+            # Convert results to supply dictionaries
+            supplies = []
+            for result in search_results:
+                supplies.append({
+                    'item_id': result[0],
+                    'item_name': result[1],
+                    'category': result[2],
+                    'current_stock': result[3],
+                    'restock_date': result[4],
+                    'date_registered': result[5]
+                })
+            
+            # Show results in the search frame
+            self.search_results_frame.show_results(search_text, supplies)
+            
+            # Keep the existing console output for debugging
+            print(f"\n=== Supply Search Results for '{search_text}' ===")
+            if supplies:
+                for supply in supplies:
+                    print(f'📦 SUPPLY: {supply["item_name"]} (Category: {supply["category"]}, Stock: {supply["current_stock"]})')
+                print(f"\nSummary: Found {len(supplies)} supplies")
+            else:
+                print(f"No supplies found for '{search_text}'")
+
+        except Exception as e:
+            print(f'Error performing supply search: {e}')
+            # Show error in search frame
+            self.search_results_frame.show_results(search_text, [])
+        finally:
+            if 'cursor' in locals():
+                cursor.close()
+            if 'connect' in locals():
+                connect.close()
+    
+    # EXISTING METHODS (unchanged)
     def perform_sort(self, sort_option):
         """Perform the actual sorting based on the selected option"""
         try:
