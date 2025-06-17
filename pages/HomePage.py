@@ -4970,10 +4970,11 @@ class ReportPage(ctk.CTkFrame):
                 """)
 
                 count_result = cursor.fetchone()
-                return count_result
+                return count_result[0] if count_result else 0
 
             except Exception as e:
                 print(f'Error finding column ({column}), value ({value}) in table: {table_name}', e)
+                return 0
             finally:
                 cursor.close()
                 connect.close()
@@ -4986,29 +4987,28 @@ class ReportPage(ctk.CTkFrame):
                 cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
 
                 count_result = cursor.fetchone()
-                return count_result
+                return count_result[0] if count_result else 0
 
             except Exception as e:
                 print(f'Error finding value in table: {table_name}', e)
+                return 0
             finally:
                 cursor.close()
                 connect.close()
 
+        # Get dynamic data from database
+        self.active_patient = data_count('status', 'Active', table_name='patient_info')
+        self.inactive_patient = data_count('status', 'Inactive', table_name='patient_info')
         
-        active_patient = data_count('status', 'Active', table_name='patient_info')
-        inactive_patient = data_count('status', 'Inactive', table_name='patient_info')
+        self.lowstock_count = data_count('stock_level_status', 'Low Stock Level', table_name='supply')
+        self.criticalstock_count = data_count('stock_level_status', 'Critical Stock Level', table_name='supply')
+        self.overall_supply_count = overall_data_count('supply')
 
-        lowstock_count = data_count('stock_level_status', 'Low Stock Level', table_name='supply')
-        criticalstock_count = data_count('stock_level_status', 'Crtical Stock Level', table_name='supply')
-
-        overall_supply_count = overall_data_count('supply')
-        overall_backup_count = overall_data_count('backup_logs')
-
-        print('count of active patient: ', active_patient[0])
-        # print('count of inactive patient: ', inactive_patient[0])
-        # print('count of low stock items: ', lowstock_count[0])
-        # print('count of critical stock items: ', criticalstock_count[0])
-        # print('overall supply count: ', overall_supply_count[0])
+        print('count of active patient: ', self.active_patient)
+        print('count of inactive patient: ', self.inactive_patient)
+        print('count of low stock items: ', self.lowstock_count)
+        print('count of critical stock items: ', self.criticalstock_count)
+        print('overall supply count: ', self.overall_supply_count)
 
         self.low_stock_canvas = None
         self.critical_stock_canvas = None
@@ -5031,10 +5031,10 @@ class ReportPage(ctk.CTkFrame):
         Activepatient_BG = ctk.CTkFrame(PatientReport_frame,width=145,height=62.5,corner_radius=10,fg_color="#88BD8E",bg_color="transparent")
         Activepatient_BG.place(x=55,y=65)
 
-         #Output for Active User
+         #Output for Active User - NOW DYNAMIC
         PatientIcon_image = ctk.CTkImage(Image.open("assets/PatientIcon.png"), size=(15,15))
-        ActivePatientCount = ctk.CTkLabel(Activepatient_BG,font=NumberOuput_font,text="58",text_color="#fFFFFF",fg_color="transparent",image=PatientIcon_image,compound='right')
-        ActivePatientCount.place(relx=.5,rely=.45,anchor="center")
+        self.ActivePatientCount = ctk.CTkLabel(Activepatient_BG,font=NumberOuput_font,text=str(self.active_patient),text_color="#fFFFFF",fg_color="transparent",image=PatientIcon_image,compound='right')
+        self.ActivePatientCount.place(relx=.5,rely=.45,anchor="center")
         PatientCount_SubLabel = ctk.CTkLabel(Activepatient_BG,font=SubLabel_font,text="Patient",text_color="#FfFFFF",fg_color="transparent",height=10)
         PatientCount_SubLabel.place(relx=.5,rely=.7,anchor="center")
 
@@ -5047,10 +5047,10 @@ class ReportPage(ctk.CTkFrame):
         Inactivepatient_BG = ctk.CTkFrame(PatientReport_frame,width=145,height=62.5,corner_radius=10,fg_color="#F25B5B",bg_color="transparent")
         Inactivepatient_BG.place(x=55,y=197)
 
-        #Output for Inactive User
+        #Output for Inactive User - NOW DYNAMIC
         PatientIcon_image = ctk.CTkImage(Image.open("assets/PatientIcon.png"), size=(15,15))
-        InactivePatientCount = ctk.CTkLabel(Inactivepatient_BG,font=NumberOuput_font,text="58",text_color="#fFFFFF",fg_color="transparent",image=PatientIcon_image,compound='right')
-        InactivePatientCount.place(relx=.5,rely=.45,anchor="center")
+        self.InactivePatientCount = ctk.CTkLabel(Inactivepatient_BG,font=NumberOuput_font,text=str(self.inactive_patient),text_color="#fFFFFF",fg_color="transparent",image=PatientIcon_image,compound='right')
+        self.InactivePatientCount.place(relx=.5,rely=.45,anchor="center")
         PatientCount_SubLabel = ctk.CTkLabel(Inactivepatient_BG,font=SubLabel_font,text="Patient",text_color="#FfFFFF",fg_color="transparent",height=10)
         PatientCount_SubLabel.place(relx=.5,rely=.7,anchor="center")
 
@@ -5069,8 +5069,6 @@ class ReportPage(ctk.CTkFrame):
                                            bg_color="transparent")
         Activepatient_frame.place(x=355,y=60)
        
-
-
     #Inactive Patient Table
         Inactivepatient_frame = ctk.CTkFrame(self,
                                              width=580,
@@ -5079,8 +5077,6 @@ class ReportPage(ctk.CTkFrame):
                                              fg_color="#FFFFFF",
                                              bg_color="transparent")
         Inactivepatient_frame.place(x=970,y=60)
-        
-
 
 #------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -5101,10 +5097,10 @@ class ReportPage(ctk.CTkFrame):
         SupplyCount_BG = ctk.CTkFrame(SupplyReport_frame,width=165,height=55,corner_radius=10,fg_color="#818C7D",bg_color="transparent")
         SupplyCount_BG.place(x=70,y=65)
 
-        #Output Supply Count
+        #Output Supply Count - NOW DYNAMIC
         SupplyCountIcon_image = ctk.CTkImage(Image.open("assets/SupplyCountIcon.png"), size=(15,15))
-        SupplyCount = ctk.CTkLabel(SupplyCount_BG,font=NumberOuput_font,text="68",text_color="#fFFFFF",fg_color="transparent",image=SupplyCountIcon_image,compound='right')
-        SupplyCount.place(relx=.5,rely=.45,anchor="center")
+        self.SupplyCount = ctk.CTkLabel(SupplyCount_BG,font=NumberOuput_font,text=str(self.overall_supply_count),text_color="#fFFFFF",fg_color="transparent",image=SupplyCountIcon_image,compound='right')
+        self.SupplyCount.place(relx=.5,rely=.45,anchor="center")
         SupplyCount_SubLabel = ctk.CTkLabel(SupplyCount_BG,font=SubLabel_font,text="Items",text_color="#FfFFFF",fg_color="transparent",height=10)
         SupplyCount_SubLabel.place(relx=.5,rely=.7,anchor="center")
 
@@ -5116,27 +5112,25 @@ class ReportPage(ctk.CTkFrame):
         Lowstock_BG = ctk.CTkFrame(SupplyReport_frame,width=165,height=55,corner_radius=10,fg_color="#D08B40",bg_color="transparent")
         Lowstock_BG.place(x=285,y=65)
 
-        #Output Low Stock
+        #Output Low Stock - NOW DYNAMIC
         LowStockIcon_image = ctk.CTkImage(Image.open("assets/LowStockIcon.png"), size=(15,15))
-        LowStockCount = ctk.CTkLabel(Lowstock_BG,font=NumberOuput_font,text="68",text_color="#fFFFFF",fg_color="transparent",image=LowStockIcon_image,compound='right')
-        LowStockCount.place(relx=.5,rely=.45,anchor="center")
+        self.LowStockCount = ctk.CTkLabel(Lowstock_BG,font=NumberOuput_font,text=str(self.lowstock_count),text_color="#fFFFFF",fg_color="transparent",image=LowStockIcon_image,compound='right')
+        self.LowStockCount.place(relx=.5,rely=.45,anchor="center")
         LowStockCount_SubLabel = ctk.CTkLabel(Lowstock_BG,font=SubLabel_font,text="Items",text_color="#FfFFFF",fg_color="transparent",height=10)
         LowStockCount_SubLabel.place(relx=.5,rely=.7,anchor="center")
-
 
         LowStockLabel_bg = ctk.CTkFrame(SupplyReport_frame,width=140,height=25,corner_radius=10,fg_color="#FFFFFF",bg_color="transparent",border_width=1.5,border_color="#BBBBBB",)
         LowStockLabel_bg.place(x=295,y=125)
         LowStockLabel = ctk.CTkLabel(LowStockLabel_bg,font=label_font,text="Low Stock",text_color="#104E44",bg_color="transparent",height=10)
         LowStockLabel.place(relx=.5,rely=.4,anchor="center")
 
-
         CriticalStock_BG = ctk.CTkFrame(SupplyReport_frame,width=165,height=55,corner_radius=10,fg_color="#AC1616",bg_color="transparent")
         CriticalStock_BG.place(x=495,y=65)
 
-        #Output Critical Stock
+        #Output Critical Stock - NOW DYNAMIC
         CriticalStockIcon_image = ctk.CTkImage(Image.open("assets/CriticalStockIcon.png"), size=(15,15))
-        CriticalStockCount = ctk.CTkLabel(CriticalStock_BG,font=NumberOuput_font,text="68",text_color="#fFFFFF",fg_color="transparent",image=CriticalStockIcon_image,compound='right')
-        CriticalStockCount.place(relx=.5,rely=.45,anchor="center")
+        self.CriticalStockCount = ctk.CTkLabel(CriticalStock_BG,font=NumberOuput_font,text=str(self.criticalstock_count),text_color="#fFFFFF",fg_color="transparent",image=CriticalStockIcon_image,compound='right')
+        self.CriticalStockCount.place(relx=.5,rely=.45,anchor="center")
         CriticalStockCount_SubLabel = ctk.CTkLabel(CriticalStock_BG,font=SubLabel_font,text="Items",text_color="#FfFFFF",fg_color="transparent",height=10)
         CriticalStockCount_SubLabel.place(relx=.5,rely=.7,anchor="center")
 
@@ -5214,6 +5208,7 @@ class ReportPage(ctk.CTkFrame):
 
         Goto_settings = ctk.CTkButton(Discrepancies_frame,fg_color="#88BD8E",text="Go to Settings",font=SubLabel_font,text_color="#ffffff",corner_radius=10,bg_color="#FFFFFF")
         Goto_settings.place(relx=.125,rely=.725)
+
     #Low Stock Level items
         self.LowOnStock_frame = ctk.CTkFrame(self,
                                         width=580,
@@ -5247,7 +5242,7 @@ class ReportPage(ctk.CTkFrame):
                 height=25,
                 fg_color="transparent",
                 hover_color="#f0f0f0",
-                command=self.low_stock_graph
+                command=self.refresh_data
             )
             low_stock_refresh_btn.place(x=220, y=40)
         except:
@@ -5259,7 +5254,7 @@ class ReportPage(ctk.CTkFrame):
                 height=25,
                 fg_color="transparent",
                 hover_color="#f0f0f0",
-                command=self.low_stock_graph
+                command=self.refresh_data
             )
             low_stock_refresh_btn.place(x=220, y=40)
 
@@ -5299,7 +5294,7 @@ class ReportPage(ctk.CTkFrame):
                 height=25,
                 fg_color="transparent",
                 hover_color="#f0f0f0",
-                command=self.critical_stock_graph
+                command=self.refresh_data
             )
             critical_stock_refresh_btn.place(x=250, y=40)
         except:
@@ -5311,7 +5306,7 @@ class ReportPage(ctk.CTkFrame):
                 height=25,
                 fg_color="transparent",
                 hover_color="#f0f0f0",
-                command=self.critical_stock_graph
+                command=self.refresh_data
             )
             critical_stock_refresh_btn.place(x=250, y=40)
 
@@ -5384,6 +5379,59 @@ class ReportPage(ctk.CTkFrame):
         # Load initial graphs
         self.low_stock_graph()
         self.critical_stock_graph()
+
+    def refresh_data(self):
+        """Refresh all data counts and update the labels"""
+        def data_count(column, value, table_name):
+            try:
+                connect = db()
+                cursor = connect.cursor()
+                cursor.execute(f"""
+                    SELECT COUNT(*) FROM {table_name}
+                    WHERE {column} = '{value}'
+                """)
+                count_result = cursor.fetchone()
+                return count_result[0] if count_result else 0
+            except Exception as e:
+                print(f'Error finding column ({column}), value ({value}) in table: {table_name}', e)
+                return 0
+            finally:
+                cursor.close()
+                connect.close()
+
+        def overall_data_count(table_name):
+            try:
+                connect = db()
+                cursor = connect.cursor()
+                cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
+                count_result = cursor.fetchone()
+                return count_result[0] if count_result else 0
+            except Exception as e:
+                print(f'Error finding value in table: {table_name}', e)
+                return 0
+            finally:
+                cursor.close()
+                connect.close()
+
+        # Update data
+        self.active_patient = data_count('status', 'Active', table_name='patient_info')
+        self.inactive_patient = data_count('status', 'Inactive', table_name='patient_info')
+        self.lowstock_count = data_count('stock_level_status', 'Low Stock Level', table_name='supply')
+        self.criticalstock_count = data_count('stock_level_status', 'Critical Stock Level', table_name='supply')
+        self.overall_supply_count = overall_data_count('supply')
+
+        # Update labels
+        self.ActivePatientCount.configure(text=str(self.active_patient))
+        self.InactivePatientCount.configure(text=str(self.inactive_patient))
+        self.SupplyCount.configure(text=str(self.overall_supply_count))
+        self.LowStockCount.configure(text=str(self.lowstock_count))
+        self.CriticalStockCount.configure(text=str(self.criticalstock_count))
+
+        # Refresh graphs
+        self.low_stock_graph()
+        self.critical_stock_graph()
+
+        print('Data refreshed successfully')
 
     def low_stock_graph(self):
         """Show low stock items chart in LowOnStock_frame"""
