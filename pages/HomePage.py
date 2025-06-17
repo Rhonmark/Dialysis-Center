@@ -4646,35 +4646,40 @@ class MaintenancePage(ctk.CTkFrame):
 
         output_font = ("Merriweather Sans Bold", 15)
         label_font = ("Merriweather", 15)
-        time_label_font = ("Merriweather", 12)
-        time_output_font = ("Merriweather Sans Bold", 12)
-        button_font = ("Merriweather Bold",15)
-        SubTitle_font = ("Merriweather Bold",20)
+        time_label_font = ("Merriweather Sans", 10)
+        time_output_font = ("Merriweather Sans Bold", 10)
+        button_font = ("Poppins",11)
+        SubTitle_font = ("Merriweather Bold",14)
+        sublabel_font=("Poppins",10)
         Sub_Sub_Title_font = ("Merriweather Bold",15)
-        Title_font = ("Merriweather Bold",25)
+        Title_font = ("Merriweather Bold",15)
         Messagebox_font=("Merriweather Sans Bold",15)
 
         #---------------------------------LEFT-----------------------------------------
 
-        #Maintenance Frame
+    #Maintenance Frame
         Maintenance_MainFrame = ctk.CTkFrame (self,
                                             bg_color="transparent", 
                                             fg_color='#FFFFFF',
                                             width=1000,
-                                            height=450,
+                                            height=480,
                                             corner_radius=20
                                             )
-        Maintenance_MainFrame.place(x=100,y=180)
+        Maintenance_MainFrame.place(x=100,y=120)
 
         leftbar_frame = ctk.CTkFrame(Maintenance_MainFrame,
                                      bg_color="transparent",
                                      fg_color="#1A374D" ,
                                      width=25,
-                                     height=450,
+                                     height=480,
                                      corner_radius=20 )
         leftbar_frame.place(x=0)
-        label_Title = ctk.CTkLabel(Maintenance_MainFrame, bg_color="transparent",text="Maintenance",text_color="black",font=Title_font)
-        label_Title.place(x=100,y=50)
+
+        #Title
+        Maintenace_label = ctk.CTkLabel(Maintenance_MainFrame, bg_color="transparent",text="Maintenance",text_color="black",font=Title_font,height=15)
+        Maintenace_label.place(x=80,y=30)
+        maintenance_sublabel = ctk.CTkLabel(Maintenance_MainFrame, bg_color="transparent",text="Maintenance Section is for Backup Scheduling",text_color="#104E44",font=sublabel_font,height=10)
+        maintenance_sublabel.place(x=80,y=60)
 
         # Choose Destination Button Function
         def choose_destination_action():
@@ -4683,7 +4688,7 @@ class MaintenancePage(ctk.CTkFrame):
         # Choose Destination Button 
         ChooseDestination_Button = ctk.CTkButton(Maintenance_MainFrame,
                                                 bg_color="transparent",
-                                                fg_color="#6C757D",
+                                                fg_color="#3B71AC",
                                                 hover_color="#5A6268",
                                                 width=150,
                                                 height=35,
@@ -4692,120 +4697,34 @@ class MaintenancePage(ctk.CTkFrame):
                                                 text_color="white",
                                                 cursor="hand2",
                                                 command=choose_destination_action,
-                                                font=("Merriweather Bold", 12))
-        ChooseDestination_Button.place(x=800, y=50)
+                                                font=("Merriweather Sans", 10,"italic"))
+        ChooseDestination_Button.place(x=820, y=30)
 
         #Option Frame
         option_frame = ctk.CTkFrame(Maintenance_MainFrame,
                                     bg_color="transparent" ,
-                                    fg_color="#E8FBFC", 
+                                    fg_color="#FFFFFF", 
                                     width=800, 
                                     height=180, 
-                                    corner_radius=20)
-        option_frame.place(x=100,y=150)
+                                    corner_radius=20,border_width=2,
+                                    border_color="#BBBBBB")
+        option_frame.place(x=100,y=100)
 
-        leftbar_frame = ctk.CTkFrame(option_frame,
-                                     bg_color="transparent",
-                                     fg_color="#68EDC6" ,
-                                     width=15,
-                                     height=180,
-                                     corner_radius=20 )
-        leftbar_frame.place(x=0)
 
-        Options_label = ctk.CTkLabel(option_frame,
-                                     text="Options",
+        backupoptions_label = ctk.CTkLabel(option_frame,
+                                     text="Backup",
                                      text_color="black",
                                      bg_color="#FFFFFF",
                                      font=SubTitle_font)
-        Options_label.place(x=40,y=30)
+        backupoptions_label.place(x=40,y=20)
 
+        backupoptions_sublabel = ctk.CTkLabel(option_frame,
+                                     text="Select Scheduling option.",
+                                     text_color="black",
+                                     bg_color="#FFFFFF",
+                                     font=sublabel_font)
+        backupoptions_sublabel.place(x=40,y=40)
 
-        #Current date Frame
-        current_date_frame = ctk.CTkFrame(Maintenance_MainFrame,bg_color="transparent" ,fg_color="#E8FBFC", width=250, height=80, corner_radius=20)
-        current_date_frame.place(x=100,y=350)
-
-        leftbar_frame = ctk.CTkFrame(current_date_frame,
-                                     bg_color="transparent",
-                                     fg_color="#1E90FF",
-                                     width=10,
-                                     height=80,
-                                     corner_radius=20 )
-        leftbar_frame.place(x=0)
-
-        Current_date_label = ctk.CTkLabel(current_date_frame,bg_color="#E8FBFC",text="Current Date :",text_color="black",font=time_label_font)
-        Current_date_label.place(x=50,y=20)
-
-        Current_date_output = ctk.CTkLabel(current_date_frame,bg_color="#E8FBFC",text="06/01/25",text_color="black",font=time_output_font)
-        Current_date_output.place(x=150,y=20)
-
-        Current_time_label = ctk.CTkLabel(current_date_frame,bg_color="#E8FBFC",text="Current time :",text_color="black",font=time_label_font)
-        Current_time_label.place(x=50,y=50)
-
-        Current_time_output = ctk.CTkLabel(current_date_frame,bg_color="#E8FBFC",text="20 : 00",text_color="black",font=time_output_font)
-        Current_time_output.place(x=150,y=50)
-
-        def update_time():
-            now = datetime.datetime.now()
-            Current_date_output.configure(text=now.strftime("%m - %d - %y"))
-            Current_time_output.configure(text=now.strftime("%H : %M :%S"))
-            self.after(1000, update_time)
-
-        update_time() 
-    
-
-        #Last backup date Frame
-        lastBackup_date_frame = ctk.CTkFrame(Maintenance_MainFrame,bg_color="transparent" ,fg_color="#E8FBFC", width=250, height=80, corner_radius=20,)
-        lastBackup_date_frame.place(x=375,y=350)
-
-        leftbar_frame = ctk.CTkFrame(lastBackup_date_frame,
-                                     bg_color="transparent",
-                                     fg_color="#28A745",
-                                     width=10,
-                                     height=80,
-                                     corner_radius=20 )
-        leftbar_frame.place(x=0)
-
-        LastBackup_date_label = ctk.CTkLabel(lastBackup_date_frame,bg_color="#E8FBFC",text="Last Backup Date :",text_color="black",font=time_label_font)
-        LastBackup_date_label.place(x=30,y=20)
-
-        LastBackup_date_output = ctk.CTkLabel(lastBackup_date_frame,bg_color="#E8FBFC",text="",text_color="black",font=time_output_font)
-        LastBackup_date_output.place(x=150,y=20)
-
-        LastBackup_time_label = ctk.CTkLabel(lastBackup_date_frame,bg_color="#E8FBFC",text="Last Backup Time :",text_color="black",font=time_label_font)
-        LastBackup_time_label.place(x=30,y=50)
-
-        LastBackup_time_output = ctk.CTkLabel(lastBackup_date_frame,bg_color="#E8FBFC",text="",text_color="black",font=time_output_font)
-        LastBackup_time_output.place(x=150,y=50)
-
-
-        #Next backup date Frame
-        NextBackup_date_frame = ctk.CTkFrame(Maintenance_MainFrame,bg_color="transparent" ,fg_color="#E8FBFC", width=250, height=80, corner_radius=20)
-        NextBackup_date_frame.place(x=650,y=350)
-
-        leftbar_frame = ctk.CTkFrame(NextBackup_date_frame,
-                                     bg_color="transparent",
-                                     fg_color="#FFA500",
-                                     width=10,
-                                     height=80,
-                                     corner_radius=20 )
-        leftbar_frame.place(x=0)
-
-        NextBackup_date_label = ctk.CTkLabel(NextBackup_date_frame,bg_color="#E8FBFC",text="Next Backup Date :",text_color="black",font=time_label_font)
-        NextBackup_date_label.place(x=30,y=20)
-
-        NextBackup_date_output = ctk.CTkLabel(NextBackup_date_frame,bg_color="#E8FBFC",text="",text_color="black",font=time_output_font)
-        NextBackup_date_output.place(x=150,y=20)
-
-        NextBackup_time_label = ctk.CTkLabel(NextBackup_date_frame,bg_color="#E8FBFC",text="Next Backup Time :",text_color="black",font=time_label_font)
-        NextBackup_time_label.place(x=30,y=50)
-
-        NextBackup_time_output = ctk.CTkLabel(NextBackup_date_frame,bg_color="#E8FBFC",text="",text_color="black",font=time_output_font)
-        NextBackup_time_output.place(x=150,y=50)
-
-        def update_last_backup_time():
-            now = datetime.datetime.now()
-            LastBackup_date_output.configure(text=now.strftime("%Y-%m-%d"))
-            LastBackup_time_output.configure(text=now.strftime("%H:%M:%S"))
 
         #last/next backup date/time
         def retrieve_backup_logs(cursor, column):
@@ -4972,30 +4891,34 @@ class MaintenancePage(ctk.CTkFrame):
                                         font=("Merriweather Bold", 14))
             select_button.place(x=850, y=380)
 
-        
+        ManualBackupIcon_image = ctk.CTkImage(Image.open("assets/ManualBackupIcon.png"), size=(20,20))
         ManualBackup_Button = ctk.CTkButton(option_frame,
+                                            image=ManualBackupIcon_image,
+                                            compound="left",
                                             bg_color="transparent",
                                             fg_color="#00C88D",
                                             hover_color="#00B07B",
                                             width=180,
-                                            height=70,
+                                            height=60,
                                             corner_radius=20,
-                                            text="Manual Backup",
+                                            text="Manual\nBackup",
                                             text_color="white",
                                             cursor="hand2",
                                             command=manual_backup_action,
                                             font=button_font)
         ManualBackup_Button.place(x=50,y=80)
 
-
+        ScheduleBackup_image = ctk.CTkImage(Image.open("assets/ScheduleBackup.png"), size=(20,20))
         ScheduleBackup_Button = ctk.CTkButton(option_frame,
+                                            image=ScheduleBackup_image,
+                                            compound="left",
                                             bg_color="transparent",
                                             fg_color="#145266",
                                             hover_color="#1F6F88",
                                             width=180,
-                                            height=70,
+                                            height=60,
                                             corner_radius=20,
-                                            text="Schedule Backup",
+                                            text="Schedule\nBackup",
                                             text_color="white",
                                             cursor="hand2",
                                             command=schedule_backup_action,
@@ -5003,19 +4926,124 @@ class MaintenancePage(ctk.CTkFrame):
                                             )
         ScheduleBackup_Button.place(x=300,y=80)
         
-
+        LogsIcon_image = ctk.CTkImage(Image.open("assets/LogsIcon.png"), size=(20,20))
         BackupLogs_Button = ctk.CTkButton(option_frame,
+                                            image=LogsIcon_image,
+                                            compound="left",
                                             bg_color="transparent",
                                             fg_color="#103047",
                                             hover_color="#25475A",
                                             width=180,
-                                            height=70,
+                                            height=60,
                                             corner_radius=20,
-                                            text="View Full History",
+                                            text="History\nLogs",
                                             text_color="white",
                                             cursor="hand2",
                                             font=button_font)
         BackupLogs_Button.place(x=550,y=80)
+
+        Schedule_frame = ctk.CTkFrame(Maintenance_MainFrame,
+                                    bg_color="transparent" ,
+                                    fg_color="#FFFFFF", 
+                                    width=800, 
+                                    height=150, 
+                                    corner_radius=20,
+                                    border_width=1.5,
+                                    border_color="#BBBBBB")
+        Schedule_frame.place(x=100,y=300)
+
+        schedule_label = ctk.CTkLabel(Schedule_frame,
+                                     text="Schedule",
+                                     text_color="black",
+                                     bg_color="#FFFFFF",
+                                     font=SubTitle_font)
+        schedule_label.place(x=40,y=20)
+
+        schedule_sublabel = ctk.CTkLabel(Schedule_frame,
+                                     text="Date and Time.",
+                                     text_color="black",
+                                     bg_color="#FFFFFF",
+                                     font=sublabel_font)
+        schedule_sublabel.place(x=40,y=40)
+
+        #Current date Frame
+        current_date_frame = ctk.CTkFrame(Schedule_frame,bg_color="#FFFFFF" ,fg_color="#3B71AC", width=200, height=60, corner_radius=10)
+        current_date_frame.place(relx=.05,rely=.5)
+        CurrenDate_image = ctk.CTkImage(Image.open("assets/TimeIcon.png"), size=(20,20))
+        Current_image_label=ctk.CTkLabel(current_date_frame,image=CurrenDate_image,text="")
+        Current_image_label.place(relx=.125,rely=.5,anchor="w")
+
+        Current_date_label = ctk.CTkLabel(current_date_frame,bg_color="#3B71AC",text="Current Date :",text_color="#FFFFFF",font=time_label_font,height=10)
+        Current_date_label.place(relx=.25,rely=.175)
+
+    #Output
+        Current_date_output = ctk.CTkLabel(current_date_frame,bg_color="#3B71AC",text="06/01/25",text_color="#FFFFFF",font=time_output_font,height=10)
+        Current_date_output.place(relx=.6,rely=.175)
+
+
+        Current_time_label = ctk.CTkLabel(current_date_frame,bg_color="#3B71AC",text="Current time :",text_color="#FFFFFF",font=time_label_font,height=10)
+        Current_time_label.place(relx=.25,rely=.5)
+
+    #Output
+        Current_time_output = ctk.CTkLabel(current_date_frame,bg_color="#3B71AC",text="20 : 00",text_color="#FFFFFF",font=time_output_font,height=10)
+        Current_time_output.place(relx=.6,rely=.5)
+
+        def update_time():
+            now = datetime.datetime.now()
+            Current_date_output.configure(text=now.strftime("%m - %d - %y"))
+            Current_time_output.configure(text=now.strftime("%H : %M :%S"))
+            self.after(1000, update_time)
+
+        update_time() 
+    
+
+        #Last backup date Frame
+        lastBackup_date_frame = ctk.CTkFrame(Schedule_frame,bg_color="#FFFFFF" ,fg_color="#00C88D", width=200, height=60, corner_radius=10,)
+        lastBackup_date_frame.place(relx=.35,rely=.5)
+        Lastbackup_image = ctk.CTkImage(Image.open("assets/TimeIcon.png"), size=(20,20))
+        Lastbackup_image_label=ctk.CTkLabel(lastBackup_date_frame,image=Lastbackup_image,text="")
+        Lastbackup_image_label.place(relx=.075,rely=.5,anchor="w")
+
+        LastBackup_date_label = ctk.CTkLabel(lastBackup_date_frame,bg_color="#00C88D",text="Last Backup Date :",text_color="#FFFFFF",font=time_label_font,height=10)
+        LastBackup_date_label.place(relx=.195,rely=.175)
+
+    #Output
+        LastBackup_date_output = ctk.CTkLabel(lastBackup_date_frame,bg_color="#00C88D",text="06/01/25",text_color="#FFFFFF",font=time_output_font,height=10)
+        LastBackup_date_output.place(relx=.675,rely=.175)
+
+        LastBackup_time_label = ctk.CTkLabel(lastBackup_date_frame,bg_color="#00C88D",text="Last Backup Time :",text_color="#FFFFFF",font=time_label_font,height=10)
+        LastBackup_time_label.place(relx=.195,rely=.5)
+
+    #Output
+        LastBackup_time_output = ctk.CTkLabel(lastBackup_date_frame,bg_color="#00C88D",text="20:00",text_color="#FFFFFF",font=time_output_font,height=10)
+        LastBackup_time_output.place(relx=.675,rely=.5)
+
+
+        #Next backup date Frame
+        NextBackup_date_frame = ctk.CTkFrame(Schedule_frame,bg_color="#FFFFFF" ,fg_color="#FAAE61", width=200, height=60, corner_radius=10)
+        NextBackup_date_frame.place(relx=.65,rely=.5)
+        Nextbackup_image = ctk.CTkImage(Image.open("assets/ScheduleBackup.png"), size=(20,20))
+        Nextbackup_image_label=ctk.CTkLabel(NextBackup_date_frame,image=Nextbackup_image,text="")
+        Nextbackup_image_label.place(relx=.075,rely=.5,anchor="w")
+
+        NextBackup_date_label = ctk.CTkLabel(NextBackup_date_frame,bg_color="#FAAE61",text="Next Backup Date :",text_color="#FFFFFF",font=time_label_font,height=10)
+        NextBackup_date_label.place(relx=.195,rely=.175)
+
+    #Output
+        NextBackup_date_output = ctk.CTkLabel(NextBackup_date_frame,bg_color="#FAAE61",text="06/01/25",text_color="#FFFFFF",font=time_output_font,height=10)
+        NextBackup_date_output.place(relx=.675,rely=.175)
+
+        NextBackup_time_label = ctk.CTkLabel(NextBackup_date_frame,bg_color="#FAAE61",text="Next Backup Time :",text_color="#FFFFFF",font=time_label_font,height=10)
+        NextBackup_time_label.place(relx=.195,rely=.5)
+
+    #Output
+        NextBackup_time_output = ctk.CTkLabel(NextBackup_date_frame,bg_color="#FAAE61",text="20:00",text_color="#FFFFFF",font=time_output_font,height=10)
+        NextBackup_time_output.place(relx=.675,rely=.5)
+
+        def update_last_backup_time():
+            now = datetime.datetime.now()
+            LastBackup_date_output.configure(text=now.strftime("%Y-%m-%d"))
+            LastBackup_time_output.configure(text=now.strftime("%H:%M:%S"))
 
         Maintenance_Logs_MainFrame = ctk.CTkFrame (self,
                                             bg_color="transparent", 
@@ -5024,18 +5052,21 @@ class MaintenancePage(ctk.CTkFrame):
                                             height=350,
                                             corner_radius=20
                                             )
-        Maintenance_Logs_MainFrame.place(x=100,y=650)
-
-        label_Title = ctk.CTkLabel(Maintenance_Logs_MainFrame, bg_color="transparent",text="Latest Backup Logs",text_color="black",font=Title_font)
-        label_Title.place(x=100,y=50)
+        Maintenance_Logs_MainFrame.place(x=100,y=630)
 
         leftbar_frame = ctk.CTkFrame(Maintenance_Logs_MainFrame,
                                      bg_color="transparent",
-                                     fg_color="#1A374D" ,
+                                     fg_color="#1A374D",
                                      width=25,
                                      height=350,
                                      corner_radius=20 )
         leftbar_frame.place(x=0)
+
+        label_Title = ctk.CTkLabel(Maintenance_Logs_MainFrame, bg_color="transparent",text="Latest Backup Logs",text_color="black",font=Title_font)
+        label_Title.place(x=80,y=30)
+
+        label_Title = ctk.CTkLabel(Maintenance_Logs_MainFrame, bg_color="transparent",text="Display the latlest backup logs.",text_color="#104E44",font=sublabel_font)
+        label_Title.place(x=80,y=60)
 
 
         
@@ -5049,18 +5080,20 @@ class MaintenancePage(ctk.CTkFrame):
                                             height=225,
                                             corner_radius=20
                                             )
-        Storage_Level_MainFrame.place(x=1150,y=180)
+        Storage_Level_MainFrame.place(x=1150,y=120)
 
-        leftbar_frame = ctk.CTkFrame(Storage_Level_MainFrame,
+        topbar_frame = ctk.CTkFrame(Storage_Level_MainFrame,
                                      bg_color="transparent",
-                                     fg_color="#68EDC6",
+                                     fg_color="#2B6B9C",
                                      width=400,
-                                     height=15,
+                                     height=10,
                                      corner_radius=20 )
-        leftbar_frame.place(y=0)
+        topbar_frame.place(y=0)
 
-        label_Title = ctk.CTkLabel(Storage_Level_MainFrame, bg_color="transparent",text="Storage Space",text_color="black",font=Sub_Sub_Title_font)
-        label_Title.place(x=30,y=40)
+        Storage_label = ctk.CTkLabel(Storage_Level_MainFrame, bg_color="transparent",text="Storage Space",text_color="black",font=SubTitle_font)
+        Storage_label.place(x=30,y=20)
+        storage_sublabel = ctk.CTkLabel(Storage_Level_MainFrame, bg_color="transparent",text="Current Storage Status of the System",text_color="#104E44",font=sublabel_font)
+        storage_sublabel.place(x=30,y=50)
 
         current_path = os.getcwd()
 
@@ -5072,8 +5105,8 @@ class MaintenancePage(ctk.CTkFrame):
             percent_used = used / total * 100
             return total, used, free, percent_used
 
-        progress_bar = ctk.CTkProgressBar(Storage_Level_MainFrame, width=300,height=30)
-        progress_bar.place(x=50, y=100)
+        progress_bar = ctk.CTkProgressBar(Storage_Level_MainFrame, width=300,height=30,fg_color="#D9D9D9")
+        progress_bar.place(x=50, y=120)
 
       
         usage_label = ctk.CTkLabel(Storage_Level_MainFrame, 
@@ -5081,13 +5114,13 @@ class MaintenancePage(ctk.CTkFrame):
                                 text="", 
                                 text_color="black",
                                 font=time_output_font)
-        usage_label.place(x=60, y=150)
+        usage_label.place(x=100, y=150)
 
     
         def update_disk_usage():
             total, used, free, percent_used = get_disk_usage(current_path)
             progress_bar.set(percent_used / 100)
-            usage_label.configure(text=f"Used: {percent_used:.2f}%  |  Free: {free // (1024**3)} GB  |  Total: {total // (1024**3)} GB")
+            usage_label.configure(text=f"Used: {percent_used:.2f}%  |  Free: {free // (1024**3)} GB  |  Total: {total // (1024**3)} GB",)
             
             self.after(5000, update_disk_usage)
 
@@ -5101,66 +5134,70 @@ class MaintenancePage(ctk.CTkFrame):
                                             height=225,
                                             corner_radius=20
                                             )
-        Print_MainFrame.place(x=1150,y=450)
+        Print_MainFrame.place(x=1150,y=390)
+
+        Print_label = ctk.CTkLabel(Print_MainFrame, bg_color="transparent",text="Data Import/Export",text_color="black",font=SubTitle_font)
+        Print_label.place(x=30,y=20)
+        print_sublabel = ctk.CTkLabel(Print_MainFrame, bg_color="transparent",text="Import your Backup/Export a PDF file of tables",text_color="#104E44",font=sublabel_font)
+        print_sublabel.place(x=30,y=50)
 
         leftbar_frame = ctk.CTkFrame(Print_MainFrame,
                                      bg_color="transparent",
-                                     fg_color="#68EDC6",
-                                     width=400,
-                                     height=15,
+                                     fg_color="#972A2A",
+                                     width=15,
+                                     height=225,
                                      corner_radius=20 )
-        leftbar_frame.place(y=0)
+        leftbar_frame.place(x=0)
 
-        PrintPDF_Button = ctk.CTkButton(Print_MainFrame,
+        importbackup_image = ctk.CTkImage(Image.open("assets/ImportBackup.png"), size=(20,20))
+        Importbackup_Button = ctk.CTkButton(Print_MainFrame,
+                                            image=importbackup_image,
+                                            compound="left",
                                             bg_color="transparent",
-                                            fg_color="#E63946",
-                                            hover_color="#FF5C5C",
+                                            fg_color="#86DAA2",
+                                            hover_color="#69CE8B",
                                             width=200,
                                             height=40,
                                             corner_radius=20,
-                                            text="Export PDF File",
+                                            text="Import Backup file",
                                             text_color="white",
                                             cursor="hand2",
+                                            font=button_font,
                                             )
-        PrintPDF_Button.place(x=100,y=90)
+        Importbackup_Button.place(x=100,y=90)
 
-
-        PrintXLSXX_Button = ctk.CTkButton(Print_MainFrame,
+        exportpdf_image = ctk.CTkImage(Image.open("assets/ExportPDF.png"), size=(20,20))
+        ExportPDF_Button = ctk.CTkButton(Print_MainFrame,
+                                            image=exportpdf_image,
+                                            compound="left",
                                             bg_color="transparent",
-                                            fg_color="#2AA650",
-                                            hover_color="#45C165",
+                                            fg_color="#FF8181",
+                                            hover_color="#D35858",
                                             width=200,
                                             height=40,
                                             corner_radius=20,
-                                            text="Export XLSXX File",
+                                            text="Export PDF file",
                                             text_color="white",
-                                            cursor="hand2",      
+                                            cursor="hand2",
+                                            font=button_font,     
                                             )
-        PrintXLSXX_Button.place(x=100,y=150)
+        ExportPDF_Button.place(x=100,y=150)
 
-        label_Title = ctk.CTkLabel(Print_MainFrame, bg_color="transparent",text="Export Backup Logs",text_color="black",font=Sub_Sub_Title_font)
-        label_Title.place(x=30,y=40)
 
         #Weekly Usage of Backup Frame
-        NumberofBackup_1week_MainFrame = ctk.CTkFrame (self,
+        NumberofBackup_1week_Frame = ctk.CTkFrame (self,
                                             bg_color="transparent", 
                                             fg_color='#FFFFFF',
                                             width=400,
-                                            height=275,
+                                            height=325,
                                             corner_radius=20
                                             )
-        NumberofBackup_1week_MainFrame.place(x=1150,y=720)
+        NumberofBackup_1week_Frame.place(x=1150,y=650)
 
-        leftbar_frame = ctk.CTkFrame(NumberofBackup_1week_MainFrame,
-                                     bg_color="transparent",
-                                     fg_color="#68EDC6",
-                                     width=400,
-                                     height=15,
-                                     corner_radius=20 )
-        leftbar_frame.place(y=0)
-
-        label_Title = ctk.CTkLabel(NumberofBackup_1week_MainFrame, bg_color="transparent",text="No. of Backups per Week",text_color="black",font=Sub_Sub_Title_font)
-        label_Title.place(x=30,y=40)
+        Numberbackup_label = ctk.CTkLabel(NumberofBackup_1week_Frame, bg_color="transparent",text="Weekly Backup Count",text_color="black",font=SubTitle_font)
+        Numberbackup_label.place(x=30,y=20)
+        numberbackup_sublabel = ctk.CTkLabel(NumberofBackup_1week_Frame, bg_color="transparent",text="Current data.",text_color="#104E44",font=sublabel_font)
+        numberbackup_sublabel.place(x=30,y=50)
 
 class SettingsPage(ctk.CTkFrame):
     def __init__(self, parent, shared_state):
