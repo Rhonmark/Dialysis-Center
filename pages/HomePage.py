@@ -318,6 +318,8 @@ class HomePageContent(ctk.CTkFrame):
         self.show_overall_usage()
         self.show_yesterday_usage()
         self.load_patient_data_and_pie_chart()
+
+        self.setup_search_functionality()
         
     try:
         connect = db()
@@ -364,6 +366,102 @@ class HomePageContent(ctk.CTkFrame):
     finally:
         cursor.close()
         connect.close()
+
+    def setup_search_functionality(self):
+        """Setup search functionality for the search entry"""
+        # Bind the search entry to trigger search on key release
+        self.search_entry.bind("<KeyRelease>", self.on_search_key_release)
+        self.search_entry.bind("<Return>", self.perform_search)  # Enter key
+
+    def on_search_key_release(self, event):
+        """Handle key release events in search entry"""
+        search_text = self.search_entry.get().strip()
+        
+        # Only search if there's text and it's more than 2 characters
+        if len(search_text) >= 2:
+            # Add a small delay to avoid searching on every keystroke
+            if hasattr(self, 'search_timer'):
+                self.after_cancel(self.search_timer)
+            self.search_timer = self.after(500, lambda: self.perform_search(None))
+
+    def perform_search(self, event):
+        """Perform the actual search operation"""
+        search_text = self.search_entry.get().strip()
+        
+        if not search_text:
+            print("Search field is empty")
+            return
+        
+        try:
+            connect = db()
+            cursor = connect.cursor()
+
+            # Use the existing search query from your code
+            cursor.execute("""
+                SELECT * FROM (
+                    SELECT 
+                        patient_name as name,
+                        age,
+                        gender,
+                        access_type,
+                        NULL as category,
+                        'patient' as record_type
+                    FROM patient_list
+                        
+                    UNION
+                        
+                    SELECT
+                        item_name as name,
+                        NULL as age,
+                        NULL as gender,
+                        NULL as access_type,
+                        category,
+                        'supply' as record_type
+                    FROM supply
+                ) AS search_result
+                WHERE name LIKE %s
+            """, (f'%{search_text}%',))
+
+            search_results = cursor.fetchall()
+            
+            print(f"\n=== Search Results for '{search_text}' ===")
+            
+            if search_results:
+                patients_found = []
+                supplies_found = []
+                
+                for result in search_results:
+                    name, age, gender, access_type, category, record_type = result
+                    
+                    if record_type == 'patient':
+                        patients_found.append({
+                            'name': name,
+                            'age': age,
+                            'gender': gender,
+                            'access_type': access_type
+                        })
+                        print(f'🧑 PATIENT: {name} (Age: {age}, Gender: {gender}, Access: {access_type})')
+                        
+                    elif record_type == 'supply':
+                        supplies_found.append({
+                            'name': name,
+                            'category': category
+                        })
+                        print(f'📦 SUPPLY: {name} (Category: {category})')
+                
+                # Print summary
+                print(f"\nSummary: Found {len(patients_found)} patients and {len(supplies_found)} supplies")
+                
+            else:
+                print(f"No results found for '{search_text}'")
+
+        except Exception as e:
+            print(f'Error performing search: {e}')
+        finally:
+            if 'cursor' in locals():
+                cursor.close()
+            if 'connect' in locals():
+                connect.close()
 
     def load_patient_data_and_pie_chart(self):
         """Load patient data and create pie chart"""
