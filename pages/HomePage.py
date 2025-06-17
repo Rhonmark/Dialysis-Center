@@ -4948,6 +4948,13 @@ class SupplyPage(ctk.CTkFrame):
         except Exception as e:
             print("Error refreshing detailed view:", e)
 
+import customtkinter as ctk
+from PIL import Image
+import pandas as pd
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import matplotlib.font_manager as fm
+
 class ReportPage(ctk.CTkFrame):
     def __init__(self, parent):
         super().__init__(parent, fg_color="#EFEFEF")
@@ -5061,22 +5068,86 @@ class ReportPage(ctk.CTkFrame):
 
 #------------------------------------------------------------------------------------------------------------------------------------------
     #Active Patient Table
-        Activepatient_frame = ctk.CTkFrame(self,
+        self.Activepatient_frame = ctk.CTkFrame(self,
                                            width=580,
                                            height=335,
                                            corner_radius=20,
                                            fg_color="#FFFFFF",
                                            bg_color="transparent")
-        Activepatient_frame.place(x=355,y=60)
+        self.Activepatient_frame.place(x=355,y=60)
+        
+        # Patient Table Header
+        patient_header_frame = ctk.CTkFrame(self.Activepatient_frame,
+                                          width=560,
+                                          height=40,
+                                          corner_radius=10,
+                                          fg_color="#88BD8E")
+        patient_header_frame.place(x=10, y=10)
+        
+        # Header labels
+        patient_id_header = ctk.CTkLabel(patient_header_frame, text="Patient ID", 
+                                       font=("Merriweather Bold", 12), text_color="white")
+        patient_id_header.place(x=20, y=10)
+        
+        patient_name_header = ctk.CTkLabel(patient_header_frame, text="Name", 
+                                         font=("Merriweather Bold", 12), text_color="white")
+        patient_name_header.place(x=240, y=10)
+        
+        patient_status_header = ctk.CTkLabel(patient_header_frame, text="Status", 
+                                           font=("Merriweather Bold", 12), text_color="white")
+        patient_status_header.place(x=430, y=10)
+        
+        # Scrollable frame for patient data
+        self.patient_scrollable_frame = ctk.CTkScrollableFrame(self.Activepatient_frame,
+                                                             width=560,
+                                                             height=270,
+                                                             corner_radius=0,
+                                                             fg_color="transparent")
+        self.patient_scrollable_frame.place(x=10, y=55)
+        
+        # Load patient data
+        self.load_patient_data()
        
-    #Inactive Patient Table
-        Inactivepatient_frame = ctk.CTkFrame(self,
+    #Backup Table
+        self.backup_frame = ctk.CTkFrame(self,
                                              width=580,
                                              height=335,
                                              corner_radius=20,
                                              fg_color="#FFFFFF",
                                              bg_color="transparent")
-        Inactivepatient_frame.place(x=970,y=60)
+        self.backup_frame.place(x=970,y=60)
+        
+        # Backup Table Header
+        backup_header_frame = ctk.CTkFrame(self.backup_frame,
+                                         width=560,
+                                         height=40,
+                                         corner_radius=10,
+                                         fg_color="#F25B5B")
+        backup_header_frame.place(x=10, y=10)
+        
+        # Header labels
+        backup_id_header = ctk.CTkLabel(backup_header_frame, text="Backup ID", 
+                                      font=("Merriweather Bold", 12), text_color="white")
+        backup_id_header.place(x=20, y=10)
+        
+        backup_name_header = ctk.CTkLabel(backup_header_frame, text="Name", 
+                                        font=("Merriweather Bold", 12), text_color="white")
+        backup_name_header.place(x=200, y=10)
+        
+        backup_date_header = ctk.CTkLabel(backup_header_frame, text="Date", 
+                                        font=("Merriweather Bold", 12), text_color="white")
+        backup_date_header.place(x=450, y=10)
+        
+        # Scrollable frame for backup data
+        self.backup_scrollable_frame = ctk.CTkScrollableFrame(self.backup_frame,
+                                                            width=560,
+                                                            height=270,
+                                                            corner_radius=0,
+                                                            fg_color="transparent")
+        self.backup_scrollable_frame.place(x=10, y=55)
+        
+        # Load static backup data
+        self.load_backup_data()
 
 #------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -5380,6 +5451,126 @@ class ReportPage(ctk.CTkFrame):
         self.low_stock_graph()
         self.critical_stock_graph()
 
+    def load_patient_data(self):
+        """Load patient data from database and display in table"""
+        try:
+            connect = db()
+            cursor = connect.cursor()
+            
+            # Query to get all patients with concatenated full name
+            cursor.execute("""
+                SELECT patient_id, 
+                       CONCAT(first_name, 
+                              CASE WHEN middle_name IS NOT NULL AND middle_name != '' 
+                                   THEN CONCAT(' ', middle_name, ' ') 
+                                   ELSE ' ' END, 
+                              last_name) as full_name, 
+                       status 
+                FROM patient_info 
+                ORDER BY patient_id
+            """)
+            patients = cursor.fetchall()
+            
+            # Clear existing data
+            for widget in self.patient_scrollable_frame.winfo_children():
+                widget.destroy()
+            
+            # Add patient rows
+            for i, (patient_id, name, status) in enumerate(patients):
+                # Create row frame
+                row_frame = ctk.CTkFrame(self.patient_scrollable_frame,
+                                       width=540,
+                                       height=35,
+                                       corner_radius=5,
+                                       fg_color="#F8F9FA" if i % 2 == 0 else "#FFFFFF")
+                row_frame.pack(fill="x", pady=2, padx=5)
+                row_frame.pack_propagate(False)
+                
+                # Patient ID
+                id_label = ctk.CTkLabel(row_frame, text=str(patient_id),
+                                      font=("Poppins Regular", 10),
+                                      text_color="#333333",
+                                      width=80)
+                id_label.place(x=10, y=7)
+                
+                # Patient Name
+                name_label = ctk.CTkLabel(row_frame, text=name,
+                                        font=("Poppins Regular", 10),
+                                        text_color="#333333",
+                                        width=200)
+                name_label.place(x=150, y=7)
+                
+                # Status with color coding
+                status_color = "#88BD8E" if status == "Active" else "#F25B5B"
+                status_label = ctk.CTkLabel(row_frame, text=status,
+                                          font=("Poppins Regular", 10),
+                                          text_color=status_color,
+                                          width=80)
+                status_label.place(x=400, y=7)
+                
+        except Exception as e:
+            print(f'Error loading patient data: {e}')
+            # Show error message
+            error_label = ctk.CTkLabel(self.patient_scrollable_frame,
+                                     text=f"Error loading data: {str(e)}",
+                                     font=("Arial", 12),
+                                     text_color="red")
+            error_label.pack(pady=20)
+        finally:
+            if 'cursor' in locals():
+                cursor.close()
+            if 'connect' in locals():
+                connect.close()
+
+    def load_backup_data(self):
+        """Load static backup data for demonstration"""
+        # Static sample data
+        backup_data = [
+            (12, "SE.sql", "2025-06-13"),
+            (13, "Patient_Backup.sql", "2025-06-12"),
+            (14, "Supply_Backup.sql", "2025-06-11"),
+            (15, "Full_Backup.sql", "2025-06-10"),
+            (16, "Daily_Backup.sql", "2025-06-09"),
+            (17, "Weekly_Backup.sql", "2025-06-08"),
+            (18, "Monthly_Backup.sql", "2025-06-07"),
+        ]
+        
+        # Clear existing data
+        for widget in self.backup_scrollable_frame.winfo_children():
+            widget.destroy()
+        
+        # Add backup rows
+        for i, (backup_id, name, date) in enumerate(backup_data):
+            # Create row frame
+            row_frame = ctk.CTkFrame(self.backup_scrollable_frame,
+                                   width=540,
+                                   height=35,
+                                   corner_radius=5,
+                                   fg_color="#F8F9FA" if i % 2 == 0 else "#FFFFFF")
+            row_frame.pack(fill="x", pady=2, padx=5)
+            row_frame.pack_propagate(False)
+            
+            # Backup ID
+            id_label = ctk.CTkLabel(row_frame, text=str(backup_id),
+                                  font=("Poppins Regular", 10),
+                                  text_color="#333333",
+                                  width=80)
+            id_label.place(x=10, y=7)
+            
+            # Backup Name
+            name_label = ctk.CTkLabel(row_frame, text=name,
+                                    font=("Poppins Regular", 10),
+                                    text_color="#333333",
+                                    width=200)
+            name_label.place(x=150, y=7)
+            
+            # Date
+            date_label = ctk.CTkLabel(row_frame, text=date,
+                                    font=("Poppins Regular", 10),
+                                    text_color="#333333",
+                                    width=100)
+            date_label.place(x=400, y=7)
+
     def refresh_data(self):
         """Refresh all data counts and update the labels"""
         def data_count(column, value, table_name):
@@ -5427,6 +5618,9 @@ class ReportPage(ctk.CTkFrame):
         self.LowStockCount.configure(text=str(self.lowstock_count))
         self.CriticalStockCount.configure(text=str(self.criticalstock_count))
 
+        # Refresh patient table
+        self.load_patient_data()
+        
         # Refresh graphs
         self.low_stock_graph()
         self.critical_stock_graph()
