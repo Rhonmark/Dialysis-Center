@@ -5,6 +5,7 @@ from datetime import date, datetime
 
 from components.buttons import CTkButtonSelectable
 from components.textfields_patients import TextField_Patients
+from components.state import login_shared_states
 
 from backend.connector import db_connection as db
 from backend.crud import submit_form_creation, submit_form_subcreation, submit_form_extra, retrieve_form_data
@@ -340,18 +341,18 @@ class PatientInfoWindow(BaseWindow):
     
     def open_next(self, data=None):
         try:
-            self.data["patient_last_name"] = self.entry_lastname.get().strip()
-            self.data["patient_first_name"] = self.entry_firstname.get().strip()
-            self.data["patient_middle_name"] = self.entry_middlename.get().strip()
+            self.data["patient_last_name"] = self.entry_lastname.get().strip().lower().capitalize()
+            self.data["patient_first_name"] = self.entry_firstname.get().strip().lower().capitalize()
+            self.data["patient_middle_name"] = self.entry_middlename.get().strip().lower().capitalize()
             self.data["patient_status"] = self.status_var.get()
             self.data["patient_access"] = self.entry_access.get()
             self.data["patient_birthdate"] = self.entry_birthdate.get_date().strftime("%Y-%m-%d")  
             self.data["patient_age"] = self.entry_age.get().strip()
-            self.data["patient_gender"] = self.entry_gender.get().strip()
+            self.data["patient_gender"] = self.entry_gender.get().strip().lower().capitalize()
             self.data["patient_height"] = self.entry_height.get().strip()
-            self.data["patient_civil_status"] = self.entry_civil_status.get().strip()
-            self.data["patient_religion"] = self.entry_religion.get().strip()
-            self.data["patient_address"] = self.entry_address.get().strip()
+            self.data["patient_civil_status"] = self.entry_civil_status.get().strip().lower().capitalize()
+            self.data["patient_religion"] = self.entry_religion.get().strip().lower().capitalize()
+            self.data["patient_address"] = self.entry_address.get().strip().lower().capitalize()
             
             # Pass edit mode and patient_id forward
             self.data["edit_mode"] = self.edit_mode
@@ -451,12 +452,12 @@ class ContactPersonWindow(BaseWindow):
     def save_current_data(self):
         """Save current form data before navigating away"""
         try:
-            self.data["contact_last_name"] = self.entry_lastname.get().strip()
-            self.data["contact_first_name"] = self.entry_firstname.get().strip()
-            self.data["contact_middle_name"] = self.entry_middlename.get().strip()
+            self.data["contact_last_name"] = self.entry_lastname.get().strip().lower().capitalize()
+            self.data["contact_first_name"] = self.entry_firstname.get().strip().lower().capitalize()
+            self.data["contact_middle_name"] = self.entry_middlename.get().strip().lower().capitalize()
             self.data["contact_number"] = self.entry_contact.get().strip()
-            self.data["relationship_to_patient"] = self.entry_relationship.get().strip()
-            self.data["contact_address"] = self.entry_address.get().strip()
+            self.data["relationship_to_patient"] = self.entry_relationship.get().strip().lower().capitalize()
+            self.data["contact_address"] = self.entry_address.get().strip().lower().capitalize()
             
         except Exception as e:
             print(f"❌ Error saving current contact data: {e}")
@@ -511,12 +512,12 @@ class ContactPersonWindow(BaseWindow):
 
     def open_next(self, data=None):
         try:
-            self.data["contact_last_name"] = self.entry_lastname.get().strip()
-            self.data["contact_first_name"] = self.entry_firstname.get().strip()
-            self.data["contact_middle_name"] = self.entry_middlename.get().strip()
+            self.data["contact_last_name"] = self.entry_lastname.get().strip().lower().capitalize()
+            self.data["contact_first_name"] = self.entry_firstname.get().strip().lower().capitalize()
+            self.data["contact_middle_name"] = self.entry_middlename.get().strip().lower().capitalize()
             self.data["contact_number"] = self.entry_contact.get().strip()
-            self.data["relationship_to_patient"] = self.entry_relationship.get().strip()
-            self.data["contact_address"] = self.entry_address.get().strip()
+            self.data["relationship_to_patient"] = self.entry_relationship.get().strip().lower().capitalize()
+            self.data["contact_address"] = self.entry_address.get().strip().lower().capitalize()
 
             # Pass edit mode and patient_id forward
             self.data["edit_mode"] = self.edit_mode
@@ -603,11 +604,11 @@ class RelativeInfoWindow(BaseWindow):
     def save_current_data(self):
         """Save current form data before navigating away"""
         try:
-            self.data["relative_last_name"] = self.entry_lastname.get().strip()
-            self.data["relative_first_name"] = self.entry_firstname.get().strip()
-            self.data["relative_middle_name"] = self.entry_middlename.get().strip()
+            self.data["relative_last_name"] = self.entry_lastname.get().strip().lower().capitalize()
+            self.data["relative_first_name"] = self.entry_firstname.get().strip().lower().capitalize()
+            self.data["relative_middle_name"] = self.entry_middlename.get().strip().lower().capitalize()
             self.data["relative_contact_number"] = self.entry_contact.get().strip()
-            self.data["relative_address"] = self.entry_address.get().strip()
+            self.data["relative_address"] = self.entry_address.get().strip().lower().capitalize()
             
         except Exception as e:
             print(f"❌ Error saving current relative data: {e}")
@@ -659,11 +660,11 @@ class RelativeInfoWindow(BaseWindow):
 
     def open_next(self, data=None):
         try:
-            self.data["relative_last_name"] = self.entry_lastname.get().strip()
-            self.data["relative_first_name"] = self.entry_firstname.get().strip()
-            self.data["relative_middle_name"] = self.entry_middlename.get().strip()
+            self.data["relative_last_name"] = self.entry_lastname.get().strip().lower().capitalize()
+            self.data["relative_first_name"] = self.entry_firstname.get().strip().lower().capitalize()
+            self.data["relative_middle_name"] = self.entry_middlename.get().strip().lower().capitalize()
             self.data["relative_contact_number"] = self.entry_contact.get().strip()
-            self.data["relative_address"] = self.entry_address.get().strip()
+            self.data["relative_address"] = self.entry_address.get().strip().lower().capitalize()
 
             # Pass edit mode and patient_id forward
             self.data["edit_mode"] = self.edit_mode
@@ -762,7 +763,7 @@ class PhilHealthInfoWindow(BaseWindow):
         """Save current form data before navigating away"""
         try:
             self.data["philhealth_number"] = self.entry_philhealth.get().strip()
-            self.data["membership_type"] = self.entry_membership.get().strip()
+            self.data["membership_type"] = self.entry_membership.get().strip().lower().capitalize()
             self.data["is_pwd"] = self.pwd_var.get()
             self.data["is_senior"] = self.senior_var.get()
             self.data["pwd_id"] = self.entry_pwd_id.get().strip()
@@ -940,12 +941,12 @@ class PatientHistory1Window(BaseWindow):
             self.data["family_hypertension"] = self.family_hypertension.get()
             self.data["family_diabetes"] = self.family_diabetes.get()
             self.data["family_malignancy"] = self.family_malignancy.get()
-            self.data["family_other"] = self.family_other.get().strip()
+            self.data["family_other"] = self.family_other.get().strip().lower().capitalize()
             self.data["med_kidney_disease"] = self.med_kidney_disease.get()
             self.data["med_urinary_stone"] = self.med_urinary_stone.get()
             self.data["med_recurrent_uti"] = self.med_recurrent_uti.get()
             self.data["med_diabetes_type"] = self.med_diabetes_type.get()
-            self.data["med_other1"] = self.med_other1.get().strip()
+            self.data["med_other1"] = self.med_other1.get().strip().lower().capitalize()
             
         except Exception as e:
             print(f"❌ Error saving current Patient History 1 data: {e}")
@@ -991,12 +992,12 @@ class PatientHistory1Window(BaseWindow):
             self.data["family_hypertension"] = self.family_hypertension.get()
             self.data["family_diabetes"] = self.family_diabetes.get()
             self.data["family_malignancy"] = self.family_malignancy.get()
-            self.data["family_other"] = self.family_other.get().strip()
+            self.data["family_other"] = self.family_other.get().strip().lower().capitalize()
             self.data["med_kidney_disease"] = self.med_kidney_disease.get()
             self.data["med_urinary_stone"] = self.med_urinary_stone.get()
             self.data["med_recurrent_uti"] = self.med_recurrent_uti.get()
             self.data["med_diabetes_type"] = self.med_diabetes_type.get()
-            self.data["med_other1"] = self.med_other1.get().strip()
+            self.data["med_other1"] = self.med_other1.get().strip().lower().capitalize()
 
             # Pass edit mode and patient_id forward
             self.data["edit_mode"] = self.edit_mode
@@ -1457,11 +1458,55 @@ class MedicationWindow(BaseWindow):
         except Exception as e:
             print(f"❌ Error refreshing homepage: {e}")
 
+    def update_notif_logs(self, edited_by, edit_type, patient_id, notif_type):
+        try:
+            connect = db()
+            cursor = connect.cursor()
+
+            cursor.execute("""
+                INSERT INTO notification_logs(user_fullname, patient_edit_type, patient_id, notification_type, notification_timestamp )
+                VALUES(%s, %s, %s, %s, NOW())
+            """, (edited_by, edit_type, patient_id, notif_type))
+            connect.commit()
+
+        except Exception as e:
+            print(f'Failed updating notif logs ({edit_type})!', e)
+        
+        finally: 
+            cursor.close()
+            connect.close()
+
     def update_form(self):
         """ COMPLETE UPDATE FUNCTIONALITY"""
         if not self.edit_mode or not self.patient_id:
             print("Not in edit mode or no patient ID")
             return
+        
+        username = login_shared_states.get('logged_username', None)
+        try:
+            connect = db()
+            cursor = connect.cursor()
+
+            cursor.execute("""
+                SELECT full_name FROM users
+                WHERE username = %s
+            """, (username,))
+            
+            user_fn = cursor.fetchone()[0]
+
+            # cursor.execute("""
+            #     SELECT patient_name FROM patient_list
+            #     WHERE patient_id = %s
+            # """, (self.patient_id,))
+            
+            # patient_fn = cursor.fetchone()[0]
+
+        except Exception as e:
+            print('Error fetching user_fullname', e)
+        
+        finally:
+            cursor.close()
+            connect.close()
             
         try:
             print(f"🔄 Updating patient {self.patient_id} with new data...")
@@ -1475,56 +1520,57 @@ class MedicationWindow(BaseWindow):
             
             # 1. Update Patient Information
             patient_information = {
-                "last_name": self.data.get("patient_last_name"),
-                "first_name": self.data.get("patient_first_name"),
-                "middle_name": self.data.get("patient_middle_name"), 
+                "last_name": self.data.get("patient_last_name").lower().capitalize(),
+                "first_name": self.data.get("patient_first_name").lower().capitalize(),
+                "middle_name": self.data.get("patient_middle_name").lower().capitalize(), 
                 "status": self.data.get("patient_status"),
                 "access_type": self.data.get("patient_access"),
                 "birthdate": self.data.get("patient_birthdate"),
                 "age": self.data.get("patient_age"),
-                "gender": self.data.get("patient_gender"),
+                "gender": self.data.get("patient_gender").capitalize(),
                 "height": self.data.get("patient_height"),
-                "civil_status": self.data.get("patient_civil_status"),
-                "religion": self.data.get("patient_religion"),
-                "address": self.data.get("patient_address")
+                "civil_status": self.data.get("patient_civil_status").capitalize(),
+                "religion": self.data.get("patient_religion").capitalize(),
+                "address": self.data.get("patient_address").capitalize()
             }
-            
+
             if update_patient_info(self.patient_id, patient_information):
-                print("✅ Patient info updated successfully")
+                print("Patient info updated successfully")
+
                 self.refresh_homepage_recent_patient()
             else:
-                print("❌ Error updating patient info")
+                print("Error updating patient info")
                 return
 
             # 2. Update Contact Information
             patient_contact_information = {
-                "last_name": self.data.get("contact_last_name"),
-                "first_name": self.data.get("contact_first_name"),
-                "middle_name": self.data.get("contact_middle_name"), 
+                "last_name": self.data.get("contact_last_name").lower().capitalize(),
+                "first_name": self.data.get("contact_first_name").lower().capitalize(),
+                "middle_name": self.data.get("contact_middle_name").lower().capitalize(), 
                 "contact_number": self.data.get("contact_number"),
-                "relationship": self.data.get("relationship_to_patient"),
+                "relationship": self.data.get("relationship_to_patient").capitalize(),
                 "address": self.data.get("contact_address")
             }
             
             if update_patient_contact(self.patient_id, patient_contact_information):
-                print("✅ Contact info updated successfully")
+                print("Contact info updated successfully")
             else:
-                print("❌ Error updating contact info")
+                print("Error updating contact info")
                 return
 
             # 3. Update Relative Information
             patient_relative_information = {
-                "last_name": self.data.get("relative_last_name"),
-                "first_name": self.data.get("relative_first_name"),
-                "middle_name": self.data.get("relative_middle_name"), 
+                "last_name": self.data.get("relative_last_name").lower().capitalize(),
+                "first_name": self.data.get("relative_first_name").lower().capitalize(),
+                "middle_name": self.data.get("relative_middle_name").lower().capitalize(), 
                 "contact_number": self.data.get("relative_contact_number"),
                 "address": self.data.get("relative_address")
             }
             
             if update_patient_relative(self.patient_id, patient_relative_information):
-                print("✅ Relative info updated successfully")
+                print("Relative info updated successfully")
             else:
-                print("❌ Error updating relative info")
+                print("Error updating relative info")
                 return
 
             # 4. Update Benefits Information
@@ -1532,15 +1578,15 @@ class MedicationWindow(BaseWindow):
                 "is_senior": self.data.get("is_senior"),
                 "is_pwd": self.data.get("is_pwd"),
                 "philhealth_number": self.data.get("philhealth_number"),
-                "membership_type": self.data.get("membership_type"),
+                "membership_type": self.data.get("membership_type").capitalize(),
                 "pwd_id": self.data.get("pwd_id"), 
                 "senior_id": self.data.get("senior_id")
             }
             
             if update_patient_benefits(self.patient_id, patient_benefits):
-                print("✅ Benefits info updated successfully")
+                print("Benefits info updated successfully")
             else:
-                print("❌ Error updating benefits info")
+                print("Error updating benefits info")
                 return
 
             # 5. Update Patient History
@@ -1548,17 +1594,17 @@ class MedicationWindow(BaseWindow):
                 "has_hypertension": self.data.get("family_hypertension"),
                 "has_diabetes": self.data.get("family_diabetes"),
                 "has_malignancy": self.data.get("family_malignancy"), 
-                "other_family_history": self.data.get("family_other"),
+                "other_family_history": self.data.get("family_other").capitalize(),
                 "has_kidney_disease": self.data.get("med_kidney_disease"),
                 "has_urinary_stone": self.data.get("med_urinary_stone"),
                 "has_recurrent_uti": self.data.get("med_recurrent_uti"), 
                 "diabetes_type": self.data.get("med_diabetes_type"),
-                "other_medical_history": self.data.get("med_other1")
+                "other_medical_history": self.data.get("med_other1").capitalize()
             }
 
             patient_history_2 = {
-                "present_illness_history": self.data.get("history_illness"), 
-                "past_illness_history": self.data.get("past_medical_history"),
+                "present_illness_history": self.data.get("history_illness").capitalize(), 
+                "past_illness_history": self.data.get("past_medical_history").capitalize(),
             }
 
             patient_history_3 = {
@@ -1567,25 +1613,25 @@ class MedicationWindow(BaseWindow):
                 "mode": self.data.get("mode"),
                 "access_type": self.data.get("access"),
                 "first_hemodialysis": self.data.get("date_chronic"),
-                "clinical_impression": self.data.get("clinical_impression"),
+                "clinical_impression": self.data.get("clinical_impression").capitalize(),
             }
 
             # Combine all history data
             patient_history_combined = {**patient_history_1, **patient_history_2, **patient_history_3}
             
             if update_patient_history(self.patient_id, patient_history_combined):
-                print("✅ Patient history updated successfully")
+                print("Patient history updated successfully")
             else:
-                print("❌ Error updating patient history")
+                print("Error updating patient history")
                 return
 
             # 6. Update Medications
-            medication_entries_row = [entry.get().strip() for entry in self.medication_entries if entry.get().strip() and entry.get().strip() != "Type Here"]
+            medication_entries_row = [entry.get().strip().capitalize() for entry in self.medication_entries if entry.get().strip() and entry.get().strip() != "Type Here"]
             
             if update_patient_medications(self.patient_id, medication_entries_row):
-                print("✅ Medications updated successfully")
+                print("Medications updated successfully")
             else:
-                print("❌ Error updating medications")
+                print("Error updating medications")
                 return
 
             # 7. Update Patient List (main table)
@@ -1605,15 +1651,27 @@ class MedicationWindow(BaseWindow):
             }
             
             if update_patient_list(self.patient_id, patient_list_data):
-                print("✅ Patient list updated successfully")
+                print("Patient list updated successfully")
                 self.refresh_homepage_recent_patient()
             else:
-                print("❌ Error updating patient list")
+                print("Error updating patient list")
                 return
             
             self.destroy()
+
+            if (
+                update_patient_info(self.patient_id, patient_information) 
+                or update_patient_contact(self.patient_id, patient_contact_information) 
+                or update_patient_relative(self.patient_id, patient_relative_information) 
+                or update_patient_benefits(self.patient_id, patient_benefits)
+                or update_patient_history(self.patient_id, patient_history_combined)
+                or update_patient_medications(self.patient_id, medication_entries_row)
+                or update_patient_list(self.patient_id, patient_list_data)
+            ):
+
+                self.update_notif_logs(user_fn, 'Patient Credentials', self.patient_id, 'Edit Patient')
             
-            print("✅ Update completed and window closed!")
+            print("Update completed and window closed!")
             
         except Exception as e:
             print(f"❌ Error updating patient: {e}")

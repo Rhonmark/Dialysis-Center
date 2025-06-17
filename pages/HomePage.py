@@ -3303,54 +3303,54 @@ class SupplyPage(ctk.CTkFrame):
         )
         self.Edit_Stock_Button.place(x=130, y=50)
 
-        def quantity_used_supply(item_id):
-            try:
-                connect = db()
-                cursor = connect.cursor()
+        # def quantity_used_supply(item_id):
+        #     try:
+        #         connect = db()
+        #         cursor = connect.cursor()
 
-                cursor.execute("""
-                    SELECT pl.patient_id, pl.patient_name, pl.age, pl.gender, pl.access_type, iu.quantity_used, iu.usage_date, iu.usage_time, iu.usage_timestamp
-                    FROM patient_list pl JOIN item_usage iu ON pl.patient_id = iu.patient_id
-                    WHERE iu.item_id = %s
-                    ORDER BY iu.usage_timestamp DESC
-                """, (item_id,))
+        #         cursor.execute("""
+        #             SELECT pl.patient_id, pl.patient_name, pl.age, pl.gender, pl.access_type, iu.quantity_used, iu.usage_date, iu.usage_time, iu.usage_timestamp
+        #             FROM patient_list pl JOIN item_usage iu ON pl.patient_id = iu.patient_id
+        #             WHERE iu.item_id = %s
+        #             ORDER BY iu.usage_timestamp DESC
+        #         """, (item_id,))
 
-                quantity_used_result = cursor.fetchall()
-                for i in quantity_used_result:
-                    print(i)
+        #         quantity_used_result = cursor.fetchall()
+        #         for i in quantity_used_result:
+        #             print(i)
 
-            except Exception as e:
-                print('Error retrieving quantiity used table for supply ', e)
-            finally:
-                cursor.close()
-                connect.close()
+        #     except Exception as e:
+        #         print('Error retrieving quantiity used table for supply ', e)
+        #     finally:
+        #         cursor.close()
+        #         connect.close()
 
-        quantity_used_supply(133)
+        # quantity_used_supply(133)
 
-        def quantity_used_patient(patient_id):
-            try:
-                connect = db()
-                cursor = connect.cursor()
+        # def quantity_used_patient(patient_id):
+        #     try:
+        #         connect = db()
+        #         cursor = connect.cursor()
 
-                cursor.execute("""
-                    SELECT iu.item_id, s.item_name, s.category, iu.quantity_used, iu.usage_date, iu.usage_time 
-                    FROM item_usage iu JOIN supply s ON iu.item_id = s.item_id
-                    WHERE iu.patient_id = %s
-                    ORDER BY iu.usage_date DESC	
-                """, (patient_id,))
+        #         cursor.execute("""
+        #             SELECT iu.item_id, s.item_name, s.category, iu.quantity_used, iu.usage_date, iu.usage_time 
+        #             FROM item_usage iu JOIN supply s ON iu.item_id = s.item_id
+        #             WHERE iu.patient_id = %s
+        #             ORDER BY iu.usage_date DESC	
+        #         """, (patient_id,))
 
-                quantity_used_result = cursor.fetchall()
-                for i in quantity_used_result:
-                    print(i)
+        #         quantity_used_result = cursor.fetchall()
+        #         for i in quantity_used_result:
+        #             print(i)
 
-            except Exception as e:
-                print('Error retrieving quantiity used table for patient ', e)
-            finally:
-                cursor.close()
-                connect.close()
+        #     except Exception as e:
+        #         print('Error retrieving quantiity used table for patient ', e)
+        #     finally:
+        #         cursor.close()
+        #         connect.close()
                 
-        print('SEPARATOR================================')
-        quantity_used_patient(63)
+        # print('SEPARATOR================================')
+        # quantity_used_patient(63)
 
         # Quantity Used Button
         self.Quantity_Used_Button = ctk.CTkButton(
@@ -4115,10 +4115,10 @@ class ReportPage(ctk.CTkFrame):
         overall_backup_count = overall_data_count('backup_logs')
 
         print('count of active patient: ', active_patient[0])
-        print('count of inactive patient: ', inactive_patient[0])
-        print('count of low stock items: ', lowstock_count[0])
-        print('count of critical stock items: ', criticalstock_count[0])
-        print('overall supply count: ', overall_supply_count[0])
+        # print('count of inactive patient: ', inactive_patient[0])
+        # print('count of low stock items: ', lowstock_count[0])
+        # print('count of critical stock items: ', criticalstock_count[0])
+        # print('overall supply count: ', overall_supply_count[0])
 
         self.low_stock_canvas = None
         self.critical_stock_canvas = None
