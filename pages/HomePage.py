@@ -33,19 +33,28 @@ class DataRetrieval():
 
     @staticmethod
     def patient_info_data(patient_id):
-        return retrieve_form_data(patient_id, 'patient_id', "*", table_name="patient_info")
+        columns = """patient_id, last_name, first_name, middle_name, status, 
+                     access_type, birthdate, age, gender, height, civil_status, 
+                     religion, address"""
+        return retrieve_form_data(patient_id, 'patient_id', columns, table_name="patient_info")
 
     @staticmethod
     def patient_philhealth_data(patient_id):
-        return retrieve_form_data(patient_id, 'patient_id', "*", table_name="patient_benefits")
+        columns = """patient_id, is_senior, is_pwd, philhealth_number, 
+                     membership_type, pwd_id, senior_id"""
+        return retrieve_form_data(patient_id, 'patient_id', columns, table_name="patient_benefits")
     
     @staticmethod
     def patient_contact_data(patient_id):
-        return retrieve_form_data(patient_id, 'patient_id', "*", table_name="patient_contact")
+        columns = """last_name, first_name, middle_name, 
+                     contact_number, relationship, address"""
+        return retrieve_form_data(patient_id, 'patient_id', columns, table_name="patient_contact")
     
     @staticmethod
     def patient_relative_data(patient_id):
-        return retrieve_form_data(patient_id, 'patient_id', "*", table_name="patient_relative")
+        columns = """last_name, first_name, middle_name, 
+                     contact_number, address"""
+        return retrieve_form_data(patient_id, 'patient_id', columns, table_name="patient_relative")
 
     @staticmethod
     def patient_family_history(patient_id):
