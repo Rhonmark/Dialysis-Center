@@ -2025,7 +2025,7 @@ class PatientPage(ctk.CTkFrame):
                 cursor.execute("""
                     SELECT patient_id, patient_name, age, gender, access_type, date_registered
                     FROM patient_list
-                    ORDER BY CAST(age AS UNSIGNED) DESC
+                    ORDER BY CAST(age AS UNSIGNED) ASC
                 """)
             elif sort_option == "Patient ID":
                 # Sort numerically for patient ID
@@ -2039,7 +2039,7 @@ class PatientPage(ctk.CTkFrame):
                 cursor.execute("""
                     SELECT patient_id, patient_name, age, gender, access_type, date_registered
                     FROM patient_list
-                    ORDER BY date_registered DESC
+                    ORDER BY date_registered ASC
                 """)
             else:
                 # Standard alphabetical sorting for other columns
@@ -2894,32 +2894,6 @@ class SupplyPage(ctk.CTkFrame):
         self.sort_dropdown.pack(side="left", padx=10)
         self.sort_dropdown.set("Sort By")
 
-        def sort_by_func(sort_type):
-            try:
-                connect = db()
-                cursor = connect.cursor()
-
-                cursor.execute("""
-                    SELECT * FROM supply
-                    ORDER BY %s
-                """, (sort_type,))
-
-                sorting_result = cursor.fetchall()
-                return sorting_result
-
-            except Exception as e:
-                print(f'Error sorting by {sort_type}', e)
-            finally:
-                cursor.close()
-                connect.close()
-        
-        item_id_sort = sort_by_func('item_id')
-        item_name_sort = sort_by_func('item_name')
-        category = sort_by_func('category')
-        current_stock_sort = sort_by_func('current_stock')
-        restock_date_sort = sort_by_func('restock_date')
-        register_date_sort = sort_by_func('date_registered')
-
          # Search container
         self.search_container = ctk.CTkFrame(
             self.navbar, 
@@ -3231,6 +3205,55 @@ class SupplyPage(ctk.CTkFrame):
         )
         self.Edit_Stock_Button.place(x=130, y=50)
 
+        def quantity_used_supply(item_id):
+            try:
+                connect = db()
+                cursor = connect.cursor()
+
+                cursor.execute("""
+                    SELECT pl.patient_id, pl.patient_name, pl.age, pl.gender, pl.access_type, iu.quantity_used, iu.usage_date, iu.usage_time, iu.usage_timestamp
+                    FROM patient_list pl JOIN item_usage iu ON pl.patient_id = iu.patient_id
+                    WHERE iu.item_id = %s
+                    ORDER BY iu.usage_timestamp DESC
+                """, (item_id,))
+
+                quantity_used_result = cursor.fetchall()
+                for i in quantity_used_result:
+                    print(i)
+
+            except Exception as e:
+                print('Error retrieving quantiity used table for supply ', e)
+            finally:
+                cursor.close()
+                connect.close()
+
+        quantity_used_supply(133)
+
+        def quantity_used_patient(patient_id):
+            try:
+                connect = db()
+                cursor = connect.cursor()
+
+                cursor.execute("""
+                    SELECT iu.item_id, s.item_name, s.category, iu.quantity_used, iu.usage_date, iu.usage_time 
+                    FROM item_usage iu JOIN supply s ON iu.item_id = s.item_id
+                    WHERE iu.patient_id = %s
+                    ORDER BY iu.usage_date DESC	
+                """, (patient_id,))
+
+                quantity_used_result = cursor.fetchall()
+                for i in quantity_used_result:
+                    print(i)
+
+            except Exception as e:
+                print('Error retrieving quantiity used table for patient ', e)
+            finally:
+                cursor.close()
+                connect.close()
+                
+        print('SEPARATOR================================')
+        quantity_used_patient(63)
+
         # Quantity Used Button
         self.Quantity_Used_Button = ctk.CTkButton(
             self.Edit_Stock_Frame,
@@ -3461,7 +3484,7 @@ class SupplyPage(ctk.CTkFrame):
                             FROM restock_logs rl 
                             WHERE rl.item_id = s.item_id), 
                             '1900-01-01'
-                        ) DESC
+                        ) ASC
                 """)
             elif sort_option == "Remaining Stock":
                 # Sort numerically for stock quantities
@@ -3477,7 +3500,7 @@ class SupplyPage(ctk.CTkFrame):
                         s.average_weekly_usage, s.average_monthly_usage, s.delivery_time_days, 
                         s.stock_level_status, s.max_supply
                     FROM supply s
-                    ORDER BY s.current_stock DESC
+                    ORDER BY s.current_stock ASC
                 """)
             else:
                 # Standard sorting for other columns
@@ -3948,7 +3971,57 @@ class ReportPage(ctk.CTkFrame):
         SubLabel_font = ("Merriweather Sans Light" ,9)
         SubSubLabel_font = ("Poppins Regular" ,9)
 
-        # Initialize graph canvases
+        def data_count(column, value, table_name):
+            try:
+                connect = db()
+                cursor = connect.cursor()
+
+                cursor.execute(f"""
+                    SELECT COUNT(*) FROM {table_name}
+                    WHERE {column} = '{value}'
+                """)
+
+                count_result = cursor.fetchone()
+                return count_result
+
+            except Exception as e:
+                print(f'Error finding column ({column}), value ({value}) in table: {table_name}', e)
+            finally:
+                cursor.close()
+                connect.close()
+
+        def overall_data_count(table_name):
+            try:
+                connect = db()
+                cursor = connect.cursor()
+
+                cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
+
+                count_result = cursor.fetchone()
+                return count_result
+
+            except Exception as e:
+                print(f'Error finding value in table: {table_name}', e)
+            finally:
+                cursor.close()
+                connect.close()
+
+        
+        active_patient = data_count('status', 'Active', table_name='patient_info')
+        inactive_patient = data_count('status', 'Inactive', table_name='patient_info')
+
+        lowstock_count = data_count('stock_level_status', 'Low Stock Level', table_name='supply')
+        criticalstock_count = data_count('stock_level_status', 'Crtical Stock Level', table_name='supply')
+
+        overall_supply_count = overall_data_count('supply')
+        overall_backup_count = overall_data_count('backup_logs')
+
+        print('count of active patient: ', active_patient[0])
+        print('count of inactive patient: ', inactive_patient[0])
+        print('count of low stock items: ', lowstock_count[0])
+        print('count of critical stock items: ', criticalstock_count[0])
+        print('overall supply count: ', overall_supply_count[0])
+
         self.low_stock_canvas = None
         self.critical_stock_canvas = None
 
@@ -4426,10 +4499,6 @@ class ReportPage(ctk.CTkFrame):
                 for label in ax.get_xticklabels() + ax.get_yticklabels():
                     label.set_fontproperties(tick_font)
                     label.set_fontsize(9)
-                
-                # Rotate x-axis labels if too many items
-                if len(df) > 5:
-                    ax.tick_params(axis='x', rotation=45)
                     
             else:
                 # No critical stock items

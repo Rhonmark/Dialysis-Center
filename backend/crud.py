@@ -259,8 +259,8 @@ def supply_creation_id(column, row, table_name):
 
             elif table_name == 'item_usage':
               query = f"""
-                  INSERT INTO {table_name}({column}, usage_date, usage_time)
-                  VALUES({values_placeholder}, CURDATE(), CURTIME())
+                  INSERT INTO {table_name}({column}, usage_date, usage_time, usage_timestamp)
+                  VALUES({values_placeholder}, CURDATE(), CURTIME(), NOW())
               """
 
             cursor.execute(query, tuple(row))
