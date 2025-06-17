@@ -4,6 +4,7 @@ from tkcalendar import Calendar
 from PIL import Image
 from backend.crud import supply_creation_id, get_existing_credentials
 from backend.connector import db_connection as db
+from components.state import login_shared_states
 import math
 from datetime import date
 
@@ -343,6 +344,8 @@ class SupplyWindow(SupplyBaseWindow):
             supply_column = ', '.join(supply_information.keys())
             supply_row = [f"{entries}" for entries in supply_information.values()]
 
+            username = login_shared_states.get('logged_username', None)
+
             try:
                 connect = db()
                 cursor = connect.cursor()
@@ -350,9 +353,10 @@ class SupplyWindow(SupplyBaseWindow):
                 if self.is_editing:
                     # Get current stock BEFORE updating
                     current_stock_before = retrieve_supply_data(cursor, 'current_stock', self.edit_data['item_id'])
-                    
+                    restock_quantity_before = retrieve_supply_data(cursor, 'restock_quantity', self.edit_data['item_id'])
+
                     # Update the supply record (but don't change current_stock yet)
-                    cursor.execute("""
+                    cursor.execute("""  
                         UPDATE supply 
                         SET item_name = %s, category = %s, restock_quantity = %s, 
                         average_weekly_usage = %s, delivery_time_days = %s
@@ -360,8 +364,8 @@ class SupplyWindow(SupplyBaseWindow):
                     """, (item_name, category, restock_quantity, avg_weekly_usage, delivery_time, self.edit_data['item_id']))
 
                     # Only add restock quantity to current stock if restock_quantity > 0
-                    if restock_quantity > 0:
-                        cursor.execute("""
+                    if restock_quantity > 0 and restock_quantity != restock_quantity_before:
+                        cursor.execute("""  
                             INSERT INTO restock_logs(item_id, restock_quantity, restock_date)
                             VALUES(%s, %s, %s)
                         """, (self.edit_data['item_id'], restock_quantity, date.today()))
@@ -385,9 +389,12 @@ class SupplyWindow(SupplyBaseWindow):
                     avg_weekly_usage_result = retrieve_supply_data(cursor, 'average_weekly_usage', self.edit_data['item_id'])
                     delivery_time_result = retrieve_supply_data(cursor, 'delivery_time_days', self.edit_data['item_id'])
 
+
                     if avg_weekly_usage_result > 0 and delivery_time_result > 0:
                         status = set_stock_levels(avg_weekly_usage, delivery_time, new_current_stock)
-                        set_supply_data(cursor, 'stock_level_status', status, self.edit_data['item_id'])
+                        set_status = set_supply_data(cursor, 'stock_level_status', status, self.edit_data['item_id']) 
+                        if set_status:
+                            print('item status: ', status)
 
                     connect.commit()
                     CTkMessageBox.show_success("Success", "Supply information updated successfully!", parent=self)
@@ -657,9 +664,25 @@ class EditStockWindow(SupplyBaseWindow):
                 'quantity_used': quantity_used
             }
 
+            username = login_shared_states.get('logged_username', None)
+
             try:
                 connect = db()
                 cursor = connect.cursor()
+
+                cursor.execute("""
+                    SELECT full_name FROM users
+                    WHERE username = %s
+                """, (username,))
+                
+                user_fn = cursor.fetchone()[0]
+
+                cursor.execute("""
+                    SELECT item_name FROM supply
+                    WHERE item_id = %s
+                """, (self.item_id,))
+
+                notif_item_name = cursor.fetchone()[0]
 
                 # Check if there's enough stock
                 current_stock = retrieve_supply_data(cursor, 'current_stock', self.item_id)
@@ -705,6 +728,13 @@ class EditStockWindow(SupplyBaseWindow):
                         print("Table view refreshed")
                     
                     self.close_window()
+
+                #FOR NOTIFICATION WAG GALAWIN BALIW NA AKO
+                cursor.execute("""
+                    INSERT INTO notification_logs(user_fullname, item_name, item_quantity, stock_status, notification_type, notification_timestamp)
+                    VALUES(%s, %s, %s, %s, %s, NOW())
+                """, (user_fn, notif_item_name, total_stock, status, 'Stock Level Status'))
+                connect.commit()
 
             except Exception as e:
                 print('Error with editing supply stocks', e)
