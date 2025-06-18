@@ -268,10 +268,10 @@ class Sidebar(ctk.CTkFrame):
         self.highlight_selected(page_name)
         self.master.show_page(page_name)
 
-
 class SearchResultsFrame(ctk.CTkFrame):
     def __init__(self, parent, **kwargs):
         super().__init__(parent, width=400, height=400, fg_color="white", corner_radius=10, **kwargs)
+        self.parent = parent  # Store reference to parent
         self.place_forget()  # Initially hidden
         self.visible = False
         
@@ -508,20 +508,173 @@ class SearchResultsFrame(ctk.CTkFrame):
         view_btn.place(x=290, y=17)
     
     def view_patient(self, patient):
-        """Handle viewing a patient - for testing, just print details"""
-        print(f"\n🔍 VIEWING PATIENT:")
-        print(f"   Name: {patient['name']}")
-        print(f"   Age: {patient['age']}")
-        print(f"   Gender: {patient['gender']}")
-        print(f"   Access Type: {patient['access_type']}")
-        print("=" * 40)
+        """Handle viewing a patient - navigate to patient page and show details"""
+        print(f"\n🔍 NAVIGATING TO PATIENT: {patient['name']}")
+        
+        try:
+            # Get patient_id from the database using the patient name
+            connect = db()
+            cursor = connect.cursor()
+            
+            cursor.execute("""
+                SELECT patient_id FROM patient_list 
+                WHERE patient_name = %s
+            """, (patient['name'],))
+            
+            result = cursor.fetchone()
+            
+            if result:
+                patient_id = result[0]
+                print(f"Found patient ID: {patient_id}")
+                
+                # Hide the search results
+                self.hide()
+                
+                # Navigate through the widget hierarchy to find the main HomePage
+                current_widget = self.parent
+                homepage = None
+                
+                # Traverse up the widget hierarchy to find HomePage
+                while current_widget:
+                    if hasattr(current_widget, '__class__'):
+                        class_name = current_widget.__class__.__name__
+                        print(f"Checking widget: {class_name}")
+                        
+                        if class_name == 'HomePage':
+                            homepage = current_widget
+                            break
+                    
+                    # Move up the hierarchy
+                    current_widget = getattr(current_widget, 'master', None)
+                
+                if homepage:
+                    print("✅ Found HomePage, navigating to Patient page...")
+                    
+                    # Navigate to Patient page (correct name: "Patient" not "Patients")
+                    homepage.show_page('Patient')
+                    
+                    # Get the patient page and show detailed info
+                    if hasattr(homepage, 'pages') and 'Patient' in homepage.pages:
+                        patient_page = homepage.pages['Patient']
+                        # Use after() to ensure the page is loaded before showing details
+                        patient_page.after(100, lambda: patient_page.show_detailed_info(patient_id))
+                        print("✅ Scheduled patient detail view")
+                    else:
+                        print("❌ Patient page not found in homepage.pages")
+                        print(f"Available pages: {list(homepage.pages.keys()) if hasattr(homepage, 'pages') else 'No pages found'}")
+                        
+                else:
+                    print("❌ Could not find HomePage in widget hierarchy")
+                    
+            else:
+                print(f"❌ Patient '{patient['name']}' not found in database")
+                
+        except Exception as e:
+            print(f"❌ Error navigating to patient: {e}")
+            import traceback
+            traceback.print_exc()
+        finally:
+            if 'cursor' in locals():
+                cursor.close()
+            if 'connect' in locals():
+                connect.close()
     
     def view_supply(self, supply):
-        """Handle viewing a supply - for testing, just print details"""
-        print(f"\n📦 VIEWING SUPPLY:")
-        print(f"   Name: {supply['name']}")
-        print(f"   Category: {supply['category']}")
-        print("=" * 40)
+        """Handle viewing a supply - navigate to supply page and show details"""
+        print(f"\n📦 NAVIGATING TO SUPPLY: {supply['name']}")
+        
+        try:
+            # Get supply item_id from the database using the supply name
+            connect = db()
+            cursor = connect.cursor()
+            
+            cursor.execute("""
+                SELECT item_id FROM supply 
+                WHERE item_name = %s
+            """, (supply['name'],))
+            
+            result = cursor.fetchone()
+            
+            if result:
+                item_id = result[0]
+                print(f"Found supply item ID: {item_id}")
+                
+                # Hide the search results
+                self.hide()
+                
+                # Navigate through the widget hierarchy to find the main HomePage
+                current_widget = self.parent
+                homepage = None
+                
+                # Traverse up the widget hierarchy to find HomePage
+                while current_widget:
+                    if hasattr(current_widget, '__class__'):
+                        class_name = current_widget.__class__.__name__
+                        print(f"Checking widget: {class_name}")
+                        
+                        if class_name == 'HomePage':
+                            homepage = current_widget
+                            break
+                    
+                    # Move up the hierarchy
+                    current_widget = getattr(current_widget, 'master', None)
+                
+                if homepage:
+                    print("✅ Found HomePage, navigating to Supply page...")
+                    
+                    # Navigate to Supply page
+                    homepage.show_page('Supply')
+                    
+                    # Get the supply page and show detailed info
+                    if hasattr(homepage, 'pages') and 'Supply' in homepage.pages:
+                        supply_page = homepage.pages['Supply']
+                        
+                        # Get full supply data from database for detailed view
+                        cursor.execute("""
+                            SELECT s.item_id, s.item_name, s.category, s.current_stock, 
+                                COALESCE(
+                                    (SELECT MAX(rl.restock_date) 
+                                    FROM restock_logs rl 
+                                    WHERE rl.item_id = s.item_id), 
+                                    'No Restock'
+                                ) as restock_date,
+                                s.date_registered, s.restock_quantity, s.average_daily_usage, 
+                                s.average_weekly_usage, s.average_monthly_usage, s.delivery_time_days, 
+                                s.stock_level_status, s.max_supply
+                            FROM supply s 
+                            WHERE s.item_id = %s
+                        """, (item_id,))
+                        
+                        full_supply_data = cursor.fetchone()
+                        
+                        if full_supply_data:
+                            # Set the selected supply ID in the supply page
+                            supply_page.selected_supply_id = item_id
+                            
+                            # Use after() to ensure the page is loaded before showing details
+                            supply_page.after(100, lambda: supply_page.show_detailed_info(full_supply_data))
+                            print("✅ Scheduled supply detail view")
+                        else:
+                            print("❌ Could not fetch full supply data")
+                    else:
+                        print("❌ Supply page not found in homepage.pages")
+                        print(f"Available pages: {list(homepage.pages.keys()) if hasattr(homepage, 'pages') else 'No pages found'}")
+                        
+                else:
+                    print("❌ Could not find HomePage in widget hierarchy")
+                    
+            else:
+                print(f"❌ Supply '{supply['name']}' not found in database")
+                
+        except Exception as e:
+            print(f"❌ Error navigating to supply: {e}")
+            import traceback
+            traceback.print_exc()
+        finally:
+            if 'cursor' in locals():
+                cursor.close()
+            if 'connect' in locals():
+                connect.close()
 
     def show(self):
         """Show the search results frame"""
@@ -533,7 +686,6 @@ class SearchResultsFrame(ctk.CTkFrame):
         """Hide the search results frame"""
         self.place_forget()
         self.visible = False
-
 
 class HomePageContent(ctk.CTkFrame):
     def __init__(self, parent):
@@ -4947,13 +5099,6 @@ class SupplyPage(ctk.CTkFrame):
             
         except Exception as e:
             print("Error refreshing detailed view:", e)
-
-import customtkinter as ctk
-from PIL import Image
-import pandas as pd
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import matplotlib.font_manager as fm
 
 class ReportPage(ctk.CTkFrame):
     def __init__(self, parent):
