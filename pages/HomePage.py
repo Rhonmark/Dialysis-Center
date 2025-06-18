@@ -3,6 +3,7 @@ import threading
 import customtkinter as ctk
 from CTkMessagebox import CTkMessagebox
 import tkinter as tk
+from tkinter import filedialog
 from PIL import Image
 from tkinter import ttk, messagebox
 from components.Inputs import PatientInfoWindow
@@ -12,6 +13,7 @@ from components.input_supply import CTkMessageBox, EditStockWindow, QuantityUsed
 from components.state import login_shared_states
 from backend.crud import retrieve_form_data, db_connection
 from datetime import datetime
+import subprocess
 from customtkinter import CTkInputDialog
 import datetime
 import shutil
@@ -22,6 +24,13 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from matplotlib import font_manager as fm
+from dotenv import load_dotenv
+
+load_dotenv() 
+
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+DB_NAME = os.getenv("DB_NAME")
 
 
 ctk.set_appearance_mode("light")
@@ -5978,9 +5987,45 @@ class MaintenancePage(ctk.CTkFrame):
         maintenance_sublabel = ctk.CTkLabel(Maintenance_MainFrame, bg_color="transparent",text="Maintenance Section is for Backup Scheduling",text_color="#104E44",font=sublabel_font,height=10)
         maintenance_sublabel.place(x=80,y=60)
 
-        # Choose Destination Button Function
+        username = login_shared_states.get('logged_username', None)
+
+        # try:
+        #         connect = db()
+        #         cursor = connect.cursor()
+
+        #         cursor.execute("""
+        #             SELECT employee_id, full_name FROM users WHERE username = %s
+        #         """, (username,))
+
+        #         employee_id_u = cursor.fetchone()[0]
+        #         full_name = cursor.fetchone()[1]
+
+        # except Exception as e:
+        #     print('Error retrieving user full name ', e)
+
+        # finally:
+        #     cursor.close()
+        #     connect.close()
+
         def choose_destination_action():
-            print("Clicked Choose destination")
+            root = tk.Tk()
+            root.withdraw() 
+            
+            file_path = filedialog.asksaveasfilename(
+                title="Save Backup As",
+                defaultextension=".sql",
+                filetypes=[("SQL files", "*.sql"), ("All files", "*.*")],
+                initialfile=f"backup_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.sql"
+            )
+
+            root.destroy() 
+            
+            if file_path:
+                print("Chosen file path:", file_path)
+                return file_path
+            else:
+                print("No file selected.")
+                return None
 
         # Choose Destination Button 
         ChooseDestination_Button = ctk.CTkButton(Maintenance_MainFrame,
@@ -6058,9 +6103,133 @@ class MaintenancePage(ctk.CTkFrame):
             except Exception as e:
                 print('Error appointing backup schedule', e)
 
-        def manual_backup_action():
-            update_last_backup_time
-            print("Clicked Manual Backup")
+        def find_mysqldump():
+            """Find mysqldump executable in common locations"""
+            # Common paths where mysqldump might be located
+            common_paths = [
+                "mysqldump",  # If it's in PATH
+                r"C:\Program Files\MySQL\MySQL Server 8.0\bin\mysqldump.exe",
+                r"C:\Program Files\MySQL\MySQL Server 5.7\bin\mysqldump.exe",
+                r"C:\xampp\mysql\bin\mysqldump.exe",
+                r"C:\wamp64\bin\mysql\mysql8.0.21\bin\mysqldump.exe",
+                r"C:\laragon\bin\mysql\mysql-8.0.30-winx64\bin\mysqldump.exe"
+            ]
+            
+            for path in common_paths:
+                if shutil.which(path) or os.path.exists(path):
+                    return path
+            
+            return None
+
+        def manual_backup_action(username):
+            """Main backup function with user feedback"""
+            try:
+                # Choose destination and filename
+                file_path = choose_destination_action()
+                if not file_path:
+                    messagebox.showwarning("Backup Cancelled", "No file selected. Backup cancelled.")
+                    return
+                
+                # Find mysqldump
+                mysqldump_path = find_mysqldump()
+                if not mysqldump_path:
+                    messagebox.showerror(
+                        "MySQL Error", 
+                        "mysqldump not found!\n\n"
+                        "Please ensure MySQL is installed and add its bin folder to your system PATH.\n"
+                        "Common locations:\n"
+                        "• C:\\Program Files\\MySQL\\MySQL Server X.X\\bin\n"
+                        "• C:\\xampp\\mysql\\bin\n"
+                        "• C:\\wamp64\\bin\\mysql\\mysqlX.X.XX\\bin"
+                    )
+                    return
+                
+                # Show progress message
+                progress_window = tk.Toplevel()
+                progress_window.title("Backup in Progress")
+                progress_window.geometry("300x100")
+                progress_window.resizable(False, False)
+                tk.Label(progress_window, text="Creating backup...\nPlease wait...").pack(expand=True)
+                progress_window.update()
+                
+                # Run mysqldump
+                with open(file_path, "w", encoding='utf-8') as backup_file:
+                    result = subprocess.run([
+                        mysqldump_path,
+                        "-u", DB_USER,
+                        f"-p{DB_PASSWORD}",
+                        DB_NAME
+                    ], stdout=backup_file, stderr=subprocess.PIPE, text=True)
+                
+                progress_window.destroy()
+                
+                if result.returncode != 0:
+                    error_msg = result.stderr if result.stderr else "Unknown error occurred"
+                    messagebox.showerror("Backup Failed", f"Database backup failed!\n\nError: {error_msg}")
+
+                    if os.path.exists(file_path):
+                        os.remove(file_path)
+                    return
+                
+                try:
+                    now = datetime.datetime.now()
+                    connect = db() 
+                    cursor = connect.cursor()
+                    
+                    cursor.execute("""
+                        SELECT employee_id, full_name FROM users WHERE username = %s
+                    """, (username,))
+                    
+                    result = cursor.fetchone()
+                    if result:
+                        employee_id_u, full_name = result
+                        
+                        cursor.execute("""
+                            INSERT INTO backup_logs (
+                                employee_id, employee_name, backup_source, last_date, last_time
+                            ) VALUES (%s, %s, %s, %s, %s)
+                        """, (
+                            employee_id_u,
+                            full_name,
+                            file_path,
+                            now.date(),
+                            now.time()
+                        ))
+                        
+                        connect.commit()
+                    
+                    cursor.close()
+                    connect.close()
+                    
+                    # Show success message
+                    file_size = os.path.getsize(file_path) / (1024 * 1024)  # Size in MB
+                    messagebox.showinfo(
+                        "Backup Successful", 
+                        f"Database backup completed successfully!\n\n"
+                        f"File: {os.path.basename(file_path)}\n"
+                        f"Location: {os.path.dirname(file_path)}\n"
+                        f"Size: {file_size:.2f} MB\n"
+                        f"Time: {now.strftime('%Y-%m-%d %H:%M:%S')}"
+                    )
+                    
+                except Exception as db_error:
+                    # Backup file created but database logging failed
+                    messagebox.showwarning(
+                        "Backup Complete (Log Failed)", 
+                        f"Database backup was successful, but failed to log the backup record.\n\n"
+                        f"File saved to: {file_path}\n"
+                        f"Database error: {str(db_error)}"
+                    )
+            
+            except Exception as e:
+                messagebox.showerror("Backup Error", f"An unexpected error occurred:\n\n{str(e)}")
+
+        def on_manual_backup_click():
+            username = login_shared_states.get('logged_username', None)
+            if username:
+                manual_backup_action(username)
+            else:
+                messagebox.showerror("Error", "No user logged in!")
 
         # Schedule Backup Frame Function
         def schedule_backup_action():
@@ -6201,7 +6370,7 @@ class MaintenancePage(ctk.CTkFrame):
                                             text="Manual\nBackup",
                                             text_color="white",
                                             cursor="hand2",
-                                            command=manual_backup_action,
+                                            command=on_manual_backup_click,
                                             font=button_font)
         ManualBackup_Button.place(x=50,y=80)
 
