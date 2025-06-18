@@ -17,7 +17,7 @@ import datetime
 import shutil
 import os
 import pandas as pd
-from datetime import date, timedelta
+from datetime import date, timedelta, time
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
@@ -712,31 +712,31 @@ class HomePageContent(ctk.CTkFrame):
 
         def get_name():
             # Commented out backend database call
-            # username = login_shared_states.get('logged_username', None)
+            username = login_shared_states.get('logged_username', None)
 
-            # try:
-            #     connect = db()
-            #     cursor = connect.cursor()
+            try:
+                connect = db()
+                cursor = connect.cursor()
 
-            #     cursor.execute("""
-            #         SELECT full_name FROM users WHERE username = %s
-            #     """, (username,))
+                cursor.execute("""
+                    SELECT full_name FROM users WHERE username = %s
+                """, (username,))
 
-            #     full_name = cursor.fetchone()[0]
+                full_name = cursor.fetchone()[0]
 
-            #     first_name = full_name.split()[0]
+                first_name = full_name.split()[0]
 
-            #     return first_name, full_name
+                return first_name, full_name
 
-            # except Exception as e:
-            #     print('Error retrieving user full name ', e)
-            # finally:
-            #     cursor.close()
-            #     connect.close()
+            except Exception as e:
+                print('Error retrieving user full name ', e)
+            finally:
+                cursor.close()
+                connect.close()
 
-            # Static values for testing
-            full_name = "User"
-            first_name = "User"
+            # # Static values for testing
+            # full_name = "User"
+            # first_name = "User"
 
             return first_name, full_name
 
@@ -902,7 +902,25 @@ class HomePageContent(ctk.CTkFrame):
             connect = db()
             cursor = connect.cursor()
 
-            # Update inactive patients based on usage
+            cursor.execute("""
+                SELECT pi.patient_id, pi.status
+                FROM patient_info pi
+                JOIN (
+                    SELECT patient_id
+                    FROM item_usage
+                    GROUP BY patient_id
+                    HAVING DATEDIFF(CURDATE(), MAX(usage_date)) > 30
+                ) inactive_patients ON pi.patient_id = inactive_patients.patient_id
+                WHERE pi.status = 'Active'
+            """)
+            #for simulation 
+            #HAVING TIMESTAMPDIFF(SECOND, MAX(usage_date), NOW()) > 5
+
+            patients_to_inactivate = cursor.fetchall() 
+
+            for patient in patients_to_inactivate:
+                print(f"Patient {patient[0]} has been marked as inactive due to 30 days inactivity.")
+
             cursor.execute("""
                 UPDATE patient_info pi
                 JOIN (
@@ -913,6 +931,8 @@ class HomePageContent(ctk.CTkFrame):
                 ) inactive_patients ON pi.patient_id = inactive_patients.patient_id
                 SET pi.status = 'Inactive'
             """)
+            #for simulation 
+            #HAVING TIMESTAMPDIFF(SECOND, MAX(usage_date), NOW()) > 5
 
             connect.commit()
 

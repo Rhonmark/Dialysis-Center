@@ -344,7 +344,7 @@ class PatientInfoWindow(BaseWindow):
             self.data["patient_last_name"] = self.entry_lastname.get().strip().lower().capitalize()
             self.data["patient_first_name"] = self.entry_firstname.get().strip().lower().capitalize()
             self.data["patient_middle_name"] = self.entry_middlename.get().strip().lower().capitalize()
-            self.data["patient_status"] = self.status_var.get()
+            self.data["patient_status"] = self.status_var.get().capitalize()
             self.data["patient_access"] = self.entry_access.get()
             self.data["patient_birthdate"] = self.entry_birthdate.get_date().strftime("%Y-%m-%d")  
             self.data["patient_age"] = self.entry_age.get().strip()
@@ -1458,19 +1458,23 @@ class MedicationWindow(BaseWindow):
         except Exception as e:
             print(f"❌ Error refreshing homepage: {e}")
 
-    def update_notif_logs(self, edited_by, edit_type, patient_id, notif_type):
+    def update_notif_status(self, edited_by, patient_id, patient_fn, status, notif_type):
         try:
             connect = db()
             cursor = connect.cursor()
 
             cursor.execute("""
-                INSERT INTO notification_logs(user_fullname, patient_edit_type, patient_id, notification_type, notification_timestamp )
-                VALUES(%s, %s, %s, %s, NOW())
-            """, (edited_by, edit_type, patient_id, notif_type))
+                INSERT INTO notification_logs(user_fullname, patient_id, patient_name, patient_status, notification_type, notification_timestamp)
+                VALUES(%s, %s, %s, %s, %s, NOW())
+            """, (edited_by, patient_id, patient_fn, status, notif_type))
             connect.commit()
 
+            unique_id = cursor.lastrowid
+            return unique_id
+
+
         except Exception as e:
-            print(f'Failed updating notif logs ({edit_type})!', e)
+            print(f'Failed updating status notif logs ({notif_type})!', e)
         
         finally: 
             cursor.close()
@@ -1483,6 +1487,11 @@ class MedicationWindow(BaseWindow):
             return
         
         username = login_shared_states.get('logged_username', None)
+
+        #FOR NOTIFICATION WAG GALAWIN
+        #FOR NOTIFICATION WAG GALAWIN
+        #FOR NOTIFICATION WAG GALAWIN
+        #FOR NOTIFICATION WAG GALAWIN
         try:
             connect = db()
             cursor = connect.cursor()
@@ -1493,6 +1502,17 @@ class MedicationWindow(BaseWindow):
             """, (username,))
             
             user_fn = cursor.fetchone()[0]
+
+            cursor.execute("""
+                SELECT pl.patient_name, pi.status 
+                FROM patient_info pi JOIN patient_list pl ON pi.patient_id = pl.patient_id
+                WHERE pi.patient_id = %s
+            """, (self.patient_id,))
+            
+            reactive_status = cursor.fetchone()
+            stat_patient_name = reactive_status[0]
+            stat_status = reactive_status[1]
+
 
             # cursor.execute("""
             #     SELECT patient_name FROM patient_list
@@ -1523,7 +1543,7 @@ class MedicationWindow(BaseWindow):
                 "last_name": self.data.get("patient_last_name").lower().capitalize(),
                 "first_name": self.data.get("patient_first_name").lower().capitalize(),
                 "middle_name": self.data.get("patient_middle_name").lower().capitalize(), 
-                "status": self.data.get("patient_status"),
+                "status": self.data.get("patient_status").capitalize(),
                 "access_type": self.data.get("patient_access"),
                 "birthdate": self.data.get("patient_birthdate"),
                 "age": self.data.get("patient_age"),
@@ -1533,6 +1553,38 @@ class MedicationWindow(BaseWindow):
                 "religion": self.data.get("patient_religion").capitalize(),
                 "address": self.data.get("patient_address").capitalize()
             }
+
+            now = datetime.now()
+            right_now = now.strftime('%Y-%m-%d %H:%M:%S')
+
+            #FOR NOTIFICATION WAG GALAWIN
+            #FOR NOTIFICATION WAG GALAWIN
+            #FOR NOTIFICATION WAG GALAWIN
+            if stat_status.lower() ==  'inactive' and patient_information['status'].lower() == 'active':
+                self.update_notif_status(user_fn, self.patient_id, stat_patient_name, 'Reactivated', 'Patient Status')
+
+                print(f"""
+                    Patient Status
+
+                    {stat_patient_name} is now an active patient again. Reactivated by: {user_fn}.
+
+                    {right_now}
+                """)
+
+            if stat_status.lower() ==  'active' and patient_information['status'].lower() == 'inactive':
+                self.update_notif_status(user_fn, self.patient_id, stat_patient_name, 'Deactivated', 'Patient Status')
+
+                print(f"""
+                    Patient Status
+
+                    {stat_patient_name} is now inactive, go to the patient information to reactivate.
+
+                    {right_now}
+                """)
+
+            #FOR NOTIFICATION WAG GALAWIN
+            #FOR NOTIFICATION WAG GALAWIN
+            #FOR NOTIFICATION WAG GALAWIN
 
             if update_patient_info(self.patient_id, patient_information):
                 print("Patient info updated successfully")
@@ -1659,17 +1711,17 @@ class MedicationWindow(BaseWindow):
             
             self.destroy()
 
-            if (
-                update_patient_info(self.patient_id, patient_information) 
-                or update_patient_contact(self.patient_id, patient_contact_information) 
-                or update_patient_relative(self.patient_id, patient_relative_information) 
-                or update_patient_benefits(self.patient_id, patient_benefits)
-                or update_patient_history(self.patient_id, patient_history_combined)
-                or update_patient_medications(self.patient_id, medication_entries_row)
-                or update_patient_list(self.patient_id, patient_list_data)
-            ):
+            # if (
+            #     update_patient_info(self.patient_id, patient_information) 
+            #     or update_patient_contact(self.patient_id, patient_contact_information) 
+            #     or update_patient_relative(self.patient_id, patient_relative_information) 
+            #     or update_patient_benefits(self.patient_id, patient_benefits)
+            #     or update_patient_history(self.patient_id, patient_history_combined)
+            #     or update_patient_medications(self.patient_id, medication_entries_row)
+            #     or update_patient_list(self.patient_id, patient_list_data)
+            # ):
 
-                self.update_notif_logs(user_fn, 'Patient Credentials', self.patient_id, 'Edit Patient')
+            #     self.update_notif_logs(user_fn, 'Patient Credentials', self.patient_id, 'Edit Patient')
             
             print("Update completed and window closed!")
             
@@ -1700,6 +1752,9 @@ class MedicationWindow(BaseWindow):
                 "religion": self.data.get("patient_religion"),
                 "address": self.data.get("patient_address")
             }
+
+            keys_needed = ['first_name', 'middle_name', 'last_name']
+            joined_fn = ' '.join(patient_information[keys].capitalize() for keys in keys_needed)
 
             patient_information_column = ', '.join(patient_information.keys())
             patient_information_row = [
@@ -1900,45 +1955,41 @@ class MedicationWindow(BaseWindow):
 
             self.destroy()
 
-            #retrieve all the data from patient list table
-            cursor.execute("SELECT * FROM patient_list")
-            list_result = cursor.fetchall()
+            print('fullllllllllllllllllll nameeeeeeeeeeeeeeeeeeeeee', joined_fn)
 
-            for i in list_result:
-                print(i)
+            try:
 
-            #retrieve all the data from patient info table
-            retrieve_patient_info = retrieve_form_data(pk_patient_id, patient_information_column, table_name='patient_info')
-            print(retrieve_patient_info)
-            
-            #retrieve all the data from patient contact table
-            retrieve_patient_contact = retrieve_form_data(pk_patient_id, patient_contact_information_column, table_name='patient_contact')
-            print(retrieve_patient_contact)
+                username = login_shared_states.get('logged_username', None)
 
-            #retrieve all the data from patient relative table
-            retrieve_patient_relative = retrieve_form_data(pk_patient_id, patient_relative_information_column, table_name='patient_relative')
-            print(retrieve_patient_relative)
+                cursor.execute("""
+                    SELECT full_name FROM users
+                    WHERE username = %s
+                """, (username,))
 
-            #retrieve all the data from patient benefits table
-            retrieve_patient_benefits = retrieve_form_data(pk_patient_id, patient_benefits_column, table_name='patient_benefits')
-            print(retrieve_patient_benefits)
+                user_fn = cursor.fetchone()[0]
 
-            #retrieve all the data from patient history table
-            retrieve_patient_history = retrieve_form_data(pk_patient_id, patient_history_column, table_name='patient_history')
-            print(retrieve_patient_history)
+            except Exception as e:
+                print('Error retrieving user_fullname', e)
 
-            #retrieve all the data from patient medications table
-            cursor.execute(f"""
-                SELECT m.medication_name FROM patient_medications pm 
-                JOIN medicines m ON m.medication_id = pm.medication_id
-                JOIN patient_info pi ON pm.patient_id = pi.patient_id 
-                WHERE pi.patient_id = {pk_patient_id}
-            """)          
+            now = datetime.now()
+            right_now = now.strftime('%Y-%m-%d %H:%M:%S')
 
-            medication_result = cursor.fetchall()
+            cursor.execute("""
+                INSERT INTO notification_logs(user_fullname, patient_id, patient_name, notification_type, notification_timestamp) 
+                VALUES(%s, %s, %s, %s, %s)
+            """, (user_fn, pk_patient_id, joined_fn, 'New Patient Added', right_now))
+            connect.commit()
 
-            print(medication_result)
-        
+            notification_id = cursor.lastrowid
+
+            print(f"""
+                New Patient Added
+
+                {joined_fn} was added to the system by {user_fn}.  
+                  
+                {right_now} 
+            """)
+
         except Exception as e:
             print("Error with submitting the form: ", e)
         

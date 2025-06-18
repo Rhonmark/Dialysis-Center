@@ -6,7 +6,7 @@ from backend.crud import supply_creation_id, get_existing_credentials
 from backend.connector import db_connection as db
 from components.state import login_shared_states
 import math
-from datetime import date
+from datetime import date, datetime
 
 class CTkMessageBox(ctk.CTkToplevel):
     def __init__(self, parent, title, message, box_type="info"):
@@ -259,6 +259,19 @@ class SupplyWindow(SupplyBaseWindow):
                 status = 'Excellent Stock Level'         
 
             return status
+        
+        def update_notif_restock(cursor, user_fn, item_name, res_quan, curr_stock, status, notif_type):
+            try:
+                cursor.execute("""
+                    INSERT INTO notification_logs(user_fullname, item_name, restock_quantity, current_stock, stock_status, notification_type, notification_timestamp) 
+                    VALUES(%s, %s, %s, %s, %s, %s, NOW())
+                """, (user_fn, item_name, res_quan, curr_stock, status, notif_type))
+
+                unique_id = cursor.lastrowid
+                return unique_id
+
+            except Exception as e:
+                print(f'Error inserting ({notif_type}):', e)
 
         def on_save_click():
             item_name_val = self.entry_itemname.get().strip()
@@ -350,6 +363,33 @@ class SupplyWindow(SupplyBaseWindow):
                 connect = db()
                 cursor = connect.cursor()
 
+                cursor.execute("""
+                    SELECT full_name FROM users
+                    WHERE username = %s
+                """, (username,))
+
+                user_fn = cursor.fetchone()[0]
+
+                cursor.execute("""
+                    SELECT item_name FROM supply
+                    WHERE item_id = %s
+                """, (self.edit_data['item_id'],))
+
+                item_fn = cursor.fetchone()[0]
+
+            except Exception as e:
+                print('error retrieving user_fullname ', e)
+            finally:
+                cursor.close()
+                connect.close()
+
+            try:
+                connect = db()
+                cursor = connect.cursor()
+
+                now = datetime.now()
+                right_now = now.strftime('%Y-%m-%d %H:%M:%S')
+
                 if self.is_editing:
                     # Get current stock BEFORE updating
                     current_stock_before = retrieve_supply_data(cursor, 'current_stock', self.edit_data['item_id'])
@@ -389,12 +429,21 @@ class SupplyWindow(SupplyBaseWindow):
                     avg_weekly_usage_result = retrieve_supply_data(cursor, 'average_weekly_usage', self.edit_data['item_id'])
                     delivery_time_result = retrieve_supply_data(cursor, 'delivery_time_days', self.edit_data['item_id'])
 
-
                     if avg_weekly_usage_result > 0 and delivery_time_result > 0:
                         status = set_stock_levels(avg_weekly_usage, delivery_time, new_current_stock)
                         set_status = set_supply_data(cursor, 'stock_level_status', status, self.edit_data['item_id']) 
-                        if set_status:
-                            print('item status: ', status)
+
+                        #FOR NOTIFICATION WAG GALAWIN
+                        if status:
+                            notification_id = update_notif_restock(cursor, user_fn, item_fn, restock_quantity, new_current_stock, status, 'Item Restocked')
+
+                            print(f"""
+                                Item Restocked
+
+                                {item_fn} restock with {restock_quantity}. Current Stock Quantity: {new_current_stock}. Status is now: {status}
+
+                                {right_now}
+                            """)
 
                     connect.commit()
                     CTkMessageBox.show_success("Success", "Supply information updated successfully!", parent=self)
@@ -428,6 +477,22 @@ class SupplyWindow(SupplyBaseWindow):
                     if avg_weekly_usage_result > 0 and delivery_time_result > 0:
                         status = set_stock_levels(avg_weekly_usage, delivery_time_result, current_stock_val)
                         set_supply_data(cursor, 'stock_level_status', status, item_id)
+
+                    cursor.execute("""
+                        INSERT INTO notification_logs(user_fullname, item_name, notification_type, notification_timestamp) 
+                        VALUES(%s, %s, %s, %s)
+                    """, (user_fn, item_name, 'New Item Added', right_now))
+                    connect.commit()
+
+                    notification_id = cursor.lastrowid
+
+                    print(f"""
+                        New Item Added
+
+                        {item_name} was added to the system by {user_fn}.  
+                        
+                        {right_now} 
+                    """)
 
                 connect.commit()
 
@@ -630,6 +695,19 @@ class EditStockWindow(SupplyBaseWindow):
 
             return status
 
+        def update_notif_status(cursor, user_fn, item_name, curr_stock, status, notif_type):
+            try:
+                cursor.execute("""
+                    INSERT INTO notification_logs(user_fullname, item_name, current_stock, stock_status, notification_type, notification_timestamp) 
+                    VALUES(%s, %s, %s, %s, %s, NOW())
+                """, (user_fn, item_name, curr_stock, status, notif_type))
+
+                unique_id = cursor.lastrowid  
+                return unique_id
+
+            except Exception as e:
+                print(f'Error inserting ({notif_type}):', e)
+
         def on_submit_click():
             quantity_used = self.entry_quantity_used.get().strip()
             patient_id = self.entry_patient_id.get().strip()
@@ -709,9 +787,22 @@ class EditStockWindow(SupplyBaseWindow):
                     avg_weekly_usage_result = retrieve_supply_data(cursor, 'average_weekly_usage', self.item_id)
                     delivery_time_result = retrieve_supply_data(cursor, 'delivery_time_days', self.item_id)
 
+                    now = datetime.now()
+                    right_now = now.strftime('%Y-%m-%d %H:%M:%S')
+
                     if avg_weekly_usage_result > 0 and delivery_time_result > 0:
                         status = set_stock_levels(avg_weekly_usage_result, delivery_time_result, current_stock_val)
                         set_supply_data(cursor, 'stock_level_status', status, self.item_id)
+                        if status:
+                            notification_id = update_notif_status(cursor, user_fn, notif_item_name, total_stock, status, 'Item Stock Status Alert')
+
+                            print(f"""
+                                Item Stock Status Alert
+
+                                {notif_item_name} is at {status} and only has {total_stock} quantities left, please inform the admin.
+
+                                {right_now}
+                            """)
 
                     connect.commit()
                     
@@ -728,13 +819,6 @@ class EditStockWindow(SupplyBaseWindow):
                         print("Table view refreshed")
                     
                     self.close_window()
-
-                #FOR NOTIFICATION WAG GALAWIN BALIW NA AKO
-                cursor.execute("""
-                    INSERT INTO notification_logs(user_fullname, item_name, item_quantity, stock_status, notification_type, notification_timestamp)
-                    VALUES(%s, %s, %s, %s, %s, NOW())
-                """, (user_fn, notif_item_name, total_stock, status, 'Stock Level Status'))
-                connect.commit()
 
             except Exception as e:
                 print('Error with editing supply stocks', e)
