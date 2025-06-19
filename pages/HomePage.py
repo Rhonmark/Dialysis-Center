@@ -6005,6 +6005,9 @@ class MaintenancePage(ctk.CTkFrame):
         Title_font = ("Merriweather Bold",15)
         Messagebox_font=("Merriweather Sans Bold",15)
 
+        # Initialize schedule backup frame as None
+        self.schedule_backup_frame = None
+
         #---------------------------------LEFT-----------------------------------------
 
     #Maintenance Frame
@@ -6033,42 +6036,22 @@ class MaintenancePage(ctk.CTkFrame):
 
         username = login_shared_states.get('logged_username', None)
 
-        # try:
-        #         connect = db()
-        #         cursor = connect.cursor()
-
-        #         cursor.execute("""
-        #             SELECT employee_id, full_name FROM users WHERE username = %s
-        #         """, (username,))
-
-        #         employee_id_u = cursor.fetchone()[0]
-        #         full_name = cursor.fetchone()[1]
-
-        # except Exception as e:
-        #     print('Error retrieving user full name ', e)
-
-        # finally:
-        #     cursor.close()
-        #     connect.close()
-
-        def choose_destination_action():
+        def choose_destination_folder():
+            """Choose a destination folder for backup"""
             root = tk.Tk()
             root.withdraw() 
             
-            file_path = filedialog.asksaveasfilename(
-                title="Save Backup As",
-                defaultextension=".sql",
-                filetypes=[("SQL files", "*.sql"), ("All files", "*.*")],
-                initialfile=f"backup_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.sql"
+            folder_path = filedialog.askdirectory(
+                title="Choose Backup Destination Folder"
             )
 
             root.destroy() 
             
-            if file_path:
-                print("Chosen file path:", file_path)
-                return file_path
+            if folder_path:
+                print("Chosen destination folder:", folder_path)
+                return folder_path
             else:
-                print("No file selected.")
+                print("No folder selected.")
                 return None
 
         # Choose Destination Button 
@@ -6082,7 +6065,7 @@ class MaintenancePage(ctk.CTkFrame):
                                                 text="Choose Destination",
                                                 text_color="white",
                                                 cursor="hand2",
-                                                command=choose_destination_action,
+                                                command=choose_destination_folder,
                                                 font=("Merriweather Sans", 10,"italic"))
         ChooseDestination_Button.place(x=820, y=30)
 
@@ -6095,7 +6078,6 @@ class MaintenancePage(ctk.CTkFrame):
                                     corner_radius=20,border_width=2,
                                     border_color="#BBBBBB")
         option_frame.place(x=100,y=100)
-
 
         backupoptions_label = ctk.CTkLabel(option_frame,
                                      text="Backup",
@@ -6111,45 +6093,8 @@ class MaintenancePage(ctk.CTkFrame):
                                      font=sublabel_font)
         backupoptions_sublabel.place(x=40,y=40)
 
-
-        #last/next backup date/time
-        def retrieve_backup_logs(cursor, column):
-            try:
-                #pag isipan ko pa
-                # cursor.execute("""
-                #     SELECT %s FROM backup_logs
-                #     wWHERE employee_id = %s                
-                # """, (column, identifier))
-                cursor.execute("""
-                    SELECT %s FROM backup_logs                
-                """, (column,))
-
-                col_list = column.split(',')
-                col_length = len(col_list)
-
-                if col_length <=2:
-                    log_result = cursor.fetchone()
-                    return log_result
-
-                else:
-                    logs_result = cursor.fetchall()
-                    return logs_result
-
-            except Exception as e:
-                print('Error retrieveng backup logs', e)
-
-        def set_backup_schedule(cursor, date, time):
-            try:
-                cursor.execute("""
-                    UPDATE backup_logs
-                    SET next_date = %s, next_time = %s        
-                """, {date, time})
-            except Exception as e:
-                print('Error appointing backup schedule', e)
-
         def find_mysqldump():
             """Find mysqldump executable in common locations"""
-            # Common paths where mysqldump might be located
             common_paths = [
                 "mysqldump",  # If it's in PATH
                 r"C:\Program Files\MySQL\MySQL Server 8.0\bin\mysqldump.exe",
@@ -6165,14 +6110,48 @@ class MaintenancePage(ctk.CTkFrame):
             
             return None
 
+        def find_mysql():
+            """Find mysql executable in common locations for import"""
+            common_paths = [
+                "mysql",  # If it's in PATH
+                r"C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe",
+                r"C:\Program Files\MySQL\MySQL Server 5.7\bin\mysql.exe",
+                r"C:\xampp\mysql\bin\mysql.exe",
+                r"C:\wamp64\bin\mysql\mysql8.0.21\bin\mysql.exe",
+                r"C:\laragon\bin\mysql\mysql-8.0.30-winx64\bin\mysql.exe"
+            ]
+            
+            for path in common_paths:
+                if shutil.which(path) or os.path.exists(path):
+                    return path
+            
+            return None
+
         def manual_backup_action(username):
-            """Main backup function with user feedback"""
+            """Enhanced manual backup with custom filename"""
             try:
-                # Choose destination and filename
-                file_path = choose_destination_action()
-                if not file_path:
-                    messagebox.showwarning("Backup Cancelled", "No file selected. Backup cancelled.")
+                # Create input dialog for filename
+                filename_dialog = CTkInputDialog(
+                    text="Enter backup filename (without extension):",
+                    title="Backup Filename"
+                )
+                filename = filename_dialog.get_input()
+                
+                if not filename:
+                    messagebox.showwarning("Backup Cancelled", "No filename provided. Backup cancelled.")
                     return
+                
+                # Add timestamp to filename if user wants
+                timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+                default_filename = f"{filename}_{timestamp}.sql"
+                
+                # Choose destination folder
+                folder_path = choose_destination_folder()
+                if not folder_path:
+                    messagebox.showwarning("Backup Cancelled", "No destination folder selected. Backup cancelled.")
+                    return
+                
+                file_path = os.path.join(folder_path, default_filename)
                 
                 # Find mysqldump
                 mysqldump_path = find_mysqldump()
@@ -6193,7 +6172,11 @@ class MaintenancePage(ctk.CTkFrame):
                 progress_window.title("Backup in Progress")
                 progress_window.geometry("300x100")
                 progress_window.resizable(False, False)
-                tk.Label(progress_window, text="Creating backup...\nPlease wait...").pack(expand=True)
+                progress_window.transient(self)
+                progress_window.grab_set()
+                
+                progress_label = tk.Label(progress_window, text="Creating backup...\nPlease wait...")
+                progress_label.pack(expand=True)
                 progress_window.update()
                 
                 # Run mysqldump
@@ -6202,6 +6185,8 @@ class MaintenancePage(ctk.CTkFrame):
                         mysqldump_path,
                         "-u", DB_USER,
                         f"-p{DB_PASSWORD}",
+                        "--routines",
+                        "--triggers",
                         DB_NAME
                     ], stdout=backup_file, stderr=subprocess.PIPE, text=True)
                 
@@ -6210,11 +6195,11 @@ class MaintenancePage(ctk.CTkFrame):
                 if result.returncode != 0:
                     error_msg = result.stderr if result.stderr else "Unknown error occurred"
                     messagebox.showerror("Backup Failed", f"Database backup failed!\n\nError: {error_msg}")
-
                     if os.path.exists(file_path):
                         os.remove(file_path)
                     return
                 
+                # Log backup to database
                 try:
                     now = datetime.datetime.now()
                     connect = db() 
@@ -6230,34 +6215,39 @@ class MaintenancePage(ctk.CTkFrame):
                         
                         cursor.execute("""
                             INSERT INTO backup_logs (
-                                employee_id, employee_name, backup_source, last_date, last_time
-                            ) VALUES (%s, %s, %s, %s, %s)
+                                employee_id, backup_source, last_date, last_time
+                            ) VALUES (%s, %s, %s, %s)
                         """, (
                             employee_id_u,
-                            full_name,
                             file_path,
                             now.date(),
                             now.time()
                         ))
                         
                         connect.commit()
+                        
+                        # Update last backup time display
+                        self.update_last_backup_time()
+                        
+                        # Refresh backup logs table
+                        self.load_backup_logs_table()
+                        self.load_employee_backup_table()
                     
                     cursor.close()
                     connect.close()
                     
                     # Show success message
-                    file_size = os.path.getsize(file_path) / (1024 * 1024)  # Size in MB
+                    file_size = os.path.getsize(file_path) / (1024 * 1024)  
                     messagebox.showinfo(
                         "Backup Successful", 
                         f"Database backup completed successfully!\n\n"
-                        f"File: {os.path.basename(file_path)}\n"
-                        f"Location: {os.path.dirname(file_path)}\n"
+                        f"File: {default_filename}\n"
+                        f"Location: {folder_path}\n"
                         f"Size: {file_size:.2f} MB\n"
                         f"Time: {now.strftime('%Y-%m-%d %H:%M:%S')}"
                     )
                     
                 except Exception as db_error:
-                    # Backup file created but database logging failed
                     messagebox.showwarning(
                         "Backup Complete (Log Failed)", 
                         f"Database backup was successful, but failed to log the backup record.\n\n"
@@ -6275,20 +6265,21 @@ class MaintenancePage(ctk.CTkFrame):
             else:
                 messagebox.showerror("Error", "No user logged in!")
 
-        # Schedule Backup Frame Function
         def schedule_backup_action():
-            # Create Schedule Backup Frame
-            global schedule_backup_frame
-            schedule_backup_frame = ctk.CTkFrame(self,
+            """Create Schedule Backup Frame with only time input"""
+            if self.schedule_backup_frame:
+                self.schedule_backup_frame.destroy()
+                
+            self.schedule_backup_frame = ctk.CTkFrame(self,
                                                bg_color="transparent",
                                                fg_color="#FFFFFF",
                                                width=1000,
                                                height=450,
                                                corner_radius=20)
-            schedule_backup_frame.place(x=100, y=180)
+            self.schedule_backup_frame.place(x=100, y=180)
             
             # Left bar for Schedule Frame
-            leftbar_frame = ctk.CTkFrame(schedule_backup_frame,
+            leftbar_frame = ctk.CTkFrame(self.schedule_backup_frame,
                                        bg_color="transparent",
                                        fg_color="#1A374D",
                                        width=25,
@@ -6297,78 +6288,192 @@ class MaintenancePage(ctk.CTkFrame):
             leftbar_frame.place(x=0)
             
             # Title
-            title_label = ctk.CTkLabel(schedule_backup_frame,
+            title_label = ctk.CTkLabel(self.schedule_backup_frame,
                                      bg_color="transparent",
-                                     text="Date and Time",
+                                     text="Schedule Backup",
                                      text_color="black",
                                      font=Title_font)
             title_label.place(x=100, y=50)
             
             # Subtitle
-            subtitle_label = ctk.CTkLabel(schedule_backup_frame,
+            subtitle_label = ctk.CTkLabel(self.schedule_backup_frame,
                                         bg_color="transparent",
-                                        text="Select the schedule for the next backup.",
+                                        text="Set the time interval for automatic backup scheduling.",
                                         text_color="black",
-                                        font=SubTitle_font)
-            subtitle_label.place(x=100, y=100)
+                                        font=sublabel_font)
+            subtitle_label.place(x=100, y=80)
             
-            # Date Label
-            date_label = ctk.CTkLabel(schedule_backup_frame,
+            # Time Section
+            time_label = ctk.CTkLabel(self.schedule_backup_frame,
                                     bg_color="transparent",
-                                    text="Date",
+                                    text="Time Interval (HH:MM:SS)",
                                     text_color="black",
-                                    font=("Merriweather Sans bold", 15))
-            date_label.place(x=100, y=180)
+                                    font=("Merriweather Sans bold", 18))
+            time_label.place(x=100, y=150)
             
-            # Date Entry Field 
-            from tkcalendar import DateEntry
-            self.entry_date = DateEntry(schedule_backup_frame, 
-                                      width=18, 
-                                      font=("Merriweather light", 12), 
-                                      bg="white", 
-                                      date_pattern="yyyy-MM-dd", 
-                                      state="normal")
-            self.entry_date.place(x=100, y=220, height=25)
+            # Time input frame
+            time_frame = ctk.CTkFrame(self.schedule_backup_frame, fg_color="transparent")
+            time_frame.place(x=100, y=200)
             
-            # Time Label
-            time_label = ctk.CTkLabel(schedule_backup_frame,
-                                    bg_color="transparent",
-                                    text="Time",
-                                    text_color="black",
-                                    font=("Merriweather Sans bold", 15))
-            time_label.place(x=100, y=280)
-            
-            # Time Entry Fields 
             # Hour Entry
-            self.entry_hour = ctk.CTkEntry(schedule_backup_frame,
-                                         width=50,
-                                         height=25,
-                                         placeholder_text="HH",
-                                         font=("Merriweather light", 12))
-            self.entry_hour.place(x=100, y=320)
+            hour_label = ctk.CTkLabel(time_frame, text="Hours", font=("Merriweather", 14))
+            hour_label.grid(row=0, column=0, padx=10, pady=5)
+            self.entry_hour = ctk.CTkEntry(time_frame,
+                                         width=80,
+                                         height=40,
+                                         placeholder_text="00",
+                                         font=("Merriweather light", 16),
+                                         justify="center")
+            self.entry_hour.grid(row=1, column=0, padx=10, pady=5)
             
-            # Colon Label
-            colon_label = ctk.CTkLabel(schedule_backup_frame,
-                                     bg_color="transparent",
-                                     text=":",
-                                     text_color="black",
-                                     font=("Merriweather Sans bold", 15))
-            colon_label.place(x=160, y=320)
+            # Colon separator 1
+            colon1_label = ctk.CTkLabel(time_frame, text=":", font=("Merriweather Bold", 24))
+            colon1_label.grid(row=1, column=1, padx=5)
             
             # Minute Entry
-            self.entry_minute = ctk.CTkEntry(schedule_backup_frame,
-                                           width=50,
-                                           height=25,
-                                           placeholder_text="MM",
-                                           font=("Merriweather light", 12))
-            self.entry_minute.place(x=180, y=320)
+            minute_label = ctk.CTkLabel(time_frame, text="Minutes", font=("Merriweather", 14))
+            minute_label.grid(row=0, column=2, padx=10, pady=5)
+            self.entry_minute = ctk.CTkEntry(time_frame,
+                                           width=80,
+                                           height=40,
+                                           placeholder_text="00",
+                                           font=("Merriweather light", 16),
+                                           justify="center")
+            self.entry_minute.grid(row=1, column=2, padx=10, pady=5)
             
-            # Back Button 
+            # Colon separator 2
+            colon2_label = ctk.CTkLabel(time_frame, text=":", font=("Merriweather Bold", 24))
+            colon2_label.grid(row=1, column=3, padx=5)
+            
+            # Second Entry
+            second_label = ctk.CTkLabel(time_frame, text="Seconds", font=("Merriweather", 14))
+            second_label.grid(row=0, column=4, padx=10, pady=5)
+            self.entry_second = ctk.CTkEntry(time_frame,
+                                           width=80,
+                                           height=40,
+                                           placeholder_text="00",
+                                           font=("Merriweather light", 16),
+                                           justify="center")
+            self.entry_second.grid(row=1, column=4, padx=10, pady=5)
+            
+            # Example text
+            example_label = ctk.CTkLabel(self.schedule_backup_frame,
+                                       bg_color="transparent",
+                                       text="Example: 02:30:00 = Every 2 hours, 30 minutes",
+                                       text_color="#666666",
+                                       font=("Arial", 12))
+            example_label.place(x=100, y=290)
+            
+            # Filename input
+            filename_label = ctk.CTkLabel(self.schedule_backup_frame,
+                                        bg_color="transparent",
+                                        text="Backup Filename (optional)",
+                                        text_color="black",
+                                        font=("Merriweather Sans bold", 15))
+            filename_label.place(x=100, y=330)
+            
+            self.entry_filename = ctk.CTkEntry(self.schedule_backup_frame,
+                                             width=300,
+                                             height=35,
+                                             placeholder_text="Enter filename (without extension)",
+                                             font=("Merriweather light", 12))
+            self.entry_filename.place(x=100, y=360)
+            
+            def validate_and_schedule():
+                """Validate inputs and schedule the backup"""
+                try:
+                    # Get values
+                    hour = self.entry_hour.get() or "0"
+                    minute = self.entry_minute.get() or "0"
+                    second = self.entry_second.get() or "0"
+                    filename = self.entry_filename.get() or f"scheduled_backup_{datetime.datetime.now().strftime('%Y%m%d')}"
+                    
+                    # Validate time inputs
+                    try:
+                        hour_int = int(hour)
+                        minute_int = int(minute)
+                        second_int = int(second)
+                        
+                        if not (0 <= hour_int <= 23):
+                            raise ValueError("Hours must be between 0-23")
+                        if not (0 <= minute_int <= 59):
+                            raise ValueError("Minutes must be between 0-59")
+                        if not (0 <= second_int <= 59):
+                            raise ValueError("Seconds must be between 0-59")
+                        
+                        # Check if at least one value is greater than 0
+                        if hour_int == 0 and minute_int == 0 and second_int == 0:
+                            raise ValueError("Time interval cannot be 00:00:00")
+                            
+                    except ValueError as e:
+                        messagebox.showerror("Invalid Time", f"Please enter valid time values.\n\n{str(e)}")
+                        return
+                    
+                    # Calculate next backup time from current time
+                    now = datetime.datetime.now()
+                    time_delta = datetime.timedelta(hours=hour_int, minutes=minute_int, seconds=second_int)
+                    next_backup = now + time_delta
+                    
+                    # Save schedule to database
+                    try:
+                        connect = db()
+                        cursor = connect.cursor()
+                        
+                        username = login_shared_states.get('logged_username', None)
+                        cursor.execute("""
+                            SELECT employee_id, full_name FROM users WHERE username = %s
+                        """, (username,))
+                        
+                        result = cursor.fetchone()
+                        if result:
+                            employee_id_u, full_name = result
+                            
+                            # Insert or update schedule - using backup_logs table with next_date and next_time
+                            cursor.execute("""
+                                INSERT INTO backup_logs (
+                                    employee_id, backup_source, next_date, next_time
+                                ) VALUES (%s, %s, %s, %s)
+                                ON DUPLICATE KEY UPDATE
+                                next_date = VALUES(next_date),
+                                next_time = VALUES(next_time),
+                                backup_source = VALUES(backup_source)
+                            """, (
+                                employee_id_u,
+                                f"Scheduled: {filename}.sql (Interval: {hour_int:02d}:{minute_int:02d}:{second_int:02d})",
+                                next_backup.date(),
+                                next_backup.time()
+                            ))
+                            
+                            connect.commit()
+                            
+                            messagebox.showinfo(
+                                "Schedule Set", 
+                                f"Backup scheduled successfully!\n\n"
+                                f"Interval: {hour_int:02d}:{minute_int:02d}:{second_int:02d}\n"
+                                f"Next backup: {next_backup.strftime('%Y-%m-%d %H:%M:%S')}\n"
+                                f"Filename: {filename}.sql"
+                            )
+                            
+                            # Update display
+                            self.update_next_backup_time(next_backup)
+                            
+                        cursor.close()
+                        connect.close()
+                        
+                    except Exception as db_error:
+                        messagebox.showerror("Database Error", f"Failed to save schedule:\n\n{str(db_error)}")
+                        
+                except Exception as e:
+                    messagebox.showerror("Error", f"An error occurred:\n\n{str(e)}")
+            
             def back_to_maintenance():
-                schedule_backup_frame.place_forget()
+                """Return to main maintenance view"""
+                if self.schedule_backup_frame:
+                    self.schedule_backup_frame.destroy()
+                    self.schedule_backup_frame = None
             
             # Back Button
-            back_button = ctk.CTkButton(schedule_backup_frame,
+            back_button = ctk.CTkButton(self.schedule_backup_frame,
                                       bg_color="transparent",
                                       fg_color="#6C757D",
                                       hover_color="#5A6268",
@@ -6380,27 +6485,159 @@ class MaintenancePage(ctk.CTkFrame):
                                       cursor="hand2",
                                       command=back_to_maintenance,
                                       font=("Merriweather Bold", 12))
-            back_button.place(x=100, y=380)
+            back_button.place(x=100, y=410)
             
-            # Select Button Function
-            def select_schedule():
-                print(f"Selected schedule")
-            
-            # Select Button 
-            select_button = ctk.CTkButton(schedule_backup_frame,
-                                        bg_color="transparent",
-                                        fg_color="#00C88D",
-                                        hover_color="#00B07B",
-                                        width=120,
-                                        height=40,
-                                        corner_radius=15,
-                                        text="Select",
-                                        text_color="white",
-                                        cursor="hand2",
-                                        command=select_schedule,
-                                        font=("Merriweather Bold", 14))
-            select_button.place(x=850, y=380)
+            # Schedule Button 
+            schedule_button = ctk.CTkButton(self.schedule_backup_frame,
+                                          bg_color="transparent",
+                                          fg_color="#00C88D",
+                                          hover_color="#00B07B",
+                                          width=120,
+                                          height=40,
+                                          corner_radius=15,
+                                          text="Schedule",
+                                          text_color="white",
+                                          cursor="hand2",
+                                          command=validate_and_schedule,
+                                          font=("Merriweather Bold", 14))
+            schedule_button.place(x=850, y=405)
 
+        def import_backup_action():
+            """Import backup from SQL file"""
+            try:
+                # Choose SQL file to import
+                root = tk.Tk()
+                root.withdraw()
+                
+                file_path = filedialog.askopenfilename(
+                    title="Select Backup File to Import",
+                    filetypes=[
+                        ("SQL files", "*.sql"),
+                        ("All files", "*.*")
+                    ]
+                )
+                
+                root.destroy()
+                
+                if not file_path:
+                    messagebox.showwarning("Import Cancelled", "No file selected.")
+                    return
+                
+                # Confirm import action
+                confirm = messagebox.askyesno(
+                    "Confirm Import",
+                    f"This will import data from:\n{os.path.basename(file_path)}\n\n"
+                    "WARNING: This may overwrite existing data.\n"
+                    "Do you want to continue?"
+                )
+                
+                if not confirm:
+                    return
+                
+                # Find mysql executable
+                mysql_path = find_mysql()
+                if not mysql_path:
+                    messagebox.showerror(
+                        "MySQL Error",
+                        "mysql client not found!\n\n"
+                        "Please ensure MySQL is installed and add its bin folder to your system PATH."
+                    )
+                    return
+                
+                # Show progress
+                progress_window = tk.Toplevel()
+                progress_window.title("Import in Progress")
+                progress_window.geometry("300x100")
+                progress_window.resizable(False, False)
+                progress_window.transient(self)
+                progress_window.grab_set()
+                
+                progress_label = tk.Label(progress_window, text="Importing backup...\nPlease wait...")
+                progress_label.pack(expand=True)
+                progress_window.update()
+                
+                # Execute import
+                with open(file_path, 'r', encoding='utf-8') as sql_file:
+                    result = subprocess.run([
+                        mysql_path,
+                        "-u", DB_USER,
+                        f"-p{DB_PASSWORD}",
+                        DB_NAME
+                    ], stdin=sql_file, stderr=subprocess.PIPE, text=True)
+                
+                progress_window.destroy()
+                
+                if result.returncode != 0:
+                    error_msg = result.stderr if result.stderr else "Unknown error occurred"
+                    messagebox.showerror("Import Failed", f"Database import failed!\n\nError: {error_msg}")
+                    return
+                
+                # Log import to database
+                try:
+                    now = datetime.datetime.now()
+                    connect = db()
+                    cursor = connect.cursor()
+                    
+                    username = login_shared_states.get('logged_username', None)
+                    cursor.execute("""
+                        SELECT employee_id, full_name FROM users WHERE username = %s
+                    """, (username,))
+                    
+                    result = cursor.fetchone()
+                    if result:
+                        employee_id_u, full_name = result
+                        
+                        cursor.execute("""
+                            INSERT INTO backup_logs (
+                                employee_id, backup_source, last_date, last_time
+                            ) VALUES (%s, %s, %s, %s)
+                        """, (
+                            employee_id_u,
+                            f"Import: {os.path.basename(file_path)}",
+                            now.date(),
+                            now.time()
+                        ))
+                        
+                        connect.commit()
+                    
+                    cursor.close()
+                    connect.close()
+                    
+                except Exception as db_error:
+                    print(f"Failed to log import: {db_error}")
+                
+                # Show success message and offer refresh
+                file_size = os.path.getsize(file_path) / (1024 * 1024)  # Size in MB
+                
+                # Ask user if they want to refresh the system
+                refresh_choice = messagebox.askyesno(
+                    "Import Successful - Refresh System?",
+                    f"Database import completed successfully!\n\n"
+                    f"File: {os.path.basename(file_path)}\n"
+                    f"Size: {file_size:.2f} MB\n"
+                    f"Time: {now.strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+                    f"Would you like to refresh all system data now?\n"
+                    f"This will update all tables and views immediately."
+                )
+                
+                if refresh_choice:
+                    # Refresh all system components
+                    self.refresh_entire_system()
+                    messagebox.showinfo(
+                        "System Refreshed",
+                        "All system data has been refreshed successfully!\n"
+                        "All pages now show the imported data."
+                    )
+                else:
+                    messagebox.showinfo(
+                        "Import Complete",
+                        "Import successful! Please manually refresh pages or restart the application to see all imported data."
+                    )
+                
+            except Exception as e:
+                messagebox.showerror("Import Error", f"An unexpected error occurred:\n\n{str(e)}")
+
+        # Backup option buttons
         ManualBackupIcon_image = ctk.CTkImage(Image.open("assets/ManualBackupIcon.png"), size=(20,20))
         ManualBackup_Button = ctk.CTkButton(option_frame,
                                             image=ManualBackupIcon_image,
@@ -6449,9 +6686,11 @@ class MaintenancePage(ctk.CTkFrame):
                                             text="Import\nBackup",
                                             text_color="white",
                                             cursor="hand2",
+                                            command=import_backup_action,
                                             font=button_font)
         ImportBackup_Button.place(x=550,y=80)
 
+        # Schedule display frame
         Schedule_frame = ctk.CTkFrame(Maintenance_MainFrame,
                                     bg_color="transparent" ,
                                     fg_color="#FFFFFF", 
@@ -6486,26 +6725,14 @@ class MaintenancePage(ctk.CTkFrame):
         Current_date_label = ctk.CTkLabel(current_date_frame,bg_color="#3B71AC",text="Current Date :",text_color="#FFFFFF",font=time_label_font,height=10)
         Current_date_label.place(relx=.25,rely=.175)
 
-    #Output
-        Current_date_output = ctk.CTkLabel(current_date_frame,bg_color="#3B71AC",text="06/01/25",text_color="#FFFFFF",font=time_output_font,height=10)
-        Current_date_output.place(relx=.6,rely=.175)
-
+        self.Current_date_output = ctk.CTkLabel(current_date_frame,bg_color="#3B71AC",text="06/01/25",text_color="#FFFFFF",font=time_output_font,height=10)
+        self.Current_date_output.place(relx=.6,rely=.175)
 
         Current_time_label = ctk.CTkLabel(current_date_frame,bg_color="#3B71AC",text="Current time :",text_color="#FFFFFF",font=time_label_font,height=10)
         Current_time_label.place(relx=.25,rely=.5)
 
-    #Output
-        Current_time_output = ctk.CTkLabel(current_date_frame,bg_color="#3B71AC",text="20 : 00",text_color="#FFFFFF",font=time_output_font,height=10)
-        Current_time_output.place(relx=.6,rely=.5)
-
-        def update_time():
-            now = datetime.datetime.now()
-            Current_date_output.configure(text=now.strftime("%m - %d - %y"))
-            Current_time_output.configure(text=now.strftime("%H : %M :%S"))
-            self.after(1000, update_time)
-
-        update_time() 
-    
+        self.Current_time_output = ctk.CTkLabel(current_date_frame,bg_color="#3B71AC",text="20 : 00",text_color="#FFFFFF",font=time_output_font,height=10)
+        self.Current_time_output.place(relx=.6,rely=.5)
 
         #Last backup date Frame
         lastBackup_date_frame = ctk.CTkFrame(Schedule_frame,bg_color="#FFFFFF" ,fg_color="#00C88D", width=200, height=60, corner_radius=10,)
@@ -6517,17 +6744,14 @@ class MaintenancePage(ctk.CTkFrame):
         LastBackup_date_label = ctk.CTkLabel(lastBackup_date_frame,bg_color="#00C88D",text="Last Backup Date :",text_color="#FFFFFF",font=time_label_font,height=10)
         LastBackup_date_label.place(relx=.195,rely=.175)
 
-    #Output
-        LastBackup_date_output = ctk.CTkLabel(lastBackup_date_frame,bg_color="#00C88D",text="06/01/25",text_color="#FFFFFF",font=time_output_font,height=10)
-        LastBackup_date_output.place(relx=.675,rely=.175)
+        self.LastBackup_date_output = ctk.CTkLabel(lastBackup_date_frame,bg_color="#00C88D",text="No Backup",text_color="#FFFFFF",font=time_output_font,height=10)
+        self.LastBackup_date_output.place(relx=.675,rely=.175)
 
         LastBackup_time_label = ctk.CTkLabel(lastBackup_date_frame,bg_color="#00C88D",text="Last Backup Time :",text_color="#FFFFFF",font=time_label_font,height=10)
         LastBackup_time_label.place(relx=.195,rely=.5)
 
-    #Output
-        LastBackup_time_output = ctk.CTkLabel(lastBackup_date_frame,bg_color="#00C88D",text="20:00",text_color="#FFFFFF",font=time_output_font,height=10)
-        LastBackup_time_output.place(relx=.675,rely=.5)
-
+        self.LastBackup_time_output = ctk.CTkLabel(lastBackup_date_frame,bg_color="#00C88D",text="--:--",text_color="#FFFFFF",font=time_output_font,height=10)
+        self.LastBackup_time_output.place(relx=.675,rely=.5)
 
         #Next backup date Frame
         NextBackup_date_frame = ctk.CTkFrame(Schedule_frame,bg_color="#FFFFFF" ,fg_color="#FAAE61", width=200, height=60, corner_radius=10)
@@ -6539,22 +6763,16 @@ class MaintenancePage(ctk.CTkFrame):
         NextBackup_date_label = ctk.CTkLabel(NextBackup_date_frame,bg_color="#FAAE61",text="Next Backup Date :",text_color="#FFFFFF",font=time_label_font,height=10)
         NextBackup_date_label.place(relx=.195,rely=.175)
 
-    #Output
-        NextBackup_date_output = ctk.CTkLabel(NextBackup_date_frame,bg_color="#FAAE61",text="06/01/25",text_color="#FFFFFF",font=time_output_font,height=10)
-        NextBackup_date_output.place(relx=.675,rely=.175)
+        self.NextBackup_date_output = ctk.CTkLabel(NextBackup_date_frame,bg_color="#FAAE61",text="Not Scheduled",text_color="#FFFFFF",font=time_output_font,height=10)
+        self.NextBackup_date_output.place(relx=.675,rely=.175)
 
         NextBackup_time_label = ctk.CTkLabel(NextBackup_date_frame,bg_color="#FAAE61",text="Next Backup Time :",text_color="#FFFFFF",font=time_label_font,height=10)
         NextBackup_time_label.place(relx=.195,rely=.5)
 
-    #Output
-        NextBackup_time_output = ctk.CTkLabel(NextBackup_date_frame,bg_color="#FAAE61",text="20:00",text_color="#FFFFFF",font=time_output_font,height=10)
-        NextBackup_time_output.place(relx=.675,rely=.5)
+        self.NextBackup_time_output = ctk.CTkLabel(NextBackup_date_frame,bg_color="#FAAE61",text="--:--",text_color="#FFFFFF",font=time_output_font,height=10)
+        self.NextBackup_time_output.place(relx=.675,rely=.5)
 
-        def update_last_backup_time():
-            now = datetime.datetime.now()
-            LastBackup_date_output.configure(text=now.strftime("%Y-%m-%d"))
-            LastBackup_time_output.configure(text=now.strftime("%H:%M:%S"))
-
+        # Latest Backup Logs Frame
         Maintenance_Logs_MainFrame = ctk.CTkFrame (self,
                                             bg_color="transparent", 
                                             fg_color='#FFFFFF',
@@ -6575,12 +6793,39 @@ class MaintenancePage(ctk.CTkFrame):
         label_Title = ctk.CTkLabel(Maintenance_Logs_MainFrame, bg_color="transparent",text="Latest Backup Logs",text_color="black",font=Title_font)
         label_Title.place(x=80,y=30)
 
-        label_Title = ctk.CTkLabel(Maintenance_Logs_MainFrame, bg_color="transparent",text="Display the latlest backup logs.",text_color="#104E44",font=sublabel_font)
+        label_Title = ctk.CTkLabel(Maintenance_Logs_MainFrame, bg_color="transparent",text="Display the latest backup logs.",text_color="#104E44",font=sublabel_font)
         label_Title.place(x=80,y=60)
 
-
+        # Header frame for backup logs table
+        backup_logs_header_frame = ctk.CTkFrame(Maintenance_Logs_MainFrame,
+                                              width=900,
+                                              height=30,
+                                              corner_radius=10,
+                                              fg_color="#1A374D")
+        backup_logs_header_frame.place(x=50, y=90)
         
-    #---------------------------------RIGHT-----------------------------------------
+        # Header labels for backup logs
+        ctk.CTkLabel(backup_logs_header_frame, text="Backup ID", 
+                    font=("Merriweather Bold", 11), text_color="white").place(x=20, y=7)
+        
+        ctk.CTkLabel(backup_logs_header_frame, text="Employee Name", 
+                    font=("Merriweather Bold", 11), text_color="white").place(x=230, y=7)
+        
+        ctk.CTkLabel(backup_logs_header_frame, text="Date", 
+                    font=("Merriweather Bold", 11), text_color="white").place(x=505, y=7)
+        
+        ctk.CTkLabel(backup_logs_header_frame, text="Time", 
+                    font=("Merriweather Bold", 11), text_color="white").place(x=705, y=7)
+        
+        # Scrollable frame for backup logs
+        self.backup_logs_scrollable_frame = ctk.CTkScrollableFrame(Maintenance_Logs_MainFrame,
+                                                                 width=900,
+                                                                 height=220,
+                                                                 corner_radius=0,
+                                                                 fg_color="transparent")
+        self.backup_logs_scrollable_frame.place(x=50, y=125)
+
+        #---------------------------------RIGHT-----------------------------------------
 
         #Storage Frame 
         Storage_Level_MainFrame = ctk.CTkFrame (self,
@@ -6618,7 +6863,6 @@ class MaintenancePage(ctk.CTkFrame):
         progress_bar = ctk.CTkProgressBar(Storage_Level_MainFrame, width=300,height=30,fg_color="#D9D9D9")
         progress_bar.place(x=50, y=120)
 
-      
         usage_label = ctk.CTkLabel(Storage_Level_MainFrame, 
                                 bg_color="transparent",
                                 text="", 
@@ -6626,17 +6870,15 @@ class MaintenancePage(ctk.CTkFrame):
                                 font=time_output_font)
         usage_label.place(x=100, y=150)
 
-    
         def update_disk_usage():
             total, used, free, percent_used = get_disk_usage(current_path)
             progress_bar.set(percent_used / 100)
             usage_label.configure(text=f"Used: {percent_used:.2f}%  |  Free: {free // (1024**3)} GB  |  Total: {total // (1024**3)} GB",)
-            
             self.after(5000, update_disk_usage)
 
         update_disk_usage()
 
-    #Export Frame/Print Frame
+        #Export Frame/Print Frame
         Print_MainFrame = ctk.CTkFrame (self,
                                             bg_color="transparent", 
                                             fg_color='#FFFFFF',
@@ -6676,7 +6918,6 @@ class MaintenancePage(ctk.CTkFrame):
                                             )
         ExportPDF_Button.place(x=100,y=120)
 
-
         #Weekly Usage of Backup Frame
         Employee_Backups_Frame = ctk.CTkFrame (self,
                                             bg_color="transparent", 
@@ -6691,6 +6932,451 @@ class MaintenancePage(ctk.CTkFrame):
         Employeebackup_label.place(x=30,y=20)
         employee_backup_sublabel = ctk.CTkLabel(Employee_Backups_Frame, bg_color="transparent",text="Backups made per employee",text_color="#104E44",font=sublabel_font)
         employee_backup_sublabel.place(x=30,y=50)
+
+        # Header frame for employee backups table
+        employee_backup_header_frame = ctk.CTkFrame(Employee_Backups_Frame,
+                                                  width=350,
+                                                  height=30,
+                                                  corner_radius=10,
+                                                  fg_color="#1A374D")
+        employee_backup_header_frame.place(x=25, y=80)
+        
+        # Header labels for employee backups
+        ctk.CTkLabel(employee_backup_header_frame, text="Employee Name", 
+                    font=("Merriweather Bold", 11), text_color="white").place(x=65, y=7)
+        
+        ctk.CTkLabel(employee_backup_header_frame, text="Backup Count", 
+                    font=("Merriweather Bold", 11), text_color="white").place(x=245, y=7)
+        
+        # Scrollable frame for employee backup data
+        self.employee_backup_scrollable_frame = ctk.CTkScrollableFrame(Employee_Backups_Frame,
+                                                                      width=350,
+                                                                      height=210,
+                                                                      corner_radius=0,
+                                                                      fg_color="transparent")
+        self.employee_backup_scrollable_frame.place(x=25, y=115)
+
+        # Initialize with loading current backup data
+        self.load_backup_data()
+        self.load_backup_logs_table()
+        self.load_employee_backup_table()
+        self.update_time()
+
+    def update_time(self):
+        """Update current date and time display"""
+        now = datetime.datetime.now()
+        self.Current_date_output.configure(text=now.strftime("%m - %d - %y"))
+        self.Current_time_output.configure(text=now.strftime("%H : %M : %S"))
+        self.after(1000, self.update_time)
+
+    def update_last_backup_time(self):
+        """Update last backup time from database"""
+        try:
+            connect = db()
+            cursor = connect.cursor()
+            
+            username = login_shared_states.get('logged_username', None)
+            cursor.execute("""
+                SELECT bl.last_date, bl.last_time 
+                FROM backup_logs bl
+                JOIN users u ON bl.employee_id = u.employee_id
+                WHERE u.username = %s AND bl.last_date IS NOT NULL AND bl.last_time IS NOT NULL
+                ORDER BY bl.last_date DESC, bl.last_time DESC
+                LIMIT 1
+            """, (username,))
+            
+            result = cursor.fetchone()
+            if result:
+                last_date, last_time = result
+                self.LastBackup_date_output.configure(text=last_date.strftime("%m/%d/%y"))
+                # Convert time to string format if it's a timedelta
+                if isinstance(last_time, datetime.timedelta):
+                    total_seconds = int(last_time.total_seconds())
+                    hours = total_seconds // 3600
+                    minutes = (total_seconds % 3600) // 60
+                    time_str = f"{hours:02d}:{minutes:02d}"
+                else:
+                    time_str = last_time.strftime("%H:%M")
+                self.LastBackup_time_output.configure(text=time_str)
+            else:
+                self.LastBackup_date_output.configure(text="No Backup")
+                self.LastBackup_time_output.configure(text="--:--")
+                
+            cursor.close()
+            connect.close()
+            
+        except Exception as e:
+            print(f"Error updating last backup time: {e}")
+
+    def update_next_backup_time(self, scheduled_datetime=None):
+        """Update next backup time display"""
+        try:
+            if scheduled_datetime:
+                self.NextBackup_date_output.configure(text=scheduled_datetime.strftime("%m/%d/%y"))
+                self.NextBackup_time_output.configure(text=scheduled_datetime.strftime("%H:%M"))
+            else:
+                # Load from database using backup_logs table
+                connect = db()
+                cursor = connect.cursor()
+                
+                username = login_shared_states.get('logged_username', None)
+                cursor.execute("""
+                    SELECT bl.next_date, bl.next_time 
+                    FROM backup_logs bl
+                    JOIN users u ON bl.employee_id = u.employee_id
+                    WHERE u.username = %s AND bl.next_date IS NOT NULL AND bl.next_time IS NOT NULL
+                    ORDER BY bl.next_date DESC, bl.next_time DESC
+                    LIMIT 1
+                """, (username,))
+                
+                result = cursor.fetchone()
+                if result:
+                    scheduled_date, scheduled_time = result
+                    scheduled_datetime = datetime.datetime.combine(scheduled_date, scheduled_time)
+                    
+                    # Check if scheduled time has passed
+                    if scheduled_datetime > datetime.datetime.now():
+                        self.NextBackup_date_output.configure(text=scheduled_date.strftime("%m/%d/%y"))
+                        # Convert time to string format if it's a timedelta
+                        if isinstance(scheduled_time, datetime.timedelta):
+                            total_seconds = int(scheduled_time.total_seconds())
+                            hours = total_seconds // 3600
+                            minutes = (total_seconds % 3600) // 60
+                            time_str = f"{hours:02d}:{minutes:02d}"
+                        else:
+                            time_str = scheduled_time.strftime("%H:%M")
+                        self.NextBackup_time_output.configure(text=time_str)
+                    else:
+                        self.NextBackup_date_output.configure(text="Expired")
+                        self.NextBackup_time_output.configure(text="--:--")
+                else:
+                    self.NextBackup_date_output.configure(text="Not Scheduled")
+                    self.NextBackup_time_output.configure(text="--:--")
+                    
+                cursor.close()
+                connect.close()
+                
+        except Exception as e:
+            print(f"Error updating next backup time: {e}")
+
+    def refresh_entire_system(self):
+        """Refresh all system components after import"""
+        try:
+            print("🔄 Refreshing entire system after import...")
+            
+            # Get reference to main HomePage through widget hierarchy
+            current_widget = self
+            homepage = None
+            
+            # Traverse up to find HomePage
+            while current_widget:
+                if hasattr(current_widget, '__class__'):
+                    class_name = current_widget.__class__.__name__
+                    if class_name == 'HomePage':
+                        homepage = current_widget
+                        break
+                current_widget = getattr(current_widget, 'master', None)
+            
+            if homepage and hasattr(homepage, 'pages'):
+                print("✅ Found HomePage, refreshing all pages...")
+                
+                # 1. Refresh Home Page (pie chart, recent patients, graphs)
+                if 'Home' in homepage.pages:
+                    home_page = homepage.pages['Home']
+                    if hasattr(home_page, 'refresh_patient_data_and_chart'):
+                        home_page.refresh_patient_data_and_chart()
+                    if hasattr(home_page, 'refresh_recent_patient'):
+                        home_page.refresh_recent_patient()
+                    if hasattr(home_page, 'show_overall_usage'):
+                        home_page.show_overall_usage()
+                    if hasattr(home_page, 'show_yesterday_usage'):
+                        home_page.show_yesterday_usage()
+                    print("✅ Home page refreshed")
+                
+                # 2. Refresh Patient Page (table data)
+                if 'Patient' in homepage.pages:
+                    patient_page = homepage.pages['Patient']
+                    if hasattr(patient_page, 'refresh_table'):
+                        patient_page.refresh_table()
+                    print("✅ Patient page refreshed")
+                
+                # 3. Refresh Supply Page (table data)
+                if 'Supply' in homepage.pages:
+                    supply_page = homepage.pages['Supply']
+                    if hasattr(supply_page, 'refresh_table'):
+                        supply_page.refresh_table()
+                    print("✅ Supply page refreshed")
+                
+                # 4. Refresh Report Page (data counts and graphs)
+                if 'Report' in homepage.pages:
+                    report_page = homepage.pages['Report']
+                    if hasattr(report_page, 'refresh_data'):
+                        report_page.refresh_data()
+                    print("✅ Report page refreshed")
+                
+                # 5. Refresh Maintenance Page (backup logs AND tables)
+                if 'Maintenance' in homepage.pages:
+                    maintenance_page = homepage.pages['Maintenance']
+                    if hasattr(maintenance_page, 'load_backup_data'):
+                        maintenance_page.load_backup_data()
+                    # FIXED: Also refresh the backup logs tables
+                    if hasattr(maintenance_page, 'load_backup_logs_table'):
+                        maintenance_page.load_backup_logs_table()
+                    if hasattr(maintenance_page, 'load_employee_backup_table'):
+                        maintenance_page.load_employee_backup_table()
+                    print("✅ Maintenance page refreshed")
+                
+                print("🎉 All system components refreshed successfully!")
+                
+            else:
+                print("❌ Could not find HomePage for system refresh")
+                
+            try:
+                self.load_backup_logs_table()
+                self.load_employee_backup_table()
+                self.load_backup_data()
+                print("✅ Current maintenance page instance refreshed")
+            except Exception as refresh_error:
+                print(f"⚠️ Could not refresh current instance: {refresh_error}")
+                
+        except Exception as e:
+            print(f"❌ Error during system refresh: {e}")
+            messagebox.showwarning(
+                "Refresh Warning", 
+                f"Import was successful, but automatic refresh failed:\n{str(e)}\n\n"
+                "Please manually refresh pages or restart the application."
+            )
+
+    def load_backup_logs_table(self):
+        """Load latest backup logs and display in table"""
+        try:
+            connect = db()
+            cursor = connect.cursor()
+            
+            # Query to get latest backup logs with employee names
+            cursor.execute("""
+                SELECT 
+                    bl.backup_id,
+                    u.full_name as employee_name,
+                    bl.last_date,
+                    bl.last_time,
+                    bl.backup_source
+                FROM backup_logs bl
+                JOIN users u ON bl.employee_id = u.employee_id
+                WHERE bl.last_date IS NOT NULL AND bl.last_time IS NOT NULL
+                ORDER BY bl.last_date DESC, bl.last_time DESC
+                LIMIT 10
+            """)
+            
+            backup_logs = cursor.fetchall()
+            
+            # Clear existing data
+            for widget in self.backup_logs_scrollable_frame.winfo_children():
+                widget.destroy()
+            
+            if not backup_logs:
+                # Show "No data" message if no logs found
+                no_data_frame = ctk.CTkFrame(self.backup_logs_scrollable_frame,
+                                           width=880,
+                                           height=60,
+                                           corner_radius=5,
+                                           fg_color="#F8F9FA")
+                no_data_frame.pack(fill="x", pady=20, padx=5)
+                no_data_frame.pack_propagate(False)
+                
+                ctk.CTkLabel(no_data_frame, 
+                           text="No backup logs found",
+                           font=("Poppins Regular", 12),
+                           text_color="#666666").place(relx=0.5, rely=0.5, anchor="center")
+                return
+            
+            # Add backup log rows
+            for i, (backup_id, employee_name, last_date, last_time, backup_source) in enumerate(backup_logs):
+                # Create row frame with alternating colors
+                row_frame = ctk.CTkFrame(self.backup_logs_scrollable_frame,
+                                       width=880,
+                                       height=45,
+                                       corner_radius=5,
+                                       fg_color="#F8F9FA" if i % 2 == 0 else "#FFFFFF")
+                row_frame.pack(fill="x", pady=1, padx=5)
+                row_frame.pack_propagate(False)
+                
+                # Backup ID
+                id_label = ctk.CTkLabel(row_frame, text=str(backup_id),
+                                      font=("Poppins Regular", 10),
+                                      text_color="#333333",
+                                      width=60)
+                id_label.place(x=10, y=12)
+                
+                # Employee Name
+                name_label = ctk.CTkLabel(row_frame, text=str(employee_name) if employee_name else "Unknown",
+                                        font=("Poppins Regular", 10),
+                                        text_color="#333333",
+                                        width=280)
+                name_label.place(x=130, y=12)
+                
+                # Date
+                if last_date:
+                    if hasattr(last_date, 'strftime'):
+                        date_str = last_date.strftime("%Y-%m-%d")
+                    else:
+                        date_str = str(last_date)
+                else:
+                    date_str = "N/A"
+                    
+                date_label = ctk.CTkLabel(row_frame, text=date_str,
+                                        font=("Poppins Regular", 10),
+                                        text_color="#333333",
+                                        width=120)
+                date_label.place(x=450, y=12)
+                
+                # Time
+                if last_time:
+                    if isinstance(last_time, datetime.timedelta):
+                        total_seconds = int(last_time.total_seconds())
+                        hours = total_seconds // 3600
+                        minutes = (total_seconds % 3600) // 60
+                        seconds = total_seconds % 60
+                        time_str = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+                    elif hasattr(last_time, 'strftime'):
+                        time_str = last_time.strftime("%H:%M:%S")
+                    else:
+                        time_str = str(last_time)
+                else:
+                    time_str = "N/A"
+                    
+                time_label = ctk.CTkLabel(row_frame, text=time_str,
+                                        font=("Poppins Regular", 10),
+                                        text_color="#333333",
+                                        width=120)
+                time_label.place(x=650, y=12)
+                
+        except Exception as e:
+            print(f'Error loading backup logs: {e}')
+            # Show error message
+            error_frame = ctk.CTkFrame(self.backup_logs_scrollable_frame,
+                                     width=880,
+                                     height=60,
+                                     corner_radius=5,
+                                     fg_color="#FFE6E6")
+            error_frame.pack(fill="x", pady=20, padx=5)
+            error_frame.pack_propagate(False)
+            
+            error_label = ctk.CTkLabel(error_frame,
+                                     text=f"Error loading backup logs: {str(e)}",
+                                     font=("Poppins Regular", 10),
+                                     text_color="red")
+            error_label.place(relx=0.5, rely=0.5, anchor="center")
+        finally:
+            if 'cursor' in locals():
+                cursor.close()
+            if 'connect' in locals():
+                connect.close()
+
+    def load_employee_backup_table(self):
+        """Load employee backup counts and display in table"""
+        try:
+            connect = db()
+            cursor = connect.cursor()
+            
+            # Query to get backup counts per employee
+            cursor.execute("""
+                SELECT 
+                    u.full_name as employee_name,
+                    COUNT(bl.backup_id) as backup_count
+                FROM users u
+                LEFT JOIN backup_logs bl ON u.employee_id = bl.employee_id 
+                    AND bl.last_date IS NOT NULL AND bl.last_time IS NOT NULL
+                GROUP BY u.employee_id, u.full_name
+                HAVING backup_count > 0
+                ORDER BY backup_count DESC, u.full_name ASC
+            """)
+            
+            employee_backups = cursor.fetchall()
+            
+            # Clear existing data
+            for widget in self.employee_backup_scrollable_frame.winfo_children():
+                widget.destroy()
+            
+            if not employee_backups:
+                # Show "No data" message if no backups found
+                no_data_frame = ctk.CTkFrame(self.employee_backup_scrollable_frame,
+                                           width=330,
+                                           height=60,
+                                           corner_radius=5,
+                                           fg_color="#F8F9FA")
+                no_data_frame.pack(fill="x", pady=20, padx=5)
+                no_data_frame.pack_propagate(False)
+                
+                ctk.CTkLabel(no_data_frame, 
+                           text="No employee backups found",
+                           font=("Poppins Regular", 11),
+                           text_color="#666666").place(relx=0.5, rely=0.5, anchor="center")
+                return
+            
+            # Add employee backup rows
+            for i, (employee_name, backup_count) in enumerate(employee_backups):
+                # Create row frame with alternating colors
+                row_frame = ctk.CTkFrame(self.employee_backup_scrollable_frame,
+                                       width=330,
+                                       height=40,
+                                       corner_radius=5,
+                                       fg_color="#F8F9FA" if i % 2 == 0 else "#FFFFFF")
+                row_frame.pack(fill="x", pady=1, padx=5)
+                row_frame.pack_propagate(False)
+                
+                # Employee Name
+                name_label = ctk.CTkLabel(row_frame, text=str(employee_name) if employee_name else "Unknown",
+                                        font=("Poppins Regular", 11),
+                                        text_color="#333333",
+                                        width=220)
+                name_label.place(x=10, y=10)
+                
+                # Backup Count with badge-style background
+                count_frame = ctk.CTkFrame(row_frame,
+                                         width=50,
+                                         height=25,
+                                         corner_radius=12,
+                                         fg_color="#68EDC6")
+                count_frame.place(x=260, y=7)
+                
+                count_label = ctk.CTkLabel(count_frame, text=str(backup_count),
+                                         font=("Poppins Bold", 11),
+                                         text_color="white")
+                count_label.place(relx=0.5, rely=0.5, anchor="center")
+                
+        except Exception as e:
+            print(f'Error loading employee backup data: {e}')
+            # Show error message
+            error_frame = ctk.CTkFrame(self.employee_backup_scrollable_frame,
+                                     width=330,
+                                     height=60,
+                                     corner_radius=5,
+                                     fg_color="#FFE6E6")
+            error_frame.pack(fill="x", pady=20, padx=5)
+            error_frame.pack_propagate(False)
+            
+            error_label = ctk.CTkLabel(error_frame,
+                                     text=f"Error loading employee data: {str(e)}",
+                                     font=("Poppins Regular", 10),
+                                     text_color="red")
+            error_label.place(relx=0.5, rely=0.5, anchor="center")
+        finally:
+            if 'cursor' in locals():
+                cursor.close()
+            if 'connect' in locals():
+                connect.close()
+
+    def load_backup_data(self):
+        """Load and display backup information"""
+        self.update_last_backup_time()
+        self.update_next_backup_time()
+
+    def db_connection(self):
+        """Database connection helper"""
+        connect = db()
+        cursor = connect.cursor()
+        return connect, cursor
 
 class SettingsPage(ctk.CTkFrame):
     def __init__(self, parent, shared_state):
