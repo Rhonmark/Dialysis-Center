@@ -929,16 +929,16 @@ class QuantityUsedLogsWindow(SupplyBaseWindow):
         
         # Header labels with proper spacing
         ctk.CTkLabel(header_frame, text="Patient ID", 
-                    font=("Merriweather Bold", 12), text_color="white").place(x=20, y=10)
+                    font=("Merriweather Bold", 12), text_color="white").place(x=40, y=10)
         
         ctk.CTkLabel(header_frame, text="Patient Details", 
-                    font=("Merriweather Bold", 12), text_color="white").place(x=180, y=10)
+                    font=("Merriweather Bold", 12), text_color="white").place(x=330, y=10)
         
         ctk.CTkLabel(header_frame, text="Quantity", 
-                    font=("Merriweather Bold", 12), text_color="white").place(x=650, y=10)
+                    font=("Merriweather Bold", 12), text_color="white").place(x=670, y=10)
         
         ctk.CTkLabel(header_frame, text="Timestamp", 
-                    font=("Merriweather Bold", 12), text_color="white").place(x=850, y=10)
+                    font=("Merriweather Bold", 12), text_color="white").place(x=885, y=10)
         
         # Scrollable frame for usage data (matching ReportPage style)
         self.usage_scrollable_frame = ctk.CTkScrollableFrame(self.logs_frame,
@@ -1181,6 +1181,302 @@ class QuantityUsedLogsWindow(SupplyBaseWindow):
                                     text=f"Error loading data: {str(e)}",
                                     font=("Poppins Regular", 12),
                                     text_color="red")
+            error_label.place(relx=0.5, rely=0.5, anchor="center")
+        finally:
+            if 'cursor' in locals():
+                cursor.close()
+            if 'connect' in locals():
+                connect.close()
+
+    def center_window(self):
+        self.update_idletasks()
+        width = self.winfo_width()
+        height = self.winfo_height()
+        x = (self.winfo_screenwidth() // 2) - (width // 2) + int(3 * 50)
+        y = (self.winfo_screenheight() // 2) - (height // 2)
+        self.geometry(f"1300x700+{x}+{y}")
+
+    def close_window(self):
+        """Properly close the window and release grab"""
+        self.grab_release() 
+        self.destroy()
+
+class PatientQuantityUsedLogsWindow(SupplyBaseWindow):
+    def __init__(self, parent, patient_id=None):
+        super().__init__(parent, "Patient Quantity Used Logs")  # Initial title without patient name
+        self.geometry("1300x700")
+        self.center_window()
+
+        # Store the patient_id
+        self.patient_id = patient_id
+        print("patient quantity used log - patient_id:", self.patient_id)
+
+        # Get patient name first to use in title and labels
+        self.patient_name = self.get_patient_name()
+        
+        # Update window title with actual patient name
+        if self.patient_name:
+            self.title(f"Quantity Used Logs - {self.patient_name}")
+
+        # Main content area
+        self.logs_frame = ctk.CTkFrame(self,
+                                      width=1180,
+                                      height=580,
+                                      corner_radius=20,
+                                      fg_color="#FFFFFF",
+                                      bg_color="transparent")
+        self.logs_frame.place(x=60, y=80)
+        
+        # Header frame with colored background
+        header_frame = ctk.CTkFrame(self.logs_frame,
+                                   width=1160,
+                                   height=40,
+                                   corner_radius=10,
+                                   fg_color="#1A374D")  # Using your app's primary color
+        header_frame.place(x=10, y=10)
+        
+        # Header labels with proper spacing for patient usage logs
+        ctk.CTkLabel(header_frame, text="Item ID", 
+                    font=("Merriweather Bold", 12), text_color="white").place(x=40, y=10)
+        
+        ctk.CTkLabel(header_frame, text="Item Details", 
+                    font=("Merriweather Bold", 12), text_color="white").place(x=330, y=10)
+        
+        ctk.CTkLabel(header_frame, text="Quantity Used", 
+                    font=("Merriweather Bold", 12), text_color="white").place(x=650, y=10)
+        
+        ctk.CTkLabel(header_frame, text="Timestamp", 
+                    font=("Merriweather Bold", 12), text_color="white").place(x=885, y=10)
+        
+        # Scrollable frame for usage data (matching ReportPage style)
+        self.usage_scrollable_frame = ctk.CTkScrollableFrame(self.logs_frame,
+                                                           width=1160,
+                                                           height=510,
+                                                           corner_radius=0,
+                                                           fg_color="transparent")
+        self.usage_scrollable_frame.place(x=10, y=55)
+        
+        # Title above the table with actual patient name
+        title_text = f"Quantity Used Logs - {self.patient_name}" if self.patient_name else "Patient Quantity Used Logs"
+        title_label = ctk.CTkLabel(
+            self, 
+            text=title_text, 
+            font=("Merriweather Bold", 22), 
+            text_color="#1A374D",
+            bg_color="white"
+        )
+        title_label.place(x=90, y=30)
+        
+        # Subtitle with patient name context
+        subtitle_text = f"All items used by {self.patient_name} will appear here" if self.patient_name else "All items used by this patient will appear here"
+        subtitle_label = ctk.CTkLabel(
+            self, 
+            text=subtitle_text, 
+            font=("Merriweather Sans", 12), 
+            text_color="#666666",
+            bg_color="white"
+        )
+        subtitle_label.place(x=90, y=55)
+
+        # Load the usage data
+        self.load_usage_data()
+
+    def get_patient_name(self):
+        """Get the patient name from the database using patient_id"""
+        if not self.patient_id:
+            return None
+            
+        try:
+            connect = db()
+            cursor = connect.cursor()
+            
+            cursor.execute("""
+                SELECT patient_name FROM patient_list 
+                WHERE patient_id = %s
+            """, (self.patient_id,))
+            
+            result = cursor.fetchone()
+            if result:
+                return result[0]
+            else:
+                print(f"No patient found with patient_id: {self.patient_id}")
+                return None
+                
+        except Exception as e:
+            print(f'Error getting patient name: {e}')
+            return None
+        finally:
+            if 'cursor' in locals():
+                cursor.close()
+            if 'connect' in locals():
+                connect.close()
+
+    def load_usage_data(self):
+        """Load usage data from database and display in table (quantity_used_patient logic)"""
+        try:
+            connect = db()
+            cursor = connect.cursor()
+            
+            # Query to get usage logs for this specific patient (based on your quantity_used_patient function)
+            cursor.execute("""
+                SELECT 
+                    iu.item_id, 
+                    s.item_name, 
+                    s.category, 
+                    iu.quantity_used, 
+                    COALESCE(iu.usage_timestamp, iu.usage_date) as usage_datetime,
+                    iu.usage_time
+                FROM item_usage iu 
+                JOIN supply s ON iu.item_id = s.item_id
+                WHERE iu.patient_id = %s
+                ORDER BY COALESCE(iu.usage_timestamp, iu.usage_date) DESC, 
+                         COALESCE(iu.usage_time, '00:00:00') DESC
+            """, (self.patient_id,))
+            
+            usage_logs = cursor.fetchall()
+            
+            # Clear existing data
+            for widget in self.usage_scrollable_frame.winfo_children():
+                widget.destroy()
+            
+            if not usage_logs:
+                # Show "No data" message if no logs found
+                no_data_frame = ctk.CTkFrame(self.usage_scrollable_frame,
+                                           width=1140,
+                                           height=100,
+                                           corner_radius=5,
+                                           fg_color="#F8F9FA")
+                no_data_frame.pack(fill="x", pady=20, padx=5)
+                no_data_frame.pack_propagate(False)
+                
+                no_data_text = f"No usage logs found for {self.patient_name}" if self.patient_name else "No usage logs found for this patient"
+                ctk.CTkLabel(no_data_frame, 
+                           text=no_data_text,
+                           font=("Poppins Regular", 14),
+                           text_color="#666666").place(relx=0.5, rely=0.5, anchor="center")
+                return
+            
+            # Add usage log rows for patient (showing items used)
+            for i, (item_id, item_name, category, quantity_used, usage_datetime, usage_time) in enumerate(usage_logs):
+                # Create row frame with alternating colors - taller for two-line content
+                row_frame = ctk.CTkFrame(self.usage_scrollable_frame,
+                                       width=1140,
+                                       height=60,  # Increased height for two-line content
+                                       corner_radius=5,
+                                       fg_color="#F8F9FA" if i % 2 == 0 else "#FFFFFF")
+                row_frame.pack(fill="x", pady=2, padx=5)
+                row_frame.pack_propagate(False)
+                
+                # Item ID - centered vertically
+                id_label = ctk.CTkLabel(row_frame, text=str(item_id),
+                                      font=("Poppins Regular", 11),
+                                      text_color="#333333",
+                                      width=80)
+                id_label.place(x=10, y=20)
+                
+                # Item Details - Two lines: Item Name (bold, larger) and Category
+                # Item Name (bold and larger)
+                name_label = ctk.CTkLabel(row_frame, text=item_name,
+                                        font=("Poppins Bold", 14),  # Bold and larger
+                                        text_color="#333333",
+                                        width=400)
+                name_label.place(x=170, y=8)
+                
+                # Category (smaller, lighter)
+                category_clean = str(category) if category and str(category) not in ['None', 'Type here', ''] else 'N/A'
+                category_label = ctk.CTkLabel(row_frame, text=f"Category: {category_clean}",
+                                           font=("Poppins Regular", 10),  # Smaller font
+                                           text_color="#666666",  # Lighter color
+                                           width=400)
+                category_label.place(x=170, y=32)
+                
+                # Quantity Used - centered vertically
+                quantity_label = ctk.CTkLabel(row_frame, text=f"{quantity_used} pc(s)",
+                                            font=("Poppins Regular", 11),
+                                            text_color="#333333",
+                                            width=100)
+                quantity_label.place(x=640, y=20)
+                
+                # Timestamp - Handle different timestamp formats (same as supply logs)
+                if usage_datetime:
+                    try:
+                        # Try to parse as datetime first
+                        if hasattr(usage_datetime, 'strftime'):
+                            # It's already a datetime object
+                            date_part = usage_datetime.strftime("%Y-%m-%d")
+                            time_part = usage_datetime.strftime("%H:%M:%S")
+                        else:
+                            # It might be a string, try to parse it
+                            from datetime import datetime
+                            if isinstance(usage_datetime, str):
+                                # Try parsing different formats
+                                try:
+                                    dt = datetime.strptime(usage_datetime, "%Y-%m-%d %H:%M:%S")
+                                    date_part = dt.strftime("%Y-%m-%d")
+                                    time_part = dt.strftime("%H:%M:%S")
+                                except ValueError:
+                                    try:
+                                        dt = datetime.strptime(usage_datetime, "%Y-%m-%d")
+                                        date_part = dt.strftime("%Y-%m-%d")
+                                        # Use separate time column if available
+                                        if usage_time and hasattr(usage_time, 'strftime'):
+                                            time_part = usage_time.strftime("%H:%M:%S")
+                                        elif usage_time:
+                                            time_part = str(usage_time)
+                                        else:
+                                            time_part = "N/A"
+                                    except ValueError:
+                                        date_part = str(usage_datetime)
+                                        time_part = str(usage_time) if usage_time else "N/A"
+                            else:
+                                date_part = str(usage_datetime)
+                                time_part = str(usage_time) if usage_time else "N/A"
+                        
+                        # Date (larger)
+                        date_label = ctk.CTkLabel(row_frame, text=date_part,
+                                                font=("Poppins Regular", 11),
+                                                text_color="#333333",
+                                                width=150)
+                        date_label.place(x=840, y=8)
+                        
+                        # Time (smaller)
+                        time_label = ctk.CTkLabel(row_frame, text=time_part,
+                                                font=("Poppins Regular", 10),
+                                                text_color="#666666",
+                                                width=150)
+                        time_label.place(x=840, y=32)
+                        
+                    except Exception as e:
+                        print(f"Error parsing timestamp: {e}")
+                        # Fallback to string representation
+                        timestamp_label = ctk.CTkLabel(row_frame, text=str(usage_datetime),
+                                                     font=("Poppins Regular", 11),
+                                                     text_color="#333333",
+                                                     width=150)
+                        timestamp_label.place(x=840, y=20)
+                else:
+                    # Single "N/A" label if no date
+                    timestamp_label = ctk.CTkLabel(row_frame, text="N/A",
+                                                 font=("Poppins Regular", 11),
+                                                 text_color="#333333",
+                                                 width=150)
+                    timestamp_label.place(x=840, y=20)
+                
+        except Exception as e:
+            print(f'Error loading patient usage data: {e}')
+            # Show error message
+            error_frame = ctk.CTkFrame(self.usage_scrollable_frame,
+                                     width=1140,
+                                     height=100,
+                                     corner_radius=5,
+                                     fg_color="#FFE6E6")
+            error_frame.pack(fill="x", pady=20, padx=5)
+            error_frame.pack_propagate(False)
+            
+            error_label = ctk.CTkLabel(error_frame,
+                                     text=f"Error loading data: {str(e)}",
+                                     font=("Poppins Regular", 12),
+                                     text_color="red")
             error_label.place(relx=0.5, rely=0.5, anchor="center")
         finally:
             if 'cursor' in locals():

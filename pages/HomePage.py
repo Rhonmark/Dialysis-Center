@@ -9,7 +9,7 @@ from tkinter import ttk, messagebox
 from components.Inputs import PatientInfoWindow
 from backend.connector import db_connection as db
 from components.buttons import CTkButtonSelectable
-from components.input_supply import CTkMessageBox, EditStockWindow, QuantityUsedLogsWindow, SupplyWindow
+from components.input_supply import CTkMessageBox, EditStockWindow, PatientQuantityUsedLogsWindow, QuantityUsedLogsWindow, SupplyWindow
 from components.state import login_shared_states
 from backend.crud import retrieve_form_data, db_connection
 from datetime import datetime
@@ -2960,7 +2960,51 @@ class PatientPage(ctk.CTkFrame):
         self.contact_info_window.contact_relative_info(self.patient_id_value.cget("text"))
 
     def open_quantity_used_info(self):
-        print("quantity used log window opening....")
+        """Open quantity used logs window for the current patient"""
+        # Get the current patient ID from the detailed view
+        patient_id = self.patient_id_value.cget("text")
+        
+        if patient_id:
+            #print(f"Opening quantity used logs for patient ID: {patient_id}")
+            
+            # Create and show the Patient Quantity Used Logs window
+            quantity_used_window = PatientQuantityUsedLogsWindow(self, patient_id)
+            quantity_used_window.grab_set()
+            quantity_used_window.focus_force()
+            
+            # Optional: Debug print the data (same as your commented code)
+            try:
+                connect = db()
+                cursor = connect.cursor()
+                
+                cursor.execute("""
+                    SELECT iu.item_id, s.item_name, s.category, iu.quantity_used, 
+                        COALESCE(iu.usage_timestamp, iu.usage_date) as usage_datetime, 
+                        iu.usage_time 
+                    FROM item_usage iu 
+                    JOIN supply s ON iu.item_id = s.item_id
+                    WHERE iu.patient_id = %s
+                    ORDER BY COALESCE(iu.usage_timestamp, iu.usage_date) DESC	
+                """, (patient_id,))
+
+                quantity_used_result = cursor.fetchall()
+                
+                #print(f"\n=== Patient {patient_id} Quantity Used Results ===")
+                #for item in quantity_used_result:
+                    #print(f"Item ID: {item[0]}, Name: {item[1]}, Category: {item[2]}, Quantity: {item[3]}, Date: {item[4]}")
+                #print(f"Total items used: {len(quantity_used_result)}")
+
+            except Exception as e:
+                print(f'Error retrieving quantity used data for patient {patient_id}: {e}')
+            finally:
+                if 'cursor' in locals():
+                    cursor.close()
+                if 'connect' in locals():
+                    connect.close()
+        else:
+            print("No patient selected - cannot open quantity used logs")
+            # You could show a message box here if needed
+            # CTkMessageBox.show_error("Selection Error", "Please select a patient first.", parent=self)
 
     def fetch_patient_data(self):
         try:
