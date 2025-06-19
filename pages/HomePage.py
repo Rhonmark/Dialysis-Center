@@ -743,9 +743,9 @@ class HomePageContent(ctk.CTkFrame):
                 cursor.close()
                 connect.close()
 
-            # # Static values for testing
-            # full_name = "User"
-            # first_name = "User"
+            # Static values for testing
+            #full_name = "User"
+            #first_name = "User"
 
             return first_name, full_name
 
@@ -2960,7 +2960,7 @@ class PatientPage(ctk.CTkFrame):
         self.contact_info_window.contact_relative_info(self.patient_id_value.cget("text"))
 
     def open_quantity_used_info(self):
-        self.quantity_used_window = QuantityUsedLogsWindow(self.master)
+        print("quantity used log window opening....")
 
     def fetch_patient_data(self):
         try:

@@ -99,18 +99,15 @@ class BaseWindow(tk.Toplevel):
 
 class PatientInfoWindow(BaseWindow):
     def __init__(self, parent, data):
-        # Check if we're in edit mode
         self.edit_mode = data.get('edit_mode', False) if data else False
         self.patient_id = data.get('patient_id') if data else None
         
         super().__init__(parent, "Patient Information", next_window=ContactPersonWindow, previous_window=None)
         self.data = data if data else {}
 
-        # Title Label - change based on mode
         title_text = "Edit Patient Information" if self.edit_mode else "Patient Information"
         tk.Label(self, text=title_text, font=("Merriweather bold", 25), bg="white").place(x=90, y=60)
 
-        # Last Name, First Name, Middle Name
         tk.Label(self, text="Last Name *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=150)
         self.entry_lastname = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         self.entry_lastname.place(x=120, y=200, height=25)
@@ -126,30 +123,25 @@ class PatientInfoWindow(BaseWindow):
         self.entry_middlename.place(x=720, y=200, height=25)
         tk.Frame(self, bg="#979797", height=1, width=150).place(x=720, y=230)
 
-        # Status (Active/Inactive)
         tk.Label(self, text="Status *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=270)
         self.status_var = tk.StringVar(value="active")
         tk.Radiobutton(self, text="Active", variable=self.status_var, value="active", bg="white", font=("Merriweather Sans", 12)).place(x=120, y=320)
         tk.Radiobutton(self, text="Inactive", variable=self.status_var, value="inactive", bg="white", font=("Merriweather Sans", 12)).place(x=200, y=320)
 
-        # Type of Access
         tk.Label(self, text="Type of Access *", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=270)
         self.access_options = ["L AVF", "R AVF", "L AVG", "R AVG", "L CVC", "R CVC", "L PDC", "R PDC"]
         self.entry_access = ttk.Combobox(self, values=self.access_options, width=17, font=("Merriweather light", 12), state="readonly")
         self.entry_access.place(x=420, y=320, height=25)
 
-        # Birthdate
         tk.Label(self, text="Birthdate *", font=("Merriweather Sans bold", 15), bg="white").place(x=720, y=270)
         self.entry_birthdate = DateEntry(self, width=18, font=("Merriweather light", 12), bg="white", date_pattern="yyyy-MM-dd", state="normal")
         self.entry_birthdate.place(x=720, y=320, height=25)
         
-        # Age field
         tk.Label(self, text="Age *", font=("Merriweather Sans bold", 15), bg="white").place(x=1020, y=270)
         self.entry_age = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         self.entry_age.place(x=1020, y=320, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=1020, y=350)
 
-        # Gender, Height, Civil Status, Religion
         tk.Label(self, text="Gender *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=390)
         self.entry_gender = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         self.entry_gender.place(x=120, y=440, height=25)
@@ -170,7 +162,6 @@ class PatientInfoWindow(BaseWindow):
         self.entry_religion.place(x=1020, y=440, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=1020, y=470)
 
-        # Complete Address 
         tk.Label(self, text="Complete Address *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=510)
         self.entry_address = TextField_Patients(self, width=50, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         self.entry_address.place(x=120, y=560, height=25)
@@ -178,28 +169,21 @@ class PatientInfoWindow(BaseWindow):
 
         self.entry_birthdate.bind("<<DateEntrySelected>>", self.update_age)
 
-        # Load data for both edit mode AND add mode
         if self.edit_mode and self.patient_id:
             self.populate_fields()
         elif not self.edit_mode and self.data:
-            # Restore form data when coming back from next window
             self.restore_form_data()
 
     def restore_form_data(self):
-        """Restore form data when navigating back in add mode"""
         try:
-            # Clear placeholder text and populate with saved data
             if self.data.get("patient_last_name"):
-                self.entry_lastname.delete(0, tk.END)
-                self.entry_lastname.insert(0, self.data.get("patient_last_name"))
+                self.entry_lastname.set_real_value(self.data.get("patient_last_name"))
                 
             if self.data.get("patient_first_name"):
-                self.entry_firstname.delete(0, tk.END)
-                self.entry_firstname.insert(0, self.data.get("patient_first_name"))
+                self.entry_firstname.set_real_value(self.data.get("patient_first_name"))
                 
             if self.data.get("patient_middle_name"):
-                self.entry_middlename.delete(0, tk.END)
-                self.entry_middlename.insert(0, self.data.get("patient_middle_name"))
+                self.entry_middlename.set_real_value(self.data.get("patient_middle_name"))
                 
             if self.data.get("patient_status"):
                 self.status_var.set(self.data.get("patient_status"))
@@ -213,53 +197,45 @@ class PatientInfoWindow(BaseWindow):
                 self.entry_birthdate.set_date(birthdate)
                 
             if self.data.get("patient_age"):
-                self.entry_age.delete(0, tk.END)
-                self.entry_age.insert(0, self.data.get("patient_age"))
+                self.entry_age.set_real_value(self.data.get("patient_age"))
                 
             if self.data.get("patient_gender"):
-                self.entry_gender.delete(0, tk.END)
-                self.entry_gender.insert(0, self.data.get("patient_gender"))
+                self.entry_gender.set_real_value(self.data.get("patient_gender"))
                 
             if self.data.get("patient_height"):
-                self.entry_height.delete(0, tk.END)
-                self.entry_height.insert(0, self.data.get("patient_height"))
+                self.entry_height.set_real_value(self.data.get("patient_height"))
                 
             if self.data.get("patient_civil_status"):
-                self.entry_civil_status.delete(0, tk.END)
-                self.entry_civil_status.insert(0, self.data.get("patient_civil_status"))
+                self.entry_civil_status.set_real_value(self.data.get("patient_civil_status"))
                 
             if self.data.get("patient_religion"):
-                self.entry_religion.delete(0, tk.END)
-                self.entry_religion.insert(0, self.data.get("patient_religion"))
+                self.entry_religion.set_real_value(self.data.get("patient_religion"))
                 
             if self.data.get("patient_address"):
-                self.entry_address.delete(0, tk.END)
-                self.entry_address.insert(0, self.data.get("patient_address"))
+                self.entry_address.set_real_value(self.data.get("patient_address"))
             
         except Exception as e:
             print(f"❌ Error restoring form data: {e}")
 
     def save_current_data(self):
-        """Save current form data before navigating away"""
         try:
-            self.data["patient_last_name"] = self.entry_lastname.get().strip()
-            self.data["patient_first_name"] = self.entry_firstname.get().strip()
-            self.data["patient_middle_name"] = self.entry_middlename.get().strip()
+            self.data["patient_last_name"] = self.entry_lastname.get_real_value()
+            self.data["patient_first_name"] = self.entry_firstname.get_real_value()
+            self.data["patient_middle_name"] = self.entry_middlename.get_real_value()
             self.data["patient_status"] = self.status_var.get()
             self.data["patient_access"] = self.entry_access.get()
             self.data["patient_birthdate"] = self.entry_birthdate.get_date().strftime("%Y-%m-%d")
-            self.data["patient_age"] = self.entry_age.get().strip()
-            self.data["patient_gender"] = self.entry_gender.get().strip()
-            self.data["patient_height"] = self.entry_height.get().strip()
-            self.data["patient_civil_status"] = self.entry_civil_status.get().strip()
-            self.data["patient_religion"] = self.entry_religion.get().strip()
-            self.data["patient_address"] = self.entry_address.get().strip()
+            self.data["patient_age"] = self.entry_age.get_real_value()
+            self.data["patient_gender"] = self.entry_gender.get_real_value()
+            self.data["patient_height"] = self.entry_height.get_real_value()
+            self.data["patient_civil_status"] = self.entry_civil_status.get_real_value()
+            self.data["patient_religion"] = self.entry_religion.get_real_value()
+            self.data["patient_address"] = self.entry_address.get_real_value()
             
         except Exception as e:
             print(f"❌ Error saving current data: {e}")
 
     def populate_fields(self):
-        """Populate fields with existing patient data for editing"""
         if self.patient_id:
             try:
                 connect = db()
@@ -276,52 +252,27 @@ class PatientInfoWindow(BaseWindow):
                 patient_data = cursor.fetchone()
                 
                 if patient_data:
-                    # Clear and populate fields only if value is not 'Type Here' or None
-                    if patient_data[0] and patient_data[0] != 'Type Here':
-                        self.entry_lastname.delete(0, tk.END)
-                        self.entry_lastname.insert(0, patient_data[0])
+                    self.entry_lastname.set_real_value(patient_data[0])
+                    self.entry_firstname.set_real_value(patient_data[1])
+                    self.entry_middlename.set_real_value(patient_data[2])
                     
-                    if patient_data[1] and patient_data[1] != 'Type Here':
-                        self.entry_firstname.delete(0, tk.END)
-                        self.entry_firstname.insert(0, patient_data[1])
-                    
-                    if patient_data[2] and patient_data[2] != 'Type Here':
-                        self.entry_middlename.delete(0, tk.END)
-                        self.entry_middlename.insert(0, patient_data[2])
-                    
-                    if patient_data[3] and patient_data[3] != 'Type Here':
+                    if patient_data[3]:
                         self.status_var.set(patient_data[3])
                     
-                    if patient_data[4] and patient_data[4] != 'Type Here':
+                    if patient_data[4]:
                         self.entry_access.set(patient_data[4])
                     
-                    # Handle birthdate
                     if patient_data[5]:
                         self.entry_birthdate.set_date(patient_data[5])
                     
                     if patient_data[6]:
-                        self.entry_age.delete(0, tk.END)
-                        self.entry_age.insert(0, str(patient_data[6]))
+                        self.entry_age.set_real_value(str(patient_data[6]))
                     
-                    if patient_data[7] and patient_data[7] != 'Type Here':
-                        self.entry_gender.delete(0, tk.END)
-                        self.entry_gender.insert(0, patient_data[7])
-                    
-                    if patient_data[8] and patient_data[8] != 'Type Here':
-                        self.entry_height.delete(0, tk.END)
-                        self.entry_height.insert(0, patient_data[8])
-                    
-                    if patient_data[9] and patient_data[9] != 'Type Here':
-                        self.entry_civil_status.delete(0, tk.END)
-                        self.entry_civil_status.insert(0, patient_data[9])
-                    
-                    if patient_data[10] and patient_data[10] != 'Type Here':
-                        self.entry_religion.delete(0, tk.END)
-                        self.entry_religion.insert(0, patient_data[10])
-                    
-                    if patient_data[11] and patient_data[11] != 'Type Here':
-                        self.entry_address.delete(0, tk.END)
-                        self.entry_address.insert(0, patient_data[11])
+                    self.entry_gender.set_real_value(patient_data[7])
+                    self.entry_height.set_real_value(patient_data[8])
+                    self.entry_civil_status.set_real_value(patient_data[9])
+                    self.entry_religion.set_real_value(patient_data[10])
+                    self.entry_address.set_real_value(patient_data[11])
                 
                 cursor.close()
                 connect.close()
@@ -334,27 +285,25 @@ class PatientInfoWindow(BaseWindow):
             birthdate = self.entry_birthdate.get_date()
             today = datetime.today()
             age = today.year - birthdate.year - ((today.month, today.day) < (birthdate.month, birthdate.day))
-            self.entry_age.delete(0, tk.END)
-            self.entry_age.insert(0, str(age))  
+            self.entry_age.set_real_value(str(age))
         except Exception as e:
             print(f"Error calculating age: {e}")
     
     def open_next(self, data=None):
         try:
-            self.data["patient_last_name"] = self.entry_lastname.get().strip().lower().capitalize()
-            self.data["patient_first_name"] = self.entry_firstname.get().strip().lower().capitalize()
-            self.data["patient_middle_name"] = self.entry_middlename.get().strip().lower().capitalize()
+            self.data["patient_last_name"] = self.entry_lastname.get_real_value().lower().capitalize()
+            self.data["patient_first_name"] = self.entry_firstname.get_real_value().lower().capitalize()
+            self.data["patient_middle_name"] = self.entry_middlename.get_real_value().lower().capitalize()
             self.data["patient_status"] = self.status_var.get().capitalize()
             self.data["patient_access"] = self.entry_access.get()
             self.data["patient_birthdate"] = self.entry_birthdate.get_date().strftime("%Y-%m-%d")  
-            self.data["patient_age"] = self.entry_age.get().strip()
-            self.data["patient_gender"] = self.entry_gender.get().strip().lower().capitalize()
-            self.data["patient_height"] = self.entry_height.get().strip()
-            self.data["patient_civil_status"] = self.entry_civil_status.get().strip().lower().capitalize()
-            self.data["patient_religion"] = self.entry_religion.get().strip().lower().capitalize()
-            self.data["patient_address"] = self.entry_address.get().strip().lower().capitalize()
+            self.data["patient_age"] = self.entry_age.get_real_value()
+            self.data["patient_gender"] = self.entry_gender.get_real_value().lower().capitalize()
+            self.data["patient_height"] = self.entry_height.get_real_value()
+            self.data["patient_civil_status"] = self.entry_civil_status.get_real_value().lower().capitalize()
+            self.data["patient_religion"] = self.entry_religion.get_real_value().lower().capitalize()
+            self.data["patient_address"] = self.entry_address.get_real_value().lower().capitalize()
             
-            # Pass edit mode and patient_id forward
             self.data["edit_mode"] = self.edit_mode
             self.data["patient_id"] = self.patient_id
             
@@ -365,21 +314,17 @@ class PatientInfoWindow(BaseWindow):
 
 class ContactPersonWindow(BaseWindow):
     def __init__(self, parent, data=None):
-        # Check if we're in edit mode
         self.edit_mode = data.get('edit_mode', False) if data else False
         self.patient_id = data.get('patient_id') if data else None
 
         super().__init__(parent, "Contact Information", next_window=RelativeInfoWindow, previous_window=PatientInfoWindow)
         self.data = data if data else {}
 
-        # Title Label - change based on mode
         title_text = "Edit Contact Information" if self.edit_mode else "Contact Information"
         tk.Label(self, text=title_text, font=("Merriweather bold", 25), bg="white").place(x=90, y=60)
 
-        # Title Label
         tk.Label(self, text="Contact Person Info", font=("Merriweather bold", 25), bg="white").place(x=90, y=100)
 
-        # Last Name, First Name, Middle Name
         tk.Label(self, text="Last Name *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=190)
         self.entry_lastname = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         self.entry_lastname.place(x=120, y=240, height=25)
@@ -395,7 +340,6 @@ class ContactPersonWindow(BaseWindow):
         self.entry_middlename.place(x=720, y=240, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=720, y=270)
 
-        # Contact Number, Relationship to the Patient
         tk.Label(self, text="Contact Number *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=310)
         self.entry_contact = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         self.entry_contact.place(x=120, y=360, height=25)
@@ -406,64 +350,52 @@ class ContactPersonWindow(BaseWindow):
         self.entry_relationship.place(x=420, y=360, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=390)
 
-        # Complete Address 
         tk.Label(self, text="Complete Address *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=430)
         self.entry_address = TextField_Patients(self, width=50, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         self.entry_address.place(x=120, y=480, height=25)
         tk.Frame(self, bg="#979797", height=1, width=500).place(x=120, y=510)
 
-        #Load data for both edit mode AND add mode
         if self.edit_mode and self.patient_id:
             self.populate_fields()
         elif not self.edit_mode and self.data:
-            # Restore form data when coming back from next window
             self.restore_form_data()
 
     def restore_form_data(self):
-        """Restore form data when navigating back in add mode"""
         try:
             if self.data.get("contact_last_name"):
-                self.entry_lastname.delete(0, tk.END)
-                self.entry_lastname.insert(0, self.data.get("contact_last_name"))
+                self.entry_lastname.set_real_value(self.data.get("contact_last_name"))
                 
             if self.data.get("contact_first_name"):
-                self.entry_firstname.delete(0, tk.END)
-                self.entry_firstname.insert(0, self.data.get("contact_first_name"))
+                self.entry_firstname.set_real_value(self.data.get("contact_first_name"))
                 
             if self.data.get("contact_middle_name"):
-                self.entry_middlename.delete(0, tk.END)
-                self.entry_middlename.insert(0, self.data.get("contact_middle_name"))
+                self.entry_middlename.set_real_value(self.data.get("contact_middle_name"))
                 
             if self.data.get("contact_number"):
-                self.entry_contact.delete(0, tk.END)
-                self.entry_contact.insert(0, self.data.get("contact_number"))
+                self.entry_contact.set_real_value(self.data.get("contact_number"))
                 
             if self.data.get("relationship_to_patient"):
-                self.entry_relationship.delete(0, tk.END)
-                self.entry_relationship.insert(0, self.data.get("relationship_to_patient"))
+                self.entry_relationship.set_real_value(self.data.get("relationship_to_patient"))
                 
             if self.data.get("contact_address"):
-                self.entry_address.delete(0, tk.END)
-                self.entry_address.insert(0, self.data.get("contact_address"))
+                self.entry_address.set_real_value(self.data.get("contact_address"))
             
         except Exception as e:
             print(f"❌ Error restoring contact form data: {e}")
 
     def save_current_data(self):
-        """Save current form data before navigating away"""
         try:
-            self.data["contact_last_name"] = self.entry_lastname.get().strip().lower().capitalize()
-            self.data["contact_first_name"] = self.entry_firstname.get().strip().lower().capitalize()
-            self.data["contact_middle_name"] = self.entry_middlename.get().strip().lower().capitalize()
-            self.data["contact_number"] = self.entry_contact.get().strip()
-            self.data["relationship_to_patient"] = self.entry_relationship.get().strip().lower().capitalize()
-            self.data["contact_address"] = self.entry_address.get().strip().lower().capitalize()
+            self.data["contact_last_name"] = self.entry_lastname.get_real_value().lower().capitalize()
+            self.data["contact_first_name"] = self.entry_firstname.get_real_value().lower().capitalize()
+            self.data["contact_middle_name"] = self.entry_middlename.get_real_value().lower().capitalize()
+            self.data["contact_number"] = self.entry_contact.get_real_value()
+            self.data["relationship_to_patient"] = self.entry_relationship.get_real_value().lower().capitalize()
+            self.data["contact_address"] = self.entry_address.get_real_value().lower().capitalize()
             
         except Exception as e:
             print(f"❌ Error saving current contact data: {e}")
     
     def populate_fields(self):
-        """Populate fields with existing contact person data for editing"""
         if self.patient_id:
             try:
                 connect = db()
@@ -472,37 +404,19 @@ class ContactPersonWindow(BaseWindow):
                 cursor.execute("""
                     SELECT cp.last_name, cp.first_name, cp.middle_name, 
                         cp.contact_number, cp.relationship, cp.address
-                    FROM patient_contact cp  -- Changed from 'contact_person'
+                    FROM patient_contact cp
                     WHERE cp.patient_id = %s
                 """, (self.patient_id,))
                 
                 contact_data = cursor.fetchone()
                 
                 if contact_data:
-                    # Clear and populate fields only if value is not 'Type Here' or None
-                    if contact_data[0] and contact_data[0] != 'Type Here':
-                        self.entry_lastname.delete(0, tk.END)
-                        self.entry_lastname.insert(0, contact_data[0])
-                    
-                    if contact_data[1] and contact_data[1] != 'Type Here':
-                        self.entry_firstname.delete(0, tk.END)
-                        self.entry_firstname.insert(0, contact_data[1])
-                    
-                    if contact_data[2] and contact_data[2] != 'Type Here':
-                        self.entry_middlename.delete(0, tk.END)
-                        self.entry_middlename.insert(0, contact_data[2])
-                    
-                    if contact_data[3] and contact_data[3] != 'Type Here':
-                        self.entry_contact.delete(0, tk.END)
-                        self.entry_contact.insert(0, contact_data[3])
-                    
-                    if contact_data[4] and contact_data[4] != 'Type Here':
-                        self.entry_relationship.delete(0, tk.END)
-                        self.entry_relationship.insert(0, contact_data[4])
-                    
-                    if contact_data[5] and contact_data[5] != 'Type Here':
-                        self.entry_address.delete(0, tk.END)
-                        self.entry_address.insert(0, contact_data[5])
+                    self.entry_lastname.set_real_value(contact_data[0])
+                    self.entry_firstname.set_real_value(contact_data[1])
+                    self.entry_middlename.set_real_value(contact_data[2])
+                    self.entry_contact.set_real_value(contact_data[3])
+                    self.entry_relationship.set_real_value(contact_data[4])
+                    self.entry_address.set_real_value(contact_data[5])
                 
                 cursor.close()
                 connect.close()
@@ -512,14 +426,13 @@ class ContactPersonWindow(BaseWindow):
 
     def open_next(self, data=None):
         try:
-            self.data["contact_last_name"] = self.entry_lastname.get().strip().lower().capitalize()
-            self.data["contact_first_name"] = self.entry_firstname.get().strip().lower().capitalize()
-            self.data["contact_middle_name"] = self.entry_middlename.get().strip().lower().capitalize()
-            self.data["contact_number"] = self.entry_contact.get().strip()
-            self.data["relationship_to_patient"] = self.entry_relationship.get().strip().lower().capitalize()
-            self.data["contact_address"] = self.entry_address.get().strip().lower().capitalize()
+            self.data["contact_last_name"] = self.entry_lastname.get_real_value().lower().capitalize()
+            self.data["contact_first_name"] = self.entry_firstname.get_real_value().lower().capitalize()
+            self.data["contact_middle_name"] = self.entry_middlename.get_real_value().lower().capitalize()
+            self.data["contact_number"] = self.entry_contact.get_real_value()
+            self.data["relationship_to_patient"] = self.entry_relationship.get_real_value().lower().capitalize()
+            self.data["contact_address"] = self.entry_address.get_real_value().lower().capitalize()
 
-            # Pass edit mode and patient_id forward
             self.data["edit_mode"] = self.edit_mode
             self.data["patient_id"] = self.patient_id
             
@@ -530,18 +443,15 @@ class ContactPersonWindow(BaseWindow):
         
 class RelativeInfoWindow(BaseWindow):
     def __init__(self, parent, data=None):
-        # Check if we're in edit mode
         self.edit_mode = data.get('edit_mode', False) if data else False
         self.patient_id = data.get('patient_id') if data else None
 
         super().__init__(parent, "Relative Information", next_window=PhilHealthInfoWindow, previous_window=ContactPersonWindow)
         self.data = data if data else {}
 
-        # Title Label - change based on mode
         title_text = "Edit Relative Information" if self.edit_mode else "Relative Information"
         tk.Label(self, text=title_text, font=("Merriweather bold", 25), bg="white").place(x=90, y=60)
 
-        # Last Name, First Name, Middle Name
         tk.Label(self, text="Last Name*", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=190)
         self.entry_lastname = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         self.entry_lastname.place(x=120, y=240, height=25)
@@ -557,65 +467,53 @@ class RelativeInfoWindow(BaseWindow):
         self.entry_middlename.place(x=720, y=240, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=720, y=270)
 
-        # Contact Number
         tk.Label(self, text="Contact Number*", font=("Merriweather Sans bold",15), bg="white").place(x=120, y=310)
         self.entry_contact = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         self.entry_contact.place(x=120, y=360, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=390)
 
-        # Complete Address
         tk.Label(self, text="Complete Address*", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=430)
         self.entry_address = TextField_Patients(self, width=50, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         self.entry_address.place(x=120, y=480, height=25)
         tk.Frame(self, bg="#979797", height=1, width=500).place(x=120, y=510)
 
-        #Load data for both edit mode AND add mode
         if self.edit_mode and self.patient_id:
             self.populate_fields()
         elif not self.edit_mode and self.data:
             self.restore_form_data()
 
     def restore_form_data(self):
-        """Restore form data when navigating back in add mode"""
         try:
             if self.data.get("relative_last_name"):
-                self.entry_lastname.delete(0, tk.END)
-                self.entry_lastname.insert(0, self.data.get("relative_last_name"))
+                self.entry_lastname.set_real_value(self.data.get("relative_last_name"))
                 
             if self.data.get("relative_first_name"):
-                self.entry_firstname.delete(0, tk.END)
-                self.entry_firstname.insert(0, self.data.get("relative_first_name"))
+                self.entry_firstname.set_real_value(self.data.get("relative_first_name"))
                 
             if self.data.get("relative_middle_name"):
-                self.entry_middlename.delete(0, tk.END)
-                self.entry_middlename.insert(0, self.data.get("relative_middle_name"))
+                self.entry_middlename.set_real_value(self.data.get("relative_middle_name"))
                 
             if self.data.get("relative_contact_number"):
-                self.entry_contact.delete(0, tk.END)
-                self.entry_contact.insert(0, self.data.get("relative_contact_number"))
+                self.entry_contact.set_real_value(self.data.get("relative_contact_number"))
                 
             if self.data.get("relative_address"):
-                self.entry_address.delete(0, tk.END)
-                self.entry_address.insert(0, self.data.get("relative_address"))
+                self.entry_address.set_real_value(self.data.get("relative_address"))
             
         except Exception as e:
             print(f"❌ Error restoring relative form data: {e}")
 
     def save_current_data(self):
-        """Save current form data before navigating away"""
         try:
-            self.data["relative_last_name"] = self.entry_lastname.get().strip().lower().capitalize()
-            self.data["relative_first_name"] = self.entry_firstname.get().strip().lower().capitalize()
-            self.data["relative_middle_name"] = self.entry_middlename.get().strip().lower().capitalize()
-            self.data["relative_contact_number"] = self.entry_contact.get().strip()
-            self.data["relative_address"] = self.entry_address.get().strip().lower().capitalize()
+            self.data["relative_last_name"] = self.entry_lastname.get_real_value().lower().capitalize()
+            self.data["relative_first_name"] = self.entry_firstname.get_real_value().lower().capitalize()
+            self.data["relative_middle_name"] = self.entry_middlename.get_real_value().lower().capitalize()
+            self.data["relative_contact_number"] = self.entry_contact.get_real_value()
+            self.data["relative_address"] = self.entry_address.get_real_value().lower().capitalize()
             
         except Exception as e:
             print(f"❌ Error saving current relative data: {e}")
 
-
     def populate_fields(self):
-        """Populate fields with existing relative data for editing"""
         if self.patient_id:
             try:
                 connect = db()
@@ -624,33 +522,18 @@ class RelativeInfoWindow(BaseWindow):
                 cursor.execute("""
                     SELECT r.last_name, r.first_name, r.middle_name, 
                         r.contact_number, r.address
-                    FROM patient_relative r  -- Changed from 'relatives'
+                    FROM patient_relative r
                     WHERE r.patient_id = %s
                 """, (self.patient_id,))
 
                 relative_data = cursor.fetchone()
 
                 if relative_data:
-                    # Clear and populate fields only if value is not 'Type Here' or None
-                    if relative_data[0] and relative_data[0] != 'Type Here':
-                        self.entry_lastname.delete(0, tk.END)
-                        self.entry_lastname.insert(0, relative_data[0])
-
-                    if relative_data[1] and relative_data[1] != 'Type Here':
-                        self.entry_firstname.delete(0, tk.END)
-                        self.entry_firstname.insert(0, relative_data[1])
-
-                    if relative_data[2] and relative_data[2] != 'Type Here':
-                        self.entry_middlename.delete(0, tk.END)
-                        self.entry_middlename.insert(0, relative_data[2])
-
-                    if relative_data[3] and relative_data[3] != 'Type Here':
-                        self.entry_contact.delete(0, tk.END)
-                        self.entry_contact.insert(0, relative_data[3])
-
-                    if relative_data[4] and relative_data[4] != 'Type Here':
-                        self.entry_address.delete(0, tk.END)
-                        self.entry_address.insert(0, relative_data[4])
+                    self.entry_lastname.set_real_value(relative_data[0])
+                    self.entry_firstname.set_real_value(relative_data[1])
+                    self.entry_middlename.set_real_value(relative_data[2])
+                    self.entry_contact.set_real_value(relative_data[3])
+                    self.entry_address.set_real_value(relative_data[4])
 
                 cursor.close()
                 connect.close()
@@ -660,13 +543,12 @@ class RelativeInfoWindow(BaseWindow):
 
     def open_next(self, data=None):
         try:
-            self.data["relative_last_name"] = self.entry_lastname.get().strip().lower().capitalize()
-            self.data["relative_first_name"] = self.entry_firstname.get().strip().lower().capitalize()
-            self.data["relative_middle_name"] = self.entry_middlename.get().strip().lower().capitalize()
-            self.data["relative_contact_number"] = self.entry_contact.get().strip()
-            self.data["relative_address"] = self.entry_address.get().strip().lower().capitalize()
+            self.data["relative_last_name"] = self.entry_lastname.get_real_value().lower().capitalize()
+            self.data["relative_first_name"] = self.entry_firstname.get_real_value().lower().capitalize()
+            self.data["relative_middle_name"] = self.entry_middlename.get_real_value().lower().capitalize()
+            self.data["relative_contact_number"] = self.entry_contact.get_real_value()
+            self.data["relative_address"] = self.entry_address.get_real_value().lower().capitalize()
 
-            # Pass edit mode and patient_id forward
             self.data["edit_mode"] = self.edit_mode
             self.data["patient_id"] = self.patient_id
             
@@ -677,18 +559,15 @@ class RelativeInfoWindow(BaseWindow):
 
 class PhilHealthInfoWindow(BaseWindow):
     def __init__(self, parent, data=None):
-        # Check if we're in edit mode
         self.edit_mode = data.get('edit_mode', False) if data else False
         self.patient_id = data.get('patient_id') if data else None
 
         super().__init__(parent, "PhilHealth and Other Info", next_window=PatientHistory1Window, previous_window=RelativeInfoWindow)
         self.data = data if data else {}
 
-        # Title Label - change based on mode
         title_text = "Edit PhilHealth and Other Info" if self.edit_mode else "PhilHealth and Other Info"
         tk.Label(self, text=title_text, font=("Merriweather bold", 25), bg="white").place(x=90, y=60)
 
-        # PhilHealth Number & Membership
         tk.Label(self, text="PhilHealth Number *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=190)
         self.entry_philhealth = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         self.entry_philhealth.place(x=120, y=240, height=25)
@@ -699,49 +578,40 @@ class PhilHealthInfoWindow(BaseWindow):
         self.entry_membership.place(x=420, y=240, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=270)
 
-        #  FIXED: PWD Radio Buttons 
         tk.Label(self, text="PWD", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=310)
         self.pwd_var = tk.IntVar() 
 
         tk.Radiobutton(self, text="Yes", variable=self.pwd_var, value=1, bg="white", font=("Merriweather Sans", 12)).place(x=120, y=350)
         tk.Radiobutton(self, text="No", variable=self.pwd_var, value=0, bg="white", font=("Merriweather Sans", 12)).place(x=180, y=350)
 
-        # PWD ID Number
         tk.Label(self, text="PWD ID Number", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=310)
         self.entry_pwd_id = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         self.entry_pwd_id.place(x=420, y=360, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=390)
 
-        #  FIXED: Senior Radio Buttons 
         tk.Label(self, text="Senior", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=440)
         self.senior_var = tk.IntVar() 
         tk.Radiobutton(self, text="Yes", variable=self.senior_var, value=1, bg="white", font=("Merriweather Sans", 12)).place(x=120, y=480)
         tk.Radiobutton(self, text="No", variable=self.senior_var, value=0, bg="white", font=("Merriweather Sans", 12)).place(x=180, y=480)
 
-        # Senior ID Number
         tk.Label(self, text="Senior ID Number", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=430)
         self.entry_senior_id = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         self.entry_senior_id.place(x=420, y=480, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=510)
         
-        # Load data for both edit mode AND add mode
         if self.edit_mode and self.patient_id:
             self.populate_fields()
         elif not self.edit_mode and self.data:
             self.restore_form_data()
 
     def restore_form_data(self):
-        """Restore form data when navigating back in add mode"""
         try:
             if self.data.get("philhealth_number"):
-                self.entry_philhealth.delete(0, tk.END)
-                self.entry_philhealth.insert(0, self.data.get("philhealth_number"))
+                self.entry_philhealth.set_real_value(self.data.get("philhealth_number"))
                 
             if self.data.get("membership_type"):
-                self.entry_membership.delete(0, tk.END)
-                self.entry_membership.insert(0, self.data.get("membership_type"))
+                self.entry_membership.set_real_value(self.data.get("membership_type"))
                 
-            # Restore radio button values
             if "is_pwd" in self.data:
                 self.pwd_var.set(self.data.get("is_pwd"))
                 
@@ -749,31 +619,27 @@ class PhilHealthInfoWindow(BaseWindow):
                 self.senior_var.set(self.data.get("is_senior"))
                 
             if self.data.get("pwd_id"):
-                self.entry_pwd_id.delete(0, tk.END)
-                self.entry_pwd_id.insert(0, self.data.get("pwd_id"))
+                self.entry_pwd_id.set_real_value(self.data.get("pwd_id"))
                 
             if self.data.get("senior_id"):
-                self.entry_senior_id.delete(0, tk.END)
-                self.entry_senior_id.insert(0, self.data.get("senior_id"))
+                self.entry_senior_id.set_real_value(self.data.get("senior_id"))
             
         except Exception as e:
             print(f"❌ Error restoring PhilHealth form data: {e}")
 
     def save_current_data(self):
-        """Save current form data before navigating away"""
         try:
-            self.data["philhealth_number"] = self.entry_philhealth.get().strip()
-            self.data["membership_type"] = self.entry_membership.get().strip().lower().capitalize()
+            self.data["philhealth_number"] = self.entry_philhealth.get_real_value()
+            self.data["membership_type"] = self.entry_membership.get_real_value().lower().capitalize()
             self.data["is_pwd"] = self.pwd_var.get()
             self.data["is_senior"] = self.senior_var.get()
-            self.data["pwd_id"] = self.entry_pwd_id.get().strip()
-            self.data["senior_id"] = self.entry_senior_id.get().strip()
+            self.data["pwd_id"] = self.entry_pwd_id.get_real_value()
+            self.data["senior_id"] = self.entry_senior_id.get_real_value()
             
         except Exception as e:
             print(f"❌ Error saving current PhilHealth data: {e}")
 
     def populate_fields(self):
-        """Populate fields with existing PhilHealth data for editing"""
         if self.patient_id:
             try:
                 connect = db()
@@ -789,29 +655,14 @@ class PhilHealthInfoWindow(BaseWindow):
                 philhealth_data = cursor.fetchone()
 
                 if philhealth_data:
-                    # Clear and populate fields only if value is not 'Type Here' or None
-                    if philhealth_data[0] and philhealth_data[0] != 'Type Here':
-                        self.entry_philhealth.delete(0, tk.END)
-                        self.entry_philhealth.insert(0, philhealth_data[0])
-
-                    if philhealth_data[1] and philhealth_data[1] != 'Type Here':
-                        self.entry_membership.delete(0, tk.END)
-                        self.entry_membership.insert(0, philhealth_data[1])
-
+                    self.entry_philhealth.set_real_value(philhealth_data[0])
+                    self.entry_membership.set_real_value(philhealth_data[1])
+                    
                     self.pwd_var.set(1 if philhealth_data[2] else 0)
+                    self.entry_pwd_id.set_real_value(str(philhealth_data[3]) if philhealth_data[3] else "")
                     
-                    # PWD ID field
-                    self.entry_pwd_id.delete(0, tk.END)
-                    if philhealth_data[3] and str(philhealth_data[3]).strip() and philhealth_data[3] != 'Type Here':
-                        self.entry_pwd_id.insert(0, str(philhealth_data[3]))
-
-                    # Senior radio button
                     self.senior_var.set(1 if philhealth_data[4] else 0)
-                    
-                    # Senior ID field
-                    self.entry_senior_id.delete(0, tk.END)
-                    if philhealth_data[5] and str(philhealth_data[5]).strip() and philhealth_data[5] != 'Type Here':
-                        self.entry_senior_id.insert(0, str(philhealth_data[5]))
+                    self.entry_senior_id.set_real_value(str(philhealth_data[5]) if philhealth_data[5] else "")
 
                 cursor.close()
                 connect.close()
@@ -821,17 +672,13 @@ class PhilHealthInfoWindow(BaseWindow):
 
     def open_next(self, data=None):
         try:
-            self.data["philhealth_number"] = self.entry_philhealth.get().strip()
-            self.data["membership_type"] = self.entry_membership.get().strip()
-
-            # Get radio button values
+            self.data["philhealth_number"] = self.entry_philhealth.get_real_value()
+            self.data["membership_type"] = self.entry_membership.get_real_value()
             self.data["is_pwd"] = self.pwd_var.get()
             self.data["is_senior"] = self.senior_var.get()
+            self.data["pwd_id"] = self.entry_pwd_id.get_real_value()
+            self.data["senior_id"] = self.entry_senior_id.get_real_value()
 
-            self.data["pwd_id"] = self.entry_pwd_id.get().strip()
-            self.data["senior_id"] = self.entry_senior_id.get().strip()
-
-            # Pass edit mode and patient_id forward
             self.data["edit_mode"] = self.edit_mode
             self.data["patient_id"] = self.patient_id
 
@@ -842,14 +689,12 @@ class PhilHealthInfoWindow(BaseWindow):
 
 class PatientHistory1Window(BaseWindow):
     def __init__(self, parent, data=None):
-        # Check if we're in edit mode
         self.edit_mode = data.get('edit_mode', False) if data else False
         self.patient_id = data.get('patient_id') if data else None
         
         super().__init__(parent, "Patient History Part 1", next_window=PatientHistory2Window, previous_window=PhilHealthInfoWindow)
         self.data = data if data else {}
 
-        # Title Label - change based on mode
         title_text = "Edit Patient History Part 1" if self.edit_mode else "Patient History Part 1"
         tk.Label(self, text=title_text, font=("Merriweather bold", 25), bg="white").place(x=90, y=60)
 
@@ -866,13 +711,11 @@ class PatientHistory1Window(BaseWindow):
         tk.Checkbutton(self, variable=self.family_malignancy, bg="white").place(x=520, y=240)
         tk.Label(self, text="Malignancy", font=("Merriweather Sans bold", 12), bg="white").place(x=540, y=240)
 
-        # Other Family History
         tk.Label(self, text="Other:", font=("Merriweather Sans bold", 12), bg="white").place(x=140, y=300)
         self.family_other = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         self.family_other.place(x=140 , y=340, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=140, y=370)
 
-        # Medical History
         tk.Label(self, text="Medical History*", font=("Merriweather sans bold", 15), bg="white").place(x=120, y=400)
 
         self.med_kidney_disease = tk.BooleanVar()
@@ -892,22 +735,18 @@ class PatientHistory1Window(BaseWindow):
         tk.Checkbutton(self, variable=self.med_diabetes_type, bg="white").place(x=720, y=450)
         tk.Label(self, text="Diabetes Mellitus Type", font=("Merriweather Sans bold", 12), bg="white").place(x=740, y=450)
 
-        # Other Medical History
         tk.Label(self, text="Other:", font=("Merriweather Sans bold", 12), bg="white").place(x=140, y=510)
         self.med_other1 = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         self.med_other1.place(x=140, y=550, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=140, y=580)
 
-        # Load data for both edit mode AND add mode
         if self.edit_mode and self.patient_id:
             self.populate_fields()
         elif not self.edit_mode and self.data:
             self.restore_form_data()
 
     def restore_form_data(self):
-        """Restore form data when navigating back in add mode"""
         try:
-            # Restore checkbox values
             if "family_hypertension" in self.data:
                 self.family_hypertension.set(self.data.get("family_hypertension"))
             if "family_diabetes" in self.data:
@@ -923,36 +762,31 @@ class PatientHistory1Window(BaseWindow):
             if "med_diabetes_type" in self.data:
                 self.med_diabetes_type.set(self.data.get("med_diabetes_type"))
                 
-            # Restore text fields
             if self.data.get("family_other"):
-                self.family_other.delete(0, tk.END)
-                self.family_other.insert(0, self.data.get("family_other"))
+                self.family_other.set_real_value(self.data.get("family_other"))
                 
             if self.data.get("med_other1"):
-                self.med_other1.delete(0, tk.END)
-                self.med_other1.insert(0, self.data.get("med_other1"))
+                self.med_other1.set_real_value(self.data.get("med_other1"))
             
         except Exception as e:
             print(f"❌ Error restoring Patient History 1 form data: {e}")
 
     def save_current_data(self):
-        """Save current form data before navigating away"""
         try:
             self.data["family_hypertension"] = self.family_hypertension.get()
             self.data["family_diabetes"] = self.family_diabetes.get()
             self.data["family_malignancy"] = self.family_malignancy.get()
-            self.data["family_other"] = self.family_other.get().strip().lower().capitalize()
+            self.data["family_other"] = self.family_other.get_real_value().lower().capitalize()
             self.data["med_kidney_disease"] = self.med_kidney_disease.get()
             self.data["med_urinary_stone"] = self.med_urinary_stone.get()
             self.data["med_recurrent_uti"] = self.med_recurrent_uti.get()
             self.data["med_diabetes_type"] = self.med_diabetes_type.get()
-            self.data["med_other1"] = self.med_other1.get().strip().lower().capitalize()
+            self.data["med_other1"] = self.med_other1.get_real_value().lower().capitalize()
             
         except Exception as e:
             print(f"❌ Error saving current Patient History 1 data: {e}")
 
     def populate_fields(self):
-        """Populate fields with existing patient history data for editing"""
         if self.patient_id:
             try:
                 connect = db()
@@ -971,15 +805,13 @@ class PatientHistory1Window(BaseWindow):
                     self.family_hypertension.set(bool(history_data[0]))
                     self.family_diabetes.set(bool(history_data[1]))
                     self.family_malignancy.set(bool(history_data[2]))
-                    self.family_other.delete(0, tk.END)
-                    self.family_other.insert(0, history_data[3] if history_data[3] else '')
+                    self.family_other.set_real_value(history_data[3] if history_data[3] else '')
 
                     self.med_kidney_disease.set(bool(history_data[4]))
                     self.med_urinary_stone.set(bool(history_data[5]))
                     self.med_recurrent_uti.set(bool(history_data[6]))
                     self.med_diabetes_type.set(bool(history_data[7]))
-                    self.med_other1.delete(0, tk.END)
-                    self.med_other1.insert(0, history_data[8] if history_data[8] else '')
+                    self.med_other1.set_real_value(history_data[8] if history_data[8] else '')
 
                 cursor.close()
                 connect.close()
@@ -992,14 +824,13 @@ class PatientHistory1Window(BaseWindow):
             self.data["family_hypertension"] = self.family_hypertension.get()
             self.data["family_diabetes"] = self.family_diabetes.get()
             self.data["family_malignancy"] = self.family_malignancy.get()
-            self.data["family_other"] = self.family_other.get().strip().lower().capitalize()
+            self.data["family_other"] = self.family_other.get_real_value().lower().capitalize()
             self.data["med_kidney_disease"] = self.med_kidney_disease.get()
             self.data["med_urinary_stone"] = self.med_urinary_stone.get()
             self.data["med_recurrent_uti"] = self.med_recurrent_uti.get()
             self.data["med_diabetes_type"] = self.med_diabetes_type.get()
-            self.data["med_other1"] = self.med_other1.get().strip().lower().capitalize()
+            self.data["med_other1"] = self.med_other1.get_real_value().lower().capitalize()
 
-            # Pass edit mode and patient_id forward
             self.data["edit_mode"] = self.edit_mode
             self.data["patient_id"] = self.patient_id
             
@@ -1007,65 +838,53 @@ class PatientHistory1Window(BaseWindow):
 
         except Exception as e:
             print("Error with step 5 input: ", e)
-        
+
 class PatientHistory2Window(BaseWindow):
     def __init__(self, parent, data=None):
-        # Check if we're in edit mode
         self.edit_mode = data.get('edit_mode', False) if data else False
         self.patient_id = data.get('patient_id') if data else None
 
         super().__init__(parent, "Patient History Part 2", next_window=PatientHistory3Window, previous_window=PatientHistory1Window)
         self.data = data if data else {}
 
-        # Title Label - change based on mode
         title_text = "Edit Patient History Part 2" if self.edit_mode else "Patient History Part 2"
         tk.Label(self, text=title_text, font=("Merriweather bold", 25), bg="white").place(x=90, y=60)
 
-        # History of Present Illness
         tk.Label(self, text="History of Present Illness*", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=190)
         self.history_illness = tk.Text(self, width=80, height=5, font=("Merriweather light", 12), bg="white", bd=1, relief="solid")
         self.history_illness.place(x=120, y=240)
         self.add_placeholder(self.history_illness, "Type here")
 
-        # Pertinent Past Medical History
         tk.Label(self, text="Pertinent Past Medical History *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=400)
         self.past_medical_history = tk.Text(self, width=80, height=5, font=("Merriweather light", 12), bg="white", bd=1, relief="solid")
         self.past_medical_history.place(x=120, y=450)
         self.add_placeholder(self.past_medical_history, "Type here")
 
-        # Load data for both edit mode AND add mode
         if self.edit_mode and self.patient_id:
             self.populate_fields()
         elif not self.edit_mode and self.data:
             self.restore_form_data()
 
     def restore_form_data(self):
-        """Restore form data when navigating back in add mode"""
         try:
             if self.data.get("history_illness"):
-                self.history_illness.delete("1.0", "end")
-                self.history_illness.insert("1.0", self.data.get("history_illness"))
-                self.history_illness.config(fg="black")
+                self.set_text_value(self.history_illness, self.data.get("history_illness"))
                 
             if self.data.get("past_medical_history"):
-                self.past_medical_history.delete("1.0", "end")
-                self.past_medical_history.insert("1.0", self.data.get("past_medical_history"))
-                self.past_medical_history.config(fg="black")
+                self.set_text_value(self.past_medical_history, self.data.get("past_medical_history"))
             
         except Exception as e:
             print(f"❌ Error restoring Patient History 2 form data: {e}")
 
     def save_current_data(self):
-        """Save current form data before navigating away"""
         try:
-            self.data["history_illness"] = self.history_illness.get("1.0", "end-1c").strip()
-            self.data["past_medical_history"] = self.past_medical_history.get("1.0", "end-1c").strip()
+            self.data["history_illness"] = self.get_text_value(self.history_illness)
+            self.data["past_medical_history"] = self.get_text_value(self.past_medical_history)
             
         except Exception as e:
             print(f"❌ Error saving current Patient History 2 data: {e}")
         
     def populate_fields(self):
-        """Populate fields with existing patient history data for editing"""
         if self.patient_id:
             try:
                 connect = db()
@@ -1079,17 +898,11 @@ class PatientHistory2Window(BaseWindow):
                 history_data = cursor.fetchone()
 
                 if history_data:
-                    # Clear and populate fields only if value is not 'Type Here' or None
                     illness_text = history_data[0] if history_data[0] else ''
                     past_medical_text = history_data[1] if history_data[1] else ''
 
-                    self.history_illness.delete("1.0", "end")
-                    self.history_illness.insert("1.0", illness_text)
-                    self.history_illness.config(fg="black" if illness_text else "gray")
-
-                    self.past_medical_history.delete("1.0", "end")
-                    self.past_medical_history.insert("1.0", past_medical_text)
-                    self.past_medical_history.config(fg="black" if past_medical_text else "gray")
+                    self.set_text_value(self.history_illness, illness_text)
+                    self.set_text_value(self.past_medical_history, past_medical_text)
 
                 cursor.close()
                 connect.close()
@@ -1097,8 +910,24 @@ class PatientHistory2Window(BaseWindow):
             except Exception as e:
                 print(f"Error populating fields: {e}")
 
+    def set_text_value(self, text_widget, value):
+        """Set real value in Text widget, handling placeholder"""
+        text_widget.delete("1.0", "end")
+        if value and value.strip() and value != "Type here":
+            text_widget.insert("1.0", value)
+            text_widget.config(fg="black")
+        else:
+            text_widget.insert("1.0", "Type here")
+            text_widget.config(fg="gray")
+
+    def get_text_value(self, text_widget):
+        """Get real value from Text widget, excluding placeholder"""
+        content = text_widget.get("1.0", "end-1c").strip()
+        if content == "Type here":
+            return ""
+        return content
+
     def add_placeholder(self, text_widget, placeholder):
-        """Adds a placeholder to a Text widget and handles focus events."""
         def on_focus_in(event):
             if text_widget.get("1.0", "end-1c") == placeholder:
                 text_widget.delete("1.0", "end")
@@ -1116,10 +945,9 @@ class PatientHistory2Window(BaseWindow):
 
     def open_next(self, data=None):
         try:
-            self.data["history_illness"] = self.history_illness.get("1.0", "end-1c").strip()
-            self.data["past_medical_history"] = self.past_medical_history.get("1.0", "end-1c").strip()
+            self.data["history_illness"] = self.get_text_value(self.history_illness)
+            self.data["past_medical_history"] = self.get_text_value(self.past_medical_history)
 
-            # Pass edit mode and patient_id forward
             self.data["edit_mode"] = self.edit_mode
             self.data["patient_id"] = self.patient_id
             
@@ -1130,18 +958,15 @@ class PatientHistory2Window(BaseWindow):
 
 class PatientHistory3Window(BaseWindow):
     def __init__(self, parent, data):
-        # Check if we're in edit mode
         self.edit_mode = data.get('edit_mode', False) if data else False
         self.patient_id = data.get('patient_id') if data else None
 
         super().__init__(parent, "Patient History Part 3", next_window=MedicationWindow, previous_window=PatientHistory2Window)
         self.data = data if data else {}
 
-        # Title Label - change based on mode
         title_text = "Edit Patient History Part 3" if self.edit_mode else "Patient History Part 3"
         tk.Label(self, text=title_text, font=("Merriweather bold", 25), bg="white").place(x=90, y=60)
 
-        # Date of First Diagnosed having Kidney Disease 
         tk.Label(self, text="Date of First Diagnosed having Kidney Disease*", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=190)
         self.entry_diagnosed = DateEntry(self, width=18, font=("Merriweather light", 12), bg="white", date_pattern="yyyy-MM-dd", state="readonly")
         self.entry_diagnosed.place(x=120, y=240, height=25)
@@ -1150,19 +975,16 @@ class PatientHistory3Window(BaseWindow):
         self.entry_dialysis = DateEntry(self, width=18, font=("Merriweather light", 12), bg="white", date_pattern="yyyy-MM-dd", state="readonly")
         self.entry_dialysis.place(x=750, y=240, height=25)
 
-        # Mode (Peritoneal/Hemodialysis)
         tk.Label(self, text="Mode *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=310)
-        self.mode_var = tk.StringVar(value="hemodialysis")  # Default to hemodialysis
+        self.mode_var = tk.StringVar(value="hemodialysis")
         tk.Radiobutton(self, text="Peritoneal", variable=self.mode_var, value="peritoneal", bg="white", font=("Merriweather Sans", 12)).place(x=120, y=360)
         tk.Radiobutton(self, text="Hemodialysis", variable=self.mode_var, value="hemodialysis", bg="white", font=("Merriweather Sans", 12)).place(x=220, y=360)
 
-        # Type of Access 
         tk.Label(self, text="Type of Access *", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=310)
         self.access_options = ["L AVF", "R AVF", "L AVG", "R AVG", "L CVC", "R CVC", "L PDC", "R PDC"]
         self.entry_access = ttk.Combobox(self, values=self.access_options, width=17, font=("Merriweather light", 12), state="readonly")
         self.entry_access.place(x=420, y=360, height=25)
 
-        # Chronic Hemodialysis & Clinical Impression
         tk.Label(self, text="Date of First Chronic Hemodialysis", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=430)
         self.entry_chronic = DateEntry(self, width=18, font=("Merriweather light", 12), bg="white", date_pattern="yyyy-MM-dd", state="readonly")
         self.entry_chronic.place(x=120, y=480, height=25)
@@ -1172,14 +994,12 @@ class PatientHistory3Window(BaseWindow):
         self.entry_clinical.place(x=550, y=480, height=25)
         tk.Frame(self, bg="#979797", height=1, width=180).place(x=550, y=510)
 
-        # Load data for both edit mode AND add mode
         if self.edit_mode and self.patient_id:
             self.populate_fields()
         elif not self.edit_mode and self.data:
             self.restore_form_data()
 
     def restore_form_data(self):
-        """Restore form data when navigating back in add mode"""
         try:
             if self.data.get("date_diagnosed"):
                 from datetime import datetime
@@ -1201,27 +1021,24 @@ class PatientHistory3Window(BaseWindow):
                 self.entry_chronic.set_date(date_chronic)
                 
             if self.data.get("clinical_impression"):
-                self.entry_clinical.delete(0, tk.END)
-                self.entry_clinical.insert(0, self.data.get("clinical_impression"))
+                self.entry_clinical.set_real_value(self.data.get("clinical_impression"))
             
         except Exception as e:
             print(f"❌ Error restoring Patient History 3 form data: {e}")
 
     def save_current_data(self):
-        """Save current form data before navigating away"""
         try:
             self.data["date_diagnosed"] = self.entry_diagnosed.get_date().strftime("%Y-%m-%d")
             self.data["date_dialysis"] = self.entry_dialysis.get_date().strftime("%Y-%m-%d")
             self.data["mode"] = self.mode_var.get()
             self.data["access"] = self.entry_access.get()
             self.data["date_chronic"] = self.entry_chronic.get_date().strftime("%Y-%m-%d")
-            self.data["clinical_impression"] = self.entry_clinical.get().strip()
+            self.data["clinical_impression"] = self.entry_clinical.get_real_value()
             
         except Exception as e:
             print(f"❌ Error saving current Patient History 3 data: {e}")
 
     def populate_fields(self):
-        """Populate fields with existing patient history data for editing"""
         if self.patient_id:
             try:
                 connect = db()
@@ -1236,20 +1053,18 @@ class PatientHistory3Window(BaseWindow):
                 history_data = cursor.fetchone()
 
                 if history_data:
-                    # Clear and populate fields only if value is not 'Type Here' or None
                     if history_data[0]:
                         self.entry_diagnosed.set_date(history_data[0])
                     if history_data[1]:
                         self.entry_dialysis.set_date(history_data[1])
-                    if history_data[2] and history_data[2] != 'Type Here':
+                    if history_data[2]:
                         self.mode_var.set(history_data[2])
-                    if history_data[3] and history_data[3] != 'Type Here':
+                    if history_data[3]:
                         self.entry_access.set(history_data[3])
                     if history_data[4]:
                         self.entry_chronic.set_date(history_data[4])
-                    if history_data[5] and history_data[5] != 'Type Here':
-                        self.entry_clinical.delete(0, tk.END)
-                        self.entry_clinical.insert(0, history_data[5])
+                    
+                    self.entry_clinical.set_real_value(history_data[5] if history_data[5] else "")
 
                 cursor.close()
                 connect.close()
@@ -1264,9 +1079,8 @@ class PatientHistory3Window(BaseWindow):
             self.data["mode"] = self.mode_var.get()
             self.data["access"] = self.entry_access.get()
             self.data["date_chronic"] = self.entry_chronic.get_date().strftime("%Y-%m-%d")
-            self.data["clinical_impression"] = self.entry_clinical.get().strip()
+            self.data["clinical_impression"] = self.entry_clinical.get_real_value()
 
-            # Pass edit mode and patient_id forward
             self.data["edit_mode"] = self.edit_mode
             self.data["patient_id"] = self.patient_id
             
@@ -1287,7 +1101,6 @@ class MedicationWindow(BaseWindow):
         self.medication_entries = []
         self.max_columns = 3 
 
-        # Title Label - change based on mode
         title_text = "Edit Medications" if self.edit_mode else "Medication"
         tk.Label(self.main_frame, text=title_text, font=("Merriweather bold", 25), bg="white").pack(pady=20)
 
@@ -1308,19 +1121,16 @@ class MedicationWindow(BaseWindow):
         self.grid_frame = tk.Frame(self.scroll_frame, bg="white")
         self.grid_frame.pack(pady=10, padx=20, fill="x")
 
-        # Load medications if in edit mode
         if self.edit_mode and self.patient_id:
             self.load_existing_medications()
         else:
-            # Restore Previous Slots or Initialize New Slots
             if not MedicationWindow.medication_slots:
-                for i in range(9):  # Default 9 slots
+                for i in range(9):
                     MedicationWindow.medication_slots.append("")
         
         for i, value in enumerate(MedicationWindow.medication_slots):
             self.add_medication_slot(i + 1, value)
 
-        #+ Another Slot Button
         self.add_slot_button = tk.Button(
             self.grid_frame, text="+ Another Slot", font=("Merriweather Sans bold", 14),
             fg="blue", bg="white", bd=0, cursor="hand2", command=self.add_new_slot
@@ -1330,24 +1140,19 @@ class MedicationWindow(BaseWindow):
         self.right_panel = tk.Frame(self.main_frame, bg="white", width=200)
         self.right_panel.pack(side="right", fill="y", padx=20, pady=10)
 
-        # Mouse Scroll
         self.bind_scroll_events()
 
     def save_current_data(self):
-        """ NEW: Save current medication data"""
         try:
-            # Update the class-level medication slots with current values
             for i, entry in enumerate(self.medication_entries):
                 if i < len(MedicationWindow.medication_slots):
-                    MedicationWindow.medication_slots[i] = entry.get().strip()
+                    MedicationWindow.medication_slots[i] = entry.get_real_value()
                 else:
-                    MedicationWindow.medication_slots.append(entry.get().strip())
-            
+                    MedicationWindow.medication_slots.append(entry.get_real_value())
         except Exception as e:
             print(f"❌ Error saving current medication data: {e}")
 
     def load_existing_medications(self):
-        """Load existing medications for editing"""
         if self.patient_id:
             try:
                 connect = db()
@@ -1362,15 +1167,13 @@ class MedicationWindow(BaseWindow):
                 
                 medications = cursor.fetchall()
                 
-                # Clear existing slots
                 MedicationWindow.medication_slots.clear()
                 
-                # Add medications to slots
                 for med in medications:
-                    if med[0] and med[0] != 'Type Here':
-                        MedicationWindow.medication_slots.append(med[0])
+                    med_name = med[0] if med[0] else ""
+                    if med_name and med_name.strip() and med_name.strip() not in ['Type Here', 'Type here', 'type here', '']:
+                        MedicationWindow.medication_slots.append(med_name.strip())
                 
-                # Ensure at least 9 slots
                 while len(MedicationWindow.medication_slots) < 9:
                     MedicationWindow.medication_slots.append("")
                 
@@ -1379,6 +1182,7 @@ class MedicationWindow(BaseWindow):
                 
             except Exception as e:
                 print(f"Error loading medications: {e}")
+                MedicationWindow.medication_slots = [""] * 9
 
     def add_medication_slot(self, slot_number, value=""):
         frame = tk.Frame(self.grid_frame, bg="white", bd=1)
@@ -1389,19 +1193,8 @@ class MedicationWindow(BaseWindow):
         entry.pack(anchor="w", pady=5)
         tk.Frame(frame, bg="black", height=1, width=150).pack(anchor="w", pady=5)
 
-        # Clear placeholder when populating with real data
-        if value and value != 'Type Here' and value.strip():
-            current_text = entry.get()
-            if current_text == "Type Here":
-                entry.delete(0, tk.END)
-            
-            # Insert the real medication value
-            entry.insert(0, value)
-            
-            entry.config(fg="black")
-        else:
-            pass
-            
+        entry.set_real_value(value)
+        
         self.medication_entries.append(entry)
 
     def add_new_slot(self):
@@ -1417,13 +1210,11 @@ class MedicationWindow(BaseWindow):
         self.canvas.yview_moveto(1)
 
     def save_slots(self):
-        """Save slots"""
         for i, entry in enumerate(self.medication_entries):
-            MedicationWindow.medication_slots[i] = entry.get().strip()
+            MedicationWindow.medication_slots[i] = entry.get_real_value()
         print("Saved Medications:", MedicationWindow.medication_slots)
     
     def bind_scroll_events(self):
-        """Enable mouse."""
         def on_mousewheel(event):
             self.canvas.yview_scroll(-1 * (event.delta // 120), "units")
 
@@ -1432,23 +1223,18 @@ class MedicationWindow(BaseWindow):
         self.canvas.bind_all("<Button-5>", lambda e: self.canvas.yview_scroll(1, "units"))
 
     def refresh_homepage_recent_patient(self):
-        """Refresh the homepage recent patient display AND patient table after adding/updating a patient"""
         try:
-            # Find the main application window (HomePage)
             current_window = self.master
             while current_window and not hasattr(current_window, 'pages'):
                 current_window = current_window.master
             
-            # If we found the HomePage and it has pages
             if current_window and hasattr(current_window, 'pages'):
-                # Refresh Home page recent patient
                 if 'Home' in current_window.pages:
                     home_page = current_window.pages['Home']
                     if hasattr(home_page, 'refresh_recent_patient'):
                         home_page.refresh_recent_patient()
                         print("✅ Homepage recent patient refreshed successfully!")
                 
-                # Refresh Patient page table
                 if 'Patient' in current_window.pages:
                     patient_page = current_window.pages['Patient']
                     if hasattr(patient_page, 'refresh_table'):
@@ -1472,7 +1258,6 @@ class MedicationWindow(BaseWindow):
             unique_id = cursor.lastrowid
             return unique_id
 
-
         except Exception as e:
             print(f'Failed updating status notif logs ({notif_type})!', e)
         
@@ -1481,17 +1266,12 @@ class MedicationWindow(BaseWindow):
             connect.close()
 
     def update_form(self):
-        """ COMPLETE UPDATE FUNCTIONALITY"""
         if not self.edit_mode or not self.patient_id:
             print("Not in edit mode or no patient ID")
             return
         
         username = login_shared_states.get('logged_username', None)
 
-        #FOR NOTIFICATION WAG GALAWIN
-        #FOR NOTIFICATION WAG GALAWIN
-        #FOR NOTIFICATION WAG GALAWIN
-        #FOR NOTIFICATION WAG GALAWIN
         try:
             connect = db()
             cursor = connect.cursor()
@@ -1513,14 +1293,6 @@ class MedicationWindow(BaseWindow):
             stat_patient_name = reactive_status[0]
             stat_status = reactive_status[1]
 
-
-            # cursor.execute("""
-            #     SELECT patient_name FROM patient_list
-            #     WHERE patient_id = %s
-            # """, (self.patient_id,))
-            
-            # patient_fn = cursor.fetchone()[0]
-
         except Exception as e:
             print('Error fetching user_fullname', e)
         
@@ -1531,14 +1303,12 @@ class MedicationWindow(BaseWindow):
         try:
             print(f"🔄 Updating patient {self.patient_id} with new data...")
             
-            # Import the update functions
             from backend.crud import (
                 update_patient_info, update_patient_contact, update_patient_relative,
                 update_patient_benefits, update_patient_history, update_patient_medications,
                 update_patient_list
             )
             
-            # 1. Update Patient Information
             patient_information = {
                 "last_name": self.data.get("patient_last_name").lower().capitalize(),
                 "first_name": self.data.get("patient_first_name").lower().capitalize(),
@@ -1557,9 +1327,6 @@ class MedicationWindow(BaseWindow):
             now = datetime.now()
             right_now = now.strftime('%Y-%m-%d %H:%M:%S')
 
-            #FOR NOTIFICATION WAG GALAWIN
-            #FOR NOTIFICATION WAG GALAWIN
-            #FOR NOTIFICATION WAG GALAWIN
             if stat_status.lower() ==  'inactive' and patient_information['status'].lower() == 'active':
                 self.update_notif_status(user_fn, self.patient_id, stat_patient_name, 'Reactivated', 'Patient Status')
 
@@ -1582,19 +1349,13 @@ class MedicationWindow(BaseWindow):
                     {right_now}
                 """)
 
-            #FOR NOTIFICATION WAG GALAWIN
-            #FOR NOTIFICATION WAG GALAWIN
-            #FOR NOTIFICATION WAG GALAWIN
-
             if update_patient_info(self.patient_id, patient_information):
                 print("Patient info updated successfully")
-
                 self.refresh_homepage_recent_patient()
             else:
                 print("Error updating patient info")
                 return
 
-            # 2. Update Contact Information
             patient_contact_information = {
                 "last_name": self.data.get("contact_last_name").lower().capitalize(),
                 "first_name": self.data.get("contact_first_name").lower().capitalize(),
@@ -1610,7 +1371,6 @@ class MedicationWindow(BaseWindow):
                 print("Error updating contact info")
                 return
 
-            # 3. Update Relative Information
             patient_relative_information = {
                 "last_name": self.data.get("relative_last_name").lower().capitalize(),
                 "first_name": self.data.get("relative_first_name").lower().capitalize(),
@@ -1625,7 +1385,6 @@ class MedicationWindow(BaseWindow):
                 print("Error updating relative info")
                 return
 
-            # 4. Update Benefits Information
             patient_benefits = {
                 "is_senior": self.data.get("is_senior"),
                 "is_pwd": self.data.get("is_pwd"),
@@ -1641,7 +1400,6 @@ class MedicationWindow(BaseWindow):
                 print("Error updating benefits info")
                 return
 
-            # 5. Update Patient History
             patient_history_1 = {
                 "has_hypertension": self.data.get("family_hypertension"),
                 "has_diabetes": self.data.get("family_diabetes"),
@@ -1668,7 +1426,6 @@ class MedicationWindow(BaseWindow):
                 "clinical_impression": self.data.get("clinical_impression").capitalize(),
             }
 
-            # Combine all history data
             patient_history_combined = {**patient_history_1, **patient_history_2, **patient_history_3}
             
             if update_patient_history(self.patient_id, patient_history_combined):
@@ -1677,8 +1434,11 @@ class MedicationWindow(BaseWindow):
                 print("Error updating patient history")
                 return
 
-            # 6. Update Medications
-            medication_entries_row = [entry.get().strip().capitalize() for entry in self.medication_entries if entry.get().strip() and entry.get().strip() != "Type Here"]
+            medication_entries_row = [
+                entry.get_real_value().capitalize() 
+                for entry in self.medication_entries 
+                if entry.get_real_value()
+            ]
             
             if update_patient_medications(self.patient_id, medication_entries_row):
                 print("Medications updated successfully")
@@ -1686,7 +1446,6 @@ class MedicationWindow(BaseWindow):
                 print("Error updating medications")
                 return
 
-            # 7. Update Patient List (main table)
             first_name = self.data.get("patient_first_name")
             middle_name = self.data.get("patient_middle_name")
             last_name = self.data.get("patient_last_name")
@@ -1710,18 +1469,6 @@ class MedicationWindow(BaseWindow):
                 return
             
             self.destroy()
-
-            # if (
-            #     update_patient_info(self.patient_id, patient_information) 
-            #     or update_patient_contact(self.patient_id, patient_contact_information) 
-            #     or update_patient_relative(self.patient_id, patient_relative_information) 
-            #     or update_patient_benefits(self.patient_id, patient_benefits)
-            #     or update_patient_history(self.patient_id, patient_history_combined)
-            #     or update_patient_medications(self.patient_id, medication_entries_row)
-            #     or update_patient_list(self.patient_id, patient_list_data)
-            # ):
-
-            #     self.update_notif_logs(user_fn, 'Patient Credentials', self.patient_id, 'Edit Patient')
             
             print("Update completed and window closed!")
             
@@ -1807,7 +1554,6 @@ class MedicationWindow(BaseWindow):
                 "has_diabetes": self.data.get("family_diabetes"),
                 "has_malignancy": self.data.get("family_malignancy"), 
                 "other_family_history": self.data.get("family_other"),
-
                 "has_kidney_disease": self.data.get("med_kidney_disease"),
                 "has_urinary_stone": self.data.get("med_urinary_stone"),
                 "has_recurrent_uti": self.data.get("med_recurrent_uti"), 
@@ -1829,7 +1575,11 @@ class MedicationWindow(BaseWindow):
                 "clinical_impression": self.data.get("clinical_impression"), 
             }
 
-            medication_entries_row = [entries.get().strip().capitalize() for entries in self.medication_entries]
+            medication_entries_row = [
+                entry.get_real_value().capitalize() 
+                for entry in self.medication_entries 
+                if entry.get_real_value()
+            ]
             medication_entries_data = ', '.join(medication_entries_row)
 
             patient_history_column = ', '.join(
@@ -1869,7 +1619,6 @@ class MedicationWindow(BaseWindow):
             print(patient_list_column)
             print(patient_list_row)
 
-            #this creates the main table which includes the patient id
             pk_patient_id = submit_form_creation(patient_list_column, patient_list_row, table_name='patient_list')
 
             if pk_patient_id:
@@ -1958,7 +1707,6 @@ class MedicationWindow(BaseWindow):
             print('fullllllllllllllllllll nameeeeeeeeeeeeeeeeeeeeee', joined_fn)
 
             try:
-
                 username = login_shared_states.get('logged_username', None)
 
                 cursor.execute("""
