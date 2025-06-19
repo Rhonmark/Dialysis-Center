@@ -966,9 +966,9 @@ class HomePageContent(ctk.CTkFrame):
 
                 self.total_patients = sum(values)
 
-                print('active:', self.active_patients)
-                print('inactive:', self.inactive_patients)
-                print('total patient:', self.total_patients)
+                # print('active:', self.active_patients)
+                # print('inactive:', self.inactive_patients)
+                # print('total patient:', self.total_patients)
 
                 # Update the labels
                 self.update_patient_labels()
@@ -3021,13 +3021,13 @@ class PatientPage(ctk.CTkFrame):
 
             if get_patient_info_data:
                 self.display_patient_basic_info(get_patient_info_data)
-                print("patient info: ", get_patient_info_data)
+                # print("patient info: ", get_patient_info_data)
             else:
                 messagebox.showwarning("No Data", "Patient record not found")
 
             if get_patient_philhealth_data:
                 self.display_patient_philhealth_info(get_patient_philhealth_data)
-                print("patient philhealth info: ", get_patient_philhealth_data)
+                # print("patient philhealth info: ", get_patient_philhealth_data)
             else:
                 messagebox.showwarning("No Data", "Patient record not found")
                 
@@ -4272,30 +4272,30 @@ class SupplyPage(ctk.CTkFrame):
 
         # quantity_used_supply(133)
 
-        # def quantity_used_patient(patient_id):
-        #     try:
-        #         connect = db()
-        #         cursor = connect.cursor()
+        def quantity_used_patient(patient_id):
+            try:
+                connect = db()
+                cursor = connect.cursor()
 
-        #         cursor.execute("""
-        #             SELECT iu.item_id, s.item_name, s.category, iu.quantity_used, iu.usage_date, iu.usage_time 
-        #             FROM item_usage iu JOIN supply s ON iu.item_id = s.item_id
-        #             WHERE iu.patient_id = %s
-        #             ORDER BY iu.usage_date DESC	
-        #         """, (patient_id,))
+                cursor.execute("""
+                    SELECT iu.item_id, s.item_name, s.category, iu.quantity_used, iu.usage_date, iu.usage_time 
+                    FROM item_usage iu JOIN supply s ON iu.item_id = s.item_id
+                    WHERE iu.patient_id = %s
+                    ORDER BY iu.usage_date DESC	
+                """, (patient_id,))
 
-        #         quantity_used_result = cursor.fetchall()
-        #         for i in quantity_used_result:
-        #             print(i)
+                quantity_used_result = cursor.fetchall()
+                for i in quantity_used_result:
+                    print(i)
 
-        #     except Exception as e:
-        #         print('Error retrieving quantiity used table for patient ', e)
-        #     finally:
-        #         cursor.close()
-        #         connect.close()
+            except Exception as e:
+                print('Error retrieving quantiity used table for patient ', e)
+            finally:
+                cursor.close()
+                connect.close()
                 
-        # print('SEPARATOR================================')
-        # quantity_used_patient(63)
+        print('SEPARATOR================================')
+        quantity_used_patient(63)
 
         # Quantity Used Button
         self.Quantity_Used_Button = ctk.CTkButton(
@@ -5185,11 +5185,11 @@ class ReportPage(ctk.CTkFrame):
         self.criticalstock_count = data_count('stock_level_status', 'Critical Stock Level', table_name='supply')
         self.overall_supply_count = overall_data_count('supply')
 
-        print('count of active patient: ', self.active_patient)
-        print('count of inactive patient: ', self.inactive_patient)
-        print('count of low stock items: ', self.lowstock_count)
-        print('count of critical stock items: ', self.criticalstock_count)
-        print('overall supply count: ', self.overall_supply_count)
+        # print('count of active patient: ', self.active_patient)
+        # print('count of inactive patient: ', self.inactive_patient)
+        # print('count of low stock items: ', self.lowstock_count)
+        # print('count of critical stock items: ', self.criticalstock_count)
+        # print('overall supply count: ', self.overall_supply_count)
 
         self.low_stock_canvas = None
         self.critical_stock_canvas = None
