@@ -6697,11 +6697,220 @@ class SettingsPage(ctk.CTkFrame):
         super().__init__(parent, fg_color="#E8FBFC")
         self.shared_state = shared_state
 
-        label = ctk.CTkLabel(self, text="Settings Page", font=ctk.CTkFont(size=24, weight="bold"), text_color="black")
-        label.pack(pady=100)
+        Title_font = ("Merriweather Bold", 18)
+        SubTitle_font = ("Merriweather Bold", 12)
+        Ouput_font = ("Poppins Regular" ,18)
+        SubOutput_font = ("Poppins Regular" ,13)
+        SubLabel_font = ("Merriweather Sans Light" ,9)
+        Button_font =("Merriweather Sans Light",14)
+        DeveloperName_font = ("Merriweather Sans Bold",10)
+        DeveloperContact_font = ("Merriweather Sans light",10)
 
-        logout_button = ctk.CTkButton(self, text="Logout", font=ctk.CTkFont(size=16, weight="bold"), command=self.logout)
-        logout_button.pack(pady=20)
+    #About Company Frame
+        About_Frame = ctk.CTkFrame(self,height=340,width=870,fg_color="#FFFFFF",corner_radius=20,)
+        About_Frame.place(x=130,y=100)
+
+        leftbar_frame = ctk.CTkFrame(About_Frame,height=340,width=15,fg_color="#1A374D",corner_radius=20)
+        leftbar_frame.place(x=0)
+
+        About_Title=ctk.CTkLabel(About_Frame,text="About Us",text_color="#000000",font=Title_font,bg_color="#FFFFFF",height=18)
+        About_Title.place(x=50,y=20)
+        About_Sublabel = ctk.CTkLabel(About_Frame,text="Information about the company.",text_color="#104E44",font=SubLabel_font,bg_color="#FFFFFF",height=10)
+        About_Sublabel.place(x=50,y=50)
+
+        AboutCompany_frame=ctk.CTkFrame(About_Frame,height=215,width=345,fg_color="#FFFFFF",bg_color="#FFFFFF",corner_radius=20,border_width=1.5,border_color="#BBBBBB")
+        AboutCompany_frame.place(relx=.08,rely=.25)
+        AboutCompany_Title=ctk.CTkLabel(AboutCompany_frame,text="First Priority Dialysis Center",text_color="#000000",font=SubTitle_font,bg_color="#FFFFFF",height=18)
+        AboutCompany_Title.place(x=30,y=30)
+
+        ServicesOffer_frame=ctk.CTkFrame(About_Frame,height=215,width=345,fg_color="#FFFFFF",bg_color="#FFFFFF",corner_radius=20,border_width=1.5,border_color="#BBBBBB")
+        ServicesOffer_frame.place(relx=.52,rely=.25)
+        Services_Title=ctk.CTkLabel(ServicesOffer_frame,text="Services we Offer",text_color="#000000",font=SubTitle_font,bg_color="#FFFFFF",height=18)
+        Services_Title.place(x=30,y=30)
+
+
+    #Help/FAQS Frame
+        Help_Mainframe = ctk.CTkFrame(self,height=480,width=870,fg_color="#FFFFFF",corner_radius=20)
+        Help_Mainframe.place(x=130,y=495)
+
+        leftbar_frame = ctk.CTkFrame(Help_Mainframe,height=480,width=15,fg_color="#1A374D",corner_radius=20)
+        leftbar_frame.place(x=0)
+
+        Help_Title=ctk.CTkLabel(Help_Mainframe,text="Help/FAQs",text_color="#000000",font=Title_font,bg_color="#FFFFFF",height=18)
+        Help_Title.place(x=50,y=20)
+        Help_Sublabel = ctk.CTkLabel(Help_Mainframe,text="Display the frequent ask questions.",text_color="#104E44",font=SubLabel_font,bg_color="#FFFFFF",height=10)
+        Help_Sublabel.place(x=50,y=50)
+
+        Help_Frame = ctk.CTkScrollableFrame(Help_Mainframe,height=350,width=790,fg_color="#FFFFFF",scrollbar_button_color="#FFFFFF",scrollbar_button_hover_color="#FFFFFF")
+        Help_Frame.place(relx=.5125,rely=.575,anchor="center")
+
+    #Question and Answer Maximum of 150 Characthers for Answer
+    #Sample Data lang toh
+        cards_data = [
+            {"title": "What is this app for?", "body": "This app helps you manage your tasks efficiently."},
+            {"title": "How to reset password?", "body": "Click on 'Forgot Password' at login screen and follow the instructions."},
+            {"title": "Can I sync data?", "body": "Yes, sync across all devices using your account."},
+            {"title": "Is my data private?", "body": "We use end-to-end encryption for all sensitive data."},
+            {"title": "How to contact support?", "body": "You can reach out via the help section or email support@sample.com."},
+            {"title": "Where is my backup?", "body": "Backups are stored securely and can be restored from settings."},
+            {"title": "Where is my backup?", "body": "Backups are stored securely and can be restored from settings."},
+            {"title": "Where is my backup?", "body": "Backups are stored securely and can be restored from settings."}
+        ]
+
+        Question_font = ("Merriweather bold", 11)
+        Answer_font = ("Poppins",9)
+
+        # Create cards using grid
+        for i, data in enumerate(cards_data):
+            row = i // 2
+            col = i % 2
+
+            card = ctk.CTkFrame(Help_Frame, width=370, height=100, corner_radius=15, fg_color="white",border_width=1.5,border_color="#BBBBBB")
+            card.grid(row=row, column=col, padx=10, pady=10)
+
+            # Icon
+            Question_image = ctk.CTkImage(Image.open("assets/QuestionIcon.png"), size=(26,26))
+            icon_label = ctk.CTkLabel(card, image=Question_image, text="")
+            icon_label.place(relx=.1, rely=.5,anchor="center")
+
+            # Title
+            title_label = ctk.CTkLabel(card, text=data["title"], font=Question_font, text_color="#3B3939",height=11)
+            title_label.place(x=60, y=15)
+
+            # Body
+            body_label = ctk.CTkLabel(
+                card,
+                text=data["body"],
+                font=Answer_font,
+                text_color="#104E44",
+                wraplength=280,
+                justify="left"
+            )
+            body_label.place(x=60, y=35)
+
+    #Current User Frame
+        User_frame = ctk.CTkFrame(self,height=95,width=230,fg_color="#fFFFFF",corner_radius=10)
+        User_frame.place(x=1070,y=100)
+
+        topbar_frame = ctk.CTkFrame(User_frame,height=7,width=230,fg_color="#63BCFF",corner_radius=20)
+        topbar_frame.place(y=0)
+
+        #Output
+        User_Output=ctk.CTkLabel(User_frame,text="Tristan Joe Lopez",text_color="#000000",font=Ouput_font,height=18,bg_color="#FFFFFF")
+        User_Output.place(relx=.125,rely=.25)
+
+        #Output
+        position_output = ctk.CTkLabel(User_frame,text="Admin",text_color="#104E44",font=SubOutput_font,height=13,bg_color="#FFFFFF")
+        position_output.place(relx=.125,rely=.525)
+
+        seperator = ctk.CTkLabel(User_frame,text=" | ",text_color="#104E44",font=SubOutput_font,height=13,bg_color="#FFFFFF")
+        seperator.place(relx=.3125,rely=.525)
+
+        #Output
+        username_output = ctk.CTkLabel(User_frame,text="trsitojoe",text_color="#104E44",font=SubOutput_font,height=13,bg_color="#FFFFFF")
+        username_output.place(relx=.3625,rely=.525)
+
+    #Date Time Frame
+        DateTime_Frame = ctk.CTkFrame(self,height=95,width=145,fg_color="#FFFFFF",corner_radius=10)
+        DateTime_Frame.place(x=1330,y=100)
+
+        topbar_frame = ctk.CTkFrame(DateTime_Frame,height=7,width=145,fg_color="#88BD8E",corner_radius=20)
+        topbar_frame.place(y=0)
+
+        #Output
+        CurrentTime_output=ctk.CTkLabel(DateTime_Frame,text="",text_color="#000000",font=Ouput_font,height=18,bg_color="#FFFFFF")
+        CurrentTime_output.place(relx=.5,rely=.40,anchor="center")
+
+        CurretDate_output = ctk.CTkLabel(DateTime_Frame,text="",text_color="#104E44",font=SubOutput_font,height=13,bg_color="#FFFFFF")
+        CurretDate_output.place(relx=.5,rely=.65,anchor="center")
+
+        def update_time():
+            now = datetime.datetime.now()
+            CurrentTime_output.configure(text=now.strftime("%H:%M"))
+            CurretDate_output.configure(text=now.strftime("%m/%d/%y"))
+            self.after(1000, update_time)
+
+        update_time() 
+
+
+    #Sign Out Frame
+        SignOut_Frame =ctk.CTkFrame(self,height=155,width=400,fg_color="#FFFFFF",corner_radius=20)
+        SignOut_Frame.place(x=1070,y=240)
+
+        topbar_frame = ctk.CTkFrame(SignOut_Frame,height=15,width=400,fg_color="#AC1616",corner_radius=20)
+        topbar_frame.place(y=0)
+
+        Signout_Title=ctk.CTkLabel(SignOut_Frame,text="End Session",text_color="#000000",font=Title_font,height=18)
+        Signout_Title.place(relx=.5,rely=.25,anchor="center")
+        Signout_SubLabel = ctk.CTkLabel(SignOut_Frame,text="Log out from the system.",text_color="#104E44",font=SubLabel_font,height=10)
+        Signout_SubLabel.place(relx=.5,rely=.4,anchor="center")
+
+        Signout_image = ctk.CTkImage(Image.open("assets/ExitIcon.png"), size=(20,20))
+        logout_button = ctk.CTkButton(SignOut_Frame, image=Signout_image,compound="left",text="Sign Out", width=260,height=37,text_color="#FFFFFF",fg_color="#AC1616",bg_color="#FFFFFF",font=Button_font,corner_radius=20, command=self.logout)
+        logout_button.place(relx=.5,rely=.5,y=30,anchor="center")
+
+    #Login Logs Frame
+        LoginLogs_Frame = ctk.CTkFrame(self,height=320,width=400,fg_color="#FFFFFF",corner_radius=20)
+        LoginLogs_Frame.place(x=1070,y=420)
+
+        topbar_frame = ctk.CTkFrame(LoginLogs_Frame,height=15,width=400,fg_color="#1A374D",corner_radius=20)
+        topbar_frame.place(y=0)
+
+        LoginLogs_Title=ctk.CTkLabel(LoginLogs_Frame,text="Login Logs",text_color="#000000",font=Title_font,bg_color="#FFFFFF",height=18)
+        LoginLogs_Title.place(x=30,y=30)
+        LoginLogs_Sublabel = ctk.CTkLabel(LoginLogs_Frame,text="View your recent login activity.",text_color="#104E44",font=SubLabel_font,bg_color="#FFFFFF",height=10)
+        LoginLogs_Sublabel.place(x=30,y=60)
+
+    #Developers Frame
+        Developers_Frame=ctk.CTkFrame(self,height=200,width=400,fg_color="#FFFFFF",corner_radius=15)
+        Developers_Frame.place(x=1070,y=775)
+
+        leftbar_frame = ctk.CTkFrame(Developers_Frame,height=200,width=15,fg_color="#1A374D",corner_radius=20)
+        leftbar_frame.place(x=0)
+
+        LoginLogs_Title=ctk.CTkLabel(Developers_Frame,text="Contact Developers",text_color="#000000",font=SubTitle_font,bg_color="#FFFFFF",height=12)
+        LoginLogs_Title.place(x=30,y=15)
+        LoginLogs_Sublabel = ctk.CTkLabel(Developers_Frame,text="If you encounter any issues, feel free to contact the developers below.",text_color="#104E44",font=SubLabel_font,bg_color="#FFFFFF",height=10)
+        LoginLogs_Sublabel.place(x=30,y=30)
+
+        #Rhonnmark Heloerentino Information
+        developer1 = ctk.CTkFrame(Developers_Frame,height=44,width=270,fg_color="#FFFFFF")
+        developer1.place(relx=.1,rely=.25)
+
+        developerIcon_image = ctk.CTkImage(Image.open("assets/DeveloperIcon.png"), size=(22,22))
+        developerIcon=ctk.CTkLabel(developer1,image=developerIcon_image,text="")
+        developerIcon.place(relx=.1,rely=.5,anchor="center")
+        developer_name = ctk.CTkLabel(developer1,text="Rhonnmark L. Helorentino",text_color="#5B5B5B",font=DeveloperName_font,bg_color="#FFFFFF",height=10)
+        developer_name.place(relx=.15,rely=.17)
+        developer_name = ctk.CTkLabel(developer1,text="12121212121 | qrlhelorentino@tip.edu.ph",text_color="#000000",font=DeveloperContact_font,bg_color="#FFFFFF",height=10)
+        developer_name.place(relx=.15,rely=.5)
+
+        #Tristan Joe Lopez Information
+        developer2 = ctk.CTkFrame(Developers_Frame,height=44,width=270,fg_color="#FFFFFF")
+        developer2.place(relx=.1,rely=.50)
+
+        developerIcon_image = ctk.CTkImage(Image.open("assets/DeveloperIcon.png"), size=(22,22))
+        developerIcon=ctk.CTkLabel(developer2,image=developerIcon_image,text="")
+        developerIcon.place(relx=.1,rely=.5,anchor="center")
+        developer_name = ctk.CTkLabel(developer2,text="Tristan Joe A. Lopez",text_color="#5B5B5B",font=DeveloperName_font,bg_color="#FFFFFF",height=10)
+        developer_name.place(relx=.15,rely=.17)
+        developer_name = ctk.CTkLabel(developer2,text="12121212121 | tjalopez@tip.edu.ph",text_color="#000000",font=DeveloperContact_font,bg_color="#FFFFFF",height=10)
+        developer_name.place(relx=.15,rely=.5)
+
+
+        #Rod Vince Manzon
+        developer3 = ctk.CTkFrame(Developers_Frame,height=44,width=270,fg_color="#FFFFFF")
+        developer3.place(relx=.1,rely=.75)
+
+        developerIcon_image = ctk.CTkImage(Image.open("assets/DeveloperIcon.png"), size=(22,22))
+        developerIcon=ctk.CTkLabel(developer3,image=developerIcon_image,text="")
+        developerIcon.place(relx=.1,rely=.5,anchor="center")
+        developer_name = ctk.CTkLabel(developer3,text="Rod Vince B. Manzon",text_color="#5B5B5B",font=DeveloperName_font,bg_color="#FFFFFF",height=10)
+        developer_name.place(relx=.15,rely=.17)
+        developer_name = ctk.CTkLabel(developer3,text="09270542040 | qrvbmanzon@tip.edu.ph",text_color="#000000",font=DeveloperContact_font,bg_color="#FFFFFF",height=10)
+        developer_name.place(relx=.15,rely=.5)
+        
+
 
     def db_connection(self):
         connect = db()
