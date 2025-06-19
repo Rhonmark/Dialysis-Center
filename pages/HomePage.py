@@ -6393,20 +6393,20 @@ class MaintenancePage(ctk.CTkFrame):
         ScheduleBackup_Button.place(x=300,y=80)
         
         LogsIcon_image = ctk.CTkImage(Image.open("assets/LogsIcon.png"), size=(20,20))
-        BackupLogs_Button = ctk.CTkButton(option_frame,
+        ImportBackup_Button = ctk.CTkButton(option_frame,
                                             image=LogsIcon_image,
                                             compound="left",
                                             bg_color="transparent",
-                                            fg_color="#103047",
+                                            fg_color="#1A374D",
                                             hover_color="#25475A",
                                             width=180,
                                             height=60,
                                             corner_radius=20,
-                                            text="History\nLogs",
+                                            text="Import\nBackup",
                                             text_color="white",
                                             cursor="hand2",
                                             font=button_font)
-        BackupLogs_Button.place(x=550,y=80)
+        ImportBackup_Button.place(x=550,y=80)
 
         Schedule_frame = ctk.CTkFrame(Maintenance_MainFrame,
                                     bg_color="transparent" ,
@@ -6592,7 +6592,7 @@ class MaintenancePage(ctk.CTkFrame):
 
         update_disk_usage()
 
-        #Export Frame/Print Frame
+    #Export Frame/Print Frame
         Print_MainFrame = ctk.CTkFrame (self,
                                             bg_color="transparent", 
                                             fg_color='#FFFFFF',
@@ -6602,9 +6602,9 @@ class MaintenancePage(ctk.CTkFrame):
                                             )
         Print_MainFrame.place(x=1150,y=390)
 
-        Print_label = ctk.CTkLabel(Print_MainFrame, bg_color="transparent",text="Data Import/Export",text_color="black",font=SubTitle_font)
+        Print_label = ctk.CTkLabel(Print_MainFrame, bg_color="transparent",text="Data Export",text_color="black",font=SubTitle_font)
         Print_label.place(x=30,y=20)
-        print_sublabel = ctk.CTkLabel(Print_MainFrame, bg_color="transparent",text="Import your Backup/Export a PDF file of tables",text_color="#104E44",font=sublabel_font)
+        print_sublabel = ctk.CTkLabel(Print_MainFrame, bg_color="transparent",text="Export the data available on report",text_color="#104E44",font=sublabel_font)
         print_sublabel.place(x=30,y=50)
 
         leftbar_frame = ctk.CTkFrame(Print_MainFrame,
@@ -6614,23 +6614,6 @@ class MaintenancePage(ctk.CTkFrame):
                                      height=225,
                                      corner_radius=20 )
         leftbar_frame.place(x=0)
-
-        importbackup_image = ctk.CTkImage(Image.open("assets/ImportBackup.png"), size=(20,20))
-        Importbackup_Button = ctk.CTkButton(Print_MainFrame,
-                                            image=importbackup_image,
-                                            compound="left",
-                                            bg_color="transparent",
-                                            fg_color="#86DAA2",
-                                            hover_color="#69CE8B",
-                                            width=200,
-                                            height=40,
-                                            corner_radius=20,
-                                            text="Import Backup file",
-                                            text_color="white",
-                                            cursor="hand2",
-                                            font=button_font,
-                                            )
-        Importbackup_Button.place(x=100,y=90)
 
         exportpdf_image = ctk.CTkImage(Image.open("assets/ExportPDF.png"), size=(20,20))
         ExportPDF_Button = ctk.CTkButton(Print_MainFrame,
@@ -6647,23 +6630,23 @@ class MaintenancePage(ctk.CTkFrame):
                                             cursor="hand2",
                                             font=button_font,     
                                             )
-        ExportPDF_Button.place(x=100,y=150)
+        ExportPDF_Button.place(x=100,y=120)
 
 
         #Weekly Usage of Backup Frame
-        NumberofBackup_1week_Frame = ctk.CTkFrame (self,
+        Employee_Backups_Frame = ctk.CTkFrame (self,
                                             bg_color="transparent", 
                                             fg_color='#FFFFFF',
                                             width=400,
                                             height=325,
                                             corner_radius=20
                                             )
-        NumberofBackup_1week_Frame.place(x=1150,y=650)
+        Employee_Backups_Frame.place(x=1150,y=650)
 
-        Numberbackup_label = ctk.CTkLabel(NumberofBackup_1week_Frame, bg_color="transparent",text="Weekly Backup Count",text_color="black",font=SubTitle_font)
-        Numberbackup_label.place(x=30,y=20)
-        numberbackup_sublabel = ctk.CTkLabel(NumberofBackup_1week_Frame, bg_color="transparent",text="Current data.",text_color="#104E44",font=sublabel_font)
-        numberbackup_sublabel.place(x=30,y=50)
+        Employeebackup_label = ctk.CTkLabel(Employee_Backups_Frame, bg_color="transparent",text="Employee Backups",text_color="black",font=SubTitle_font)
+        Employeebackup_label.place(x=30,y=20)
+        employee_backup_sublabel = ctk.CTkLabel(Employee_Backups_Frame, bg_color="transparent",text="Backups made per employee",text_color="#104E44",font=sublabel_font)
+        employee_backup_sublabel.place(x=30,y=50)
 
 class SettingsPage(ctk.CTkFrame):
     def __init__(self, parent, shared_state):
