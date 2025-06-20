@@ -60,7 +60,7 @@ class CTkMessageBox(ctk.CTkToplevel):
 class SupplyBaseWindow(ctk.CTkToplevel):
     def __init__(self, parent, title):
         super().__init__(parent)
-        self.geometry("1300x500")
+        self.geometry("1300x700") 
         self.overrideredirect(True)
         self.center_window()
 
@@ -86,7 +86,7 @@ class SupplyBaseWindow(ctk.CTkToplevel):
         height = self.winfo_height()
         x = (self.winfo_screenwidth() // 2) - (width // 2) + int(3 * 50)
         y = (self.winfo_screenheight() // 2) - (height // 2)
-        self.geometry(f"1300x500+{x}+{y}")
+        self.geometry(f"1300x700+{x}+{y}")
 
 
 class SupplyWindow(SupplyBaseWindow):
@@ -127,17 +127,14 @@ class SupplyWindow(SupplyBaseWindow):
         label_font = ("Merriweather Sans bold", 15)
         button_font = ("Merriweather Bold", 20)
         required_font = ("Merriweather Sans bold", 10)
-        not_required_font = ("Merriweather Sans bold", 10)
 
+        # FIRST ROW - Item Name, Category, Current Stock/Restock Quantity
         # Item Name
         ctk.CTkLabel(self, text="Item Name", font=label_font, fg_color="white", text_color="black").place(x=120, y=150)
         self.entry_itemname = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0,
                                       bg_color="white")
         self.entry_itemname.place(x=120, y=200)
-
-        if not self.is_editing:
-            ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=210, y=145)
-        
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=210, y=145)
         create_underline(120, 230, 180)
 
         if not self.is_editing:
@@ -154,21 +151,11 @@ class SupplyWindow(SupplyBaseWindow):
         )
         self.entry_category.configure(state="readonly")
         self.entry_category.place(x=420, y=200)
-        
-        if not self.is_editing:
-            ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=495, y=145)
-        
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=495, y=145)
         create_underline(420, 230, 140)
 
-        # Current Stock (add mode) / Restock Quantity (edit mode)
-        if self.is_editing:
-            # Edit mode: Show Restock Quantity field
-            ctk.CTkLabel(self, text="Restock Quantity", font=label_font, fg_color="white", text_color="black").place(x=720, y=150)
-            self.entry_restock_quantity = ctk.CTkEntry(self, width=150, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white")
-            self.entry_restock_quantity.place(x=720, y=200)
-            create_underline(720, 230, 180)
-        
-        else:
+        # Current Stock 
+        if not self.is_editing:
             # Add mode: Show Current Stock field
             ctk.CTkLabel(self, text="Current Stock", font=label_font, fg_color="white", text_color="black").place(x=720, y=150)
             self.entry_current_stock = ctk.CTkEntry(self, width=150, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white")
@@ -177,15 +164,13 @@ class SupplyWindow(SupplyBaseWindow):
             create_underline(720, 230, 180)
             add_placeholder(self.entry_current_stock, "Type here")
 
-        # Second Row - Average Weekly Usage
+        # SECOND ROW - Average Weekly Usage, Delivery Time, Supplier Name
+        # Average Weekly Usage
         ctk.CTkLabel(self, text="Average Weekly Usage", font=label_font, fg_color="white", text_color="black").place(x=120, y=300)
         self.entry_averageuse = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0,
                                       bg_color="white")
         self.entry_averageuse.place(x=120, y=350)
-   
-        if not self.is_editing:
-            ctk.CTkLabel(self, text="*Not Required", font=not_required_font, text_color="red", bg_color="white").place(x=300, y=295)
-        
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=300, y=295)
         create_underline(120, 380, 180)
         if not self.is_editing:
             add_placeholder(self.entry_averageuse, "Type here")
@@ -195,13 +180,31 @@ class SupplyWindow(SupplyBaseWindow):
         self.entry_delivery_date = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0,
                                  bg_color="white")
         self.entry_delivery_date.place(x=420, y=350)
-        
-        if not self.is_editing:
-            ctk.CTkLabel(self, text="*Not Required", font=not_required_font, text_color="red", bg_color="white").place(x=580, y=295)
-        
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=580, y=295)
         create_underline(420, 380, 140)
         if not self.is_editing:
             add_placeholder(self.entry_delivery_date, "Type here")
+
+        # Supplier Name 
+        ctk.CTkLabel(self, text="Supplier Name", font=label_font, fg_color="white", text_color="black").place(x=720, y=300)
+        self.entry_supplier_name = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0,
+                                 bg_color="white")
+        self.entry_supplier_name.place(x=720, y=350)
+        ctk.CTkLabel(self, text="*Not Required", font=required_font, text_color="red", bg_color="white").place(x=880, y=295)
+        create_underline(720, 380, 180)
+        if not self.is_editing:
+            add_placeholder(self.entry_supplier_name, "Supplier ABC")
+
+        # THIRD ROW - Expiration Date 
+        if not self.is_editing:
+            ctk.CTkLabel(self, text="Expiration Date", font=label_font, fg_color="white", text_color="black").place(x=120, y=450)
+            self.entry_expiration_date = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0,
+                                     bg_color="white")
+            self.entry_expiration_date.place(x=120, y=500)
+            ctk.CTkLabel(self, text="*Not Required", font=required_font, text_color="red", bg_color="white").place(x=300, y=445)
+            ctk.CTkLabel(self, text="(YYYY-MM-DD)", font=("Merriweather Sans", 10), text_color="#666666", bg_color="white").place(x=120, y=535)
+            create_underline(120, 530, 180)
+            add_placeholder(self.entry_expiration_date, "2024-12-31")
 
         # Populate fields if editing
         if self.is_editing:
@@ -273,15 +276,31 @@ class SupplyWindow(SupplyBaseWindow):
             except Exception as e:
                 print(f'Error inserting ({notif_type}):', e)
 
+        def validate_date_format(date_string):
+            """Validate date format YYYY-MM-DD"""
+            try:
+                datetime.strptime(date_string, '%Y-%m-%d')
+                return True
+            except ValueError:
+                return False
+
         def on_save_click():
             item_name_val = self.entry_itemname.get().strip()
             category = self.entry_category.get().strip()
             avg_weekly_usage_str = self.entry_averageuse.get().strip()      
             delivery_time_str = self.entry_delivery_date.get().strip()
+            supplier_name_str = self.entry_supplier_name.get().strip()
+            
+            # Only get expiration date in add mode
+            if not self.is_editing:
+                expiration_date_str = self.entry_expiration_date.get().strip()
+            else:
+                expiration_date_str = ""
             item_name = ' '.join(item.capitalize() for item in item_name_val.split())
 
             item_id_store = []
 
+            # Validation for required field
             if not item_name or item_name == "Type here":
                 CTkMessageBox.show_error("Input Error", "Item Name is required.", parent=self)
                 return
@@ -289,20 +308,43 @@ class SupplyWindow(SupplyBaseWindow):
                 CTkMessageBox.show_error("Input Error", "Category is required.", parent=self)
                 return
             
+            # Validate Average Weekly Usage
+            if not avg_weekly_usage_str or avg_weekly_usage_str == "Type here":
+                CTkMessageBox.show_error("Input Error", "Average Weekly Usage is required.", parent=self)
+                return
+            try:
+                avg_weekly_usage = float(avg_weekly_usage_str)
+                if avg_weekly_usage <= 0:
+                    CTkMessageBox.show_error("Input Error", "Average weekly usage must be greater than 0.", parent=self)
+                    return
+            except ValueError:
+                CTkMessageBox.show_error("Input Error", "Average weekly usage must be a valid number.", parent=self)
+                return
+
+            # Validate Delivery Time
+            if not delivery_time_str or delivery_time_str == "Type here":
+                CTkMessageBox.show_error("Input Error", "Delivery Time in Days is required.", parent=self)
+                return
+            try:
+                delivery_time = int(delivery_time_str)
+                if delivery_time <= 0:
+                    CTkMessageBox.show_error("Input Error", "Delivery time must be greater than 0.", parent=self)
+                    return
+            except ValueError:
+                CTkMessageBox.show_error("Input Error", "Delivery time must be a valid number.", parent=self)
+                return
+
+            # Validate Supplier Name
+            
+            # Validate Expiration Date 
+            if not self.is_editing and expiration_date_str and expiration_date_str != "2024-12-31":
+                if not validate_date_format(expiration_date_str):
+                    CTkMessageBox.show_error("Input Error", "Expiration Date must be in YYYY-MM-DD format.", parent=self)
+                    return
+            
             if self.is_editing:
-                restock_quantity_str = self.entry_restock_quantity.get().strip()
-                if not restock_quantity_str:
-                    restock_quantity = 0
-                else:
-                    try:
-                        restock_quantity = int(restock_quantity_str)
-                        if restock_quantity < 0:
-                            CTkMessageBox.show_error("Input Error", "Restock quantity cannot be negative.", parent=self)
-                            return
-                    except ValueError:
-                        CTkMessageBox.show_error("Input Error", "Restock quantity must be a valid number.", parent=self)
-                        return
                 current_stock = None 
+                restock_quantity = 0
             else:
                 current_stock_str = self.entry_current_stock.get().strip()
                 if not current_stock_str or current_stock_str == "Type here":
@@ -318,32 +360,6 @@ class SupplyWindow(SupplyBaseWindow):
                     CTkMessageBox.show_error("Input Error", "Current stock must be a valid number.", parent=self)
                     return
                 restock_quantity = 0 
-
-            # Handle optional numeric fields
-            try:
-                if avg_weekly_usage_str and avg_weekly_usage_str != "Type here":
-                    avg_weekly_usage = float(avg_weekly_usage_str)
-                    if avg_weekly_usage < 0:
-                        CTkMessageBox.show_error("Input Error", "Average weekly usage cannot be negative.", parent=self)
-                        return
-                else:
-                    avg_weekly_usage = 0
-            except ValueError:
-                CTkMessageBox.show_error("Input Error", "Average weekly usage must be a valid number.", parent=self)
-                return
-
-            try:
-                # Delivery time - allow empty or placeholder for optional field
-                if delivery_time_str and delivery_time_str != "Type here":
-                    delivery_time = int(delivery_time_str)
-                    if delivery_time < 0:
-                        CTkMessageBox.show_error("Input Error", "Delivery time cannot be negative.", parent=self)
-                        return
-                else:
-                    delivery_time = 0
-            except ValueError:
-                CTkMessageBox.show_error("Input Error", "Delivery time must be a valid number.", parent=self)
-                return
 
             supply_information = {
                 'item_name': item_name,
@@ -370,12 +386,13 @@ class SupplyWindow(SupplyBaseWindow):
 
                 user_fn = cursor.fetchone()[0]
 
-                cursor.execute("""
-                    SELECT item_name FROM supply
-                    WHERE item_id = %s
-                """, (self.edit_data['item_id'],))
+                if self.is_editing:
+                    cursor.execute("""
+                        SELECT item_name FROM supply
+                        WHERE item_id = %s
+                    """, (self.edit_data['item_id'],))
 
-                item_fn = cursor.fetchone()[0]
+                    item_fn = cursor.fetchone()[0]
 
             except Exception as e:
                 print('error retrieving user_fullname ', e)
@@ -391,59 +408,22 @@ class SupplyWindow(SupplyBaseWindow):
                 right_now = now.strftime('%Y-%m-%d %H:%M:%S')
 
                 if self.is_editing:
-                    # Get current stock BEFORE updating
                     current_stock_before = retrieve_supply_data(cursor, 'current_stock', self.edit_data['item_id'])
-                    restock_quantity_before = retrieve_supply_data(cursor, 'restock_quantity', self.edit_data['item_id'])
 
-                    # Update the supply record (but don't change current_stock yet)
+                    # Update the supply record
                     cursor.execute("""  
                         UPDATE supply 
-                        SET item_name = %s, category = %s, restock_quantity = %s, 
-                        average_weekly_usage = %s, delivery_time_days = %s
+                        SET item_name = %s, category = %s, average_weekly_usage = %s, delivery_time_days = %s
                         WHERE item_id = %s 
-                    """, (item_name, category, restock_quantity, avg_weekly_usage, delivery_time, self.edit_data['item_id']))
+                    """, (item_name, category, avg_weekly_usage, delivery_time, self.edit_data['item_id']))
 
-                    # Only add restock quantity to current stock if restock_quantity > 0
-                    if restock_quantity > 0 and restock_quantity != restock_quantity_before:
-                        cursor.execute("""  
-                            INSERT INTO restock_logs(item_id, restock_quantity, restock_date)
-                            VALUES(%s, %s, %s)
-                        """, (self.edit_data['item_id'], restock_quantity, date.today()))
+                    # Current stock remains the same in edit mode
+                    new_current_stock = current_stock_before
+                    print(f"Updated supply item with ID: {self.edit_data['item_id']} without changing stock")
 
-                        new_current_stock = current_stock_before + restock_quantity
-                        print(f"Updated supply item with ID: {self.edit_data['item_id']} and added {restock_quantity} to stock")
-                        print(f"Stock changed from {current_stock_before} to {new_current_stock}")  
-
-                        # Only update max_supply when we're actually adding new stock
-                        max_supply_current = retrieve_supply_data(cursor, 'max_supply', self.edit_data['item_id'])
-                        if max_supply_current is None or new_current_stock > max_supply_current:
-                            set_supply_data(cursor, 'max_supply', new_current_stock, self.edit_data['item_id'])
-                            print(f"Max supply updated from {max_supply_current} to {new_current_stock}")
-                    else:
-                        new_current_stock = current_stock_before
-                        print(f"Updated supply item with ID: {self.edit_data['item_id']} without changing stock")
-
-                    set_supply_data(cursor, 'current_stock', new_current_stock, self.edit_data['item_id'])
-
-                    # Get updated values for calculations
-                    avg_weekly_usage_result = retrieve_supply_data(cursor, 'average_weekly_usage', self.edit_data['item_id'])
-                    delivery_time_result = retrieve_supply_data(cursor, 'delivery_time_days', self.edit_data['item_id'])
-
-                    if avg_weekly_usage_result > 0 and delivery_time_result > 0:
-                        status = set_stock_levels(avg_weekly_usage, delivery_time, new_current_stock)
-                        set_status = set_supply_data(cursor, 'stock_level_status', status, self.edit_data['item_id']) 
-
-                        #FOR NOTIFICATION WAG GALAWIN
-                        if status:
-                            notification_id = update_notif_restock(cursor, user_fn, item_fn, restock_quantity, new_current_stock, status, 'Item Restocked')
-
-                            print(f"""
-                                Item Restocked
-
-                                {item_fn} restock with {restock_quantity}. Current Stock Quantity: {new_current_stock}. Status is now: {status}
-
-                                {right_now}
-                            """)
+                    # Update stock level status with required values
+                    status = set_stock_levels(avg_weekly_usage, delivery_time, new_current_stock)
+                    set_status = set_supply_data(cursor, 'stock_level_status', status, self.edit_data['item_id']) 
 
                     connect.commit()
                     CTkMessageBox.show_success("Success", "Supply information updated successfully!", parent=self)
@@ -471,12 +451,10 @@ class SupplyWindow(SupplyBaseWindow):
                         return
                     
                     current_stock_val = retrieve_supply_data(cursor, 'current_stock', item_id)
-                    avg_weekly_usage_result = retrieve_supply_data(cursor, 'average_weekly_usage', item_id)
-                    delivery_time_result = retrieve_supply_data(cursor, 'delivery_time_days', item_id)
 
-                    if avg_weekly_usage_result > 0 and delivery_time_result > 0:
-                        status = set_stock_levels(avg_weekly_usage, delivery_time_result, current_stock_val)
-                        set_supply_data(cursor, 'stock_level_status', status, item_id)
+                    # Set stock level status with all required values
+                    status = set_stock_levels(avg_weekly_usage, delivery_time, current_stock_val)
+                    set_supply_data(cursor, 'stock_level_status', status, item_id)
 
                     cursor.execute("""
                         INSERT INTO notification_logs(user_fullname, item_name, notification_type, notification_timestamp) 
@@ -511,7 +489,10 @@ class SupplyWindow(SupplyBaseWindow):
         self.btn_save = ctk.CTkButton(self, text=button_text, fg_color="#1A374D", hover_color="#16C79A", text_color="white",
                                       bg_color="white", corner_radius=20, font=button_font, width=200, height=50,
                                       command=on_save_click)
-        self.btn_save.place(x=1020, y=420)
+        
+        # Position based on edit mode
+        save_button_y = 420 if self.is_editing else 570
+        self.btn_save.place(x=1020, y=save_button_y)
 
     def populate_fields(self):
         """Populate fields with edit data"""
@@ -525,16 +506,6 @@ class SupplyWindow(SupplyBaseWindow):
         
         # Set category
         self.entry_category.set(self.edit_data['category'])
-        
-        # Clear and set
-        if self.is_editing:
-            self.entry_restock_quantity.delete(0, "end")
-            restock_qty = self.edit_data.get('restock_quantity')
-            if restock_qty is None or restock_qty == 0:
-                self.entry_restock_quantity.insert(0, "0")
-            else:
-                self.entry_restock_quantity.insert(0, str(restock_qty))
-            self.entry_restock_quantity.configure(text_color="black")
 
         # Clear and set average weekly usage
         self.entry_averageuse.delete(0, "end")
@@ -553,6 +524,18 @@ class SupplyWindow(SupplyBaseWindow):
         else:
             self.entry_delivery_date.insert(0, str(delivery_time))
         self.entry_delivery_date.configure(text_color="black")
+
+        # Clear and set supplier name
+        self.entry_supplier_name.delete(0, "end")
+        # Show default supplier name since it's static
+        self.entry_supplier_name.insert(0, "Default Supplier")
+        self.entry_supplier_name.configure(text_color="black")
+        
+        # Clear and set expiration date 
+        if not self.is_editing:
+            self.entry_expiration_date.delete(0, "end")
+            self.entry_expiration_date.insert(0, "2025-12-31")
+            self.entry_expiration_date.configure(text_color="black")
 
 def show_detailed_info(self, supply_data):
     self.table_frame.place_forget()
@@ -1073,8 +1056,8 @@ class QuantityUsedLogsWindow(SupplyBaseWindow):
                                     width=80)
                 id_label.place(x=10, y=20)
                 
-                # Patient Details - Two lines: Name (bold, larger) and details
-                # Patient Name (bold and larger)
+                # Patient Details 
+                # Patient Name
                 name_label = ctk.CTkLabel(row_frame, text=patient_name,
                                         font=("Poppins Bold", 14),  # Bold and larger
                                         text_color="#333333",
@@ -1089,8 +1072,8 @@ class QuantityUsedLogsWindow(SupplyBaseWindow):
                 
                 details_text = f"{age_clean}, {gender_clean}, {access_type_clean}"
                 details_label = ctk.CTkLabel(row_frame, text=details_text,
-                                        font=("Poppins Regular", 10),  # Smaller font
-                                        text_color="#666666",  # Lighter color
+                                        font=("Poppins Regular", 10), 
+                                        text_color="#666666",  
                                         width=400)
                 details_label.place(x=170, y=32)
                 

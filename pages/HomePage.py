@@ -10,7 +10,7 @@ from components.buttons import CTkButtonSelectable
 from components.input_supply import CTkMessageBox, EditStockWindow, PatientQuantityUsedLogsWindow, QuantityUsedLogsWindow, SupplyWindow
 from components.state import login_shared_states
 from backend.crud import retrieve_form_data, db_connection
-import datetime  # Keep this as module import for datetime.datetime.now()
+import datetime 
 from datetime import date, timedelta, time
 import subprocess
 from customtkinter import CTkInputDialog
@@ -30,13 +30,12 @@ DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_NAME = os.getenv("DB_NAME")
 
-
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("blue")
 
 class DataRetrieval():
 
-    # =========== FOR PATIENT DATA RETRIEVAL =========== #
+    # =========== FOR PATIENT DATA RETRIEVAL =========== # 
 
     @staticmethod
     def patient_info_data(patient_id):
@@ -2268,9 +2267,6 @@ class PatientPage(ctk.CTkFrame):
         self.dropdown_frame.configure(border_width=1, border_color="gray")
         self.dropdown_frame.place_forget()
 
-        self.namev2_label = ctk.CTkLabel(self.navbar, text="Tristan Lopez!", text_color="black", font=("Arial", 30, "bold"))
-        self.namev2_label.place(relx=0.85, rely=0.5, anchor="e")
-
         notif_img = ctk.CTkImage(light_image=Image.open("assets/notif.png"), size=(42, 42))
         settings_img = ctk.CTkImage(light_image=Image.open("assets/settingsv2.png"), size=(42, 42))
 
@@ -2398,6 +2394,21 @@ class PatientPage(ctk.CTkFrame):
             text_color="#333333"
         )
         date_label.place(x=60, rely=0.5, anchor="w")
+
+        # Edit Usage Button
+        self.edit_usage_button = ctk.CTkButton(
+            self.navbar,
+            text="Edit Usage",
+            font=("Arial", 16, "bold"),
+            width=150,
+            height=40,
+            fg_color="#1A374D",
+            hover_color="#1A374D",
+            text_color="white",
+            corner_radius=20,
+            command=self.edit_usage_clicked
+        )
+        self.edit_usage_button.place(x=1100, y=70, anchor="w")
 
         self.table_frame = ctk.CTkFrame(self, fg_color="#1A374D", border_width=2, border_color="black")
 
@@ -2609,7 +2620,7 @@ class PatientPage(ctk.CTkFrame):
         )
         contact_btn.place(x=80, y=220)
 
-        quantity_used_btn = ctk.CTkButton(
+        """quantity_used_btn = ctk.CTkButton(
             contact_options_panel,
             text="Quantity Used",
             font=("Merriweather", 14),
@@ -2620,7 +2631,7 @@ class PatientPage(ctk.CTkFrame):
             hover_color="#013B50",
             command=self.open_quantity_used_info
         )
-        quantity_used_btn.place(x=80, y=290)
+        quantity_used_btn.place(x=80, y=290)"""
 
         philhealth_info_panel = ctk.CTkFrame(
             self.detailed_info_frame,
@@ -2714,6 +2725,10 @@ class PatientPage(ctk.CTkFrame):
         self.table_frame.place(x=20, y=150, relwidth=0.95, relheight=0.8)
 
         self.populate_table(self.fetch_patient_data())
+
+    def edit_usage_clicked(self):
+        """Handle Edit Usage button click"""
+        print("Edit Usage button clicked!")
 
     # SEARCH FUNCTIONALITY METHODS
     def setup_search_functionality(self):
@@ -2955,8 +2970,7 @@ class PatientPage(ctk.CTkFrame):
         self.contact_info_window.place(x=60, y=10)
         self.contact_info_window.contact_relative_info(self.patient_id_value.cget("text"))
 
-    def open_quantity_used_info(self):
-        """Open quantity used logs window for the current patient"""
+    """def open_quantity_used_info(self):
         # Get the current patient ID from the detailed view
         patient_id = self.patient_id_value.cget("text")
         
@@ -2973,7 +2987,7 @@ class PatientPage(ctk.CTkFrame):
                 connect = db()
                 cursor = connect.cursor()
                 
-                cursor.execute("""
+                cursor.execute(
                     SELECT iu.item_id, s.item_name, s.category, iu.quantity_used, 
                         COALESCE(iu.usage_timestamp, iu.usage_date) as usage_datetime, 
                         iu.usage_time 
@@ -2981,7 +2995,7 @@ class PatientPage(ctk.CTkFrame):
                     JOIN supply s ON iu.item_id = s.item_id
                     WHERE iu.patient_id = %s
                     ORDER BY COALESCE(iu.usage_timestamp, iu.usage_date) DESC	
-                """, (patient_id,))
+                , (patient_id,))
 
                 quantity_used_result = cursor.fetchall()
                 
@@ -3000,7 +3014,7 @@ class PatientPage(ctk.CTkFrame):
         else:
             print("No patient selected - cannot open quantity used logs")
             # You could show a message box here if needed
-            # CTkMessageBox.show_error("Selection Error", "Please select a patient first.", parent=self)
+            # CTkMessageBox.show_error("Selection Error", "Please select a patient first.", parent=self)"""
 
     def fetch_patient_data(self):
         try:
@@ -3912,9 +3926,6 @@ class SupplyPage(ctk.CTkFrame):
         self.dropdown_frame.configure(border_width=1, border_color="gray")
         self.dropdown_frame.place_forget()
 
-        self.namev2_label = ctk.CTkLabel(self.navbar, text="Tristan Lopez!", text_color="black", font=("Arial", 30, "bold"))
-        self.namev2_label.place(relx=0.85, rely=0.5, anchor="e")
-
         notif_img = ctk.CTkImage(light_image=Image.open("assets/notif.png"), size=(42, 42))
         settings_img = ctk.CTkImage(light_image=Image.open("assets/settingsv2.png"), size=(42, 42))
 
@@ -4051,6 +4062,21 @@ class SupplyPage(ctk.CTkFrame):
         )
         date_label.place(x=60, rely=0.5, anchor="w")
 
+        # Edit Stock Button
+        self.edit_stock_button = ctk.CTkButton(
+            self.navbar,
+            text="Edit Stock",
+            font=("Arial", 16, "bold"),
+            width=150,
+            height=40,
+            fg_color="#1A374D",
+            hover_color="#1A374D",
+            text_color="white",
+            corner_radius=20,
+            command=self.edit_stock_clicked
+        )
+        self.edit_stock_button.place(x=1100, y=70, anchor="w")
+
         # Table Frame
         self.table_frame = ctk.CTkFrame(self, fg_color="#1A374D", border_width=2, border_color="black")
 
@@ -4161,7 +4187,7 @@ class SupplyPage(ctk.CTkFrame):
         supply_info_frame = ctk.CTkFrame(
             self.Main_Supply_Frame,
             width=950,
-            height=300,
+            height=400, 
             fg_color="white",
             corner_radius=20
         )
@@ -4170,7 +4196,7 @@ class SupplyPage(ctk.CTkFrame):
         left_bar = ctk.CTkFrame(
             supply_info_frame,
             width=20,
-            height=300,
+            height=400,  
             fg_color="#68EDC6",
             bg_color="white",
             corner_radius=20
@@ -4178,43 +4204,64 @@ class SupplyPage(ctk.CTkFrame):
         left_bar.place(x=0, y=0)
 
         Supply_title_label = ctk.CTkLabel(supply_info_frame, text="Supply Info", font=title_font)
-        Supply_title_label.place(x=40, y=50)
+        Supply_title_label.place(x=40, y=30)
 
+        # FIRST ROW - Supply Name, Category, Remaining Stock
         # Supply Name Label and Output
         self.Supply_Name_Label = ctk.CTkLabel(supply_info_frame, text="Supply Name", font=label_font)
-        self.Supply_Name_Label.place(x=80,y=100)
+        self.Supply_Name_Label.place(x=80, y=70)
         self.Supply_Name_Output = ctk.CTkLabel(supply_info_frame, text="", font=output_font)
-        self.Supply_Name_Output.place(x=80,y=130)
+        self.Supply_Name_Output.place(x=80, y=100)
 
         # Category Label and Output
         self.Category_Label = ctk.CTkLabel(supply_info_frame, text="Category", font=label_font)
-        self.Category_Label.place(x=300,y=100)
+        self.Category_Label.place(x=300, y=70)
         self.Category_Output = ctk.CTkLabel(supply_info_frame, text="", font=output_font)
-        self.Category_Output.place(x=300,y=130)
+        self.Category_Output.place(x=300, y=100)
 
         # Remaining Stock Label and Output
         self.currentstock_Label = ctk.CTkLabel(supply_info_frame, text="Remaining Stock", font=label_font)
-        self.currentstock_Label.place(x=520,y=100)
+        self.currentstock_Label.place(x=520, y=70)
         self.currentstock_Output = ctk.CTkLabel(supply_info_frame, text="", font=output_font)
-        self.currentstock_Output.place(x=520,y=130)
+        self.currentstock_Output.place(x=520, y=100)
 
+        # SECOND ROW - Date Registered, Average Weekly Usage, Delivery Time
         # Date Registered Label and Output
         self.Registered_Date_Label = ctk.CTkLabel(supply_info_frame, text="Date Registered", font=label_font)
-        self.Registered_Date_Label.place(x=80,y=200)
+        self.Registered_Date_Label.place(x=80, y=140)
         self.Registered_Date_Output = ctk.CTkLabel(supply_info_frame, text="", font=output_font)
-        self.Registered_Date_Output.place(x=80,y=230)
+        self.Registered_Date_Output.place(x=80, y=170)
 
         # Average Weekly Usage Label and Output
         self.Average_Weekly_Usage_Label = ctk.CTkLabel(supply_info_frame, text="Average Weekly Usage", font=label_font)
-        self.Average_Weekly_Usage_Label.place(x=300,y=200)
+        self.Average_Weekly_Usage_Label.place(x=300, y=140)
         self.Average_Weekly_Usage_Output = ctk.CTkLabel(supply_info_frame, text="", font=output_font)
-        self.Average_Weekly_Usage_Output.place(x=300,y=230)
+        self.Average_Weekly_Usage_Output.place(x=300, y=170)
 
         # Delivery Time Label and Output
         self.Delivery_Time_Label = ctk.CTkLabel(supply_info_frame, text="Delivery Time", font=label_font)
-        self.Delivery_Time_Label.place(x=520,y=200)
+        self.Delivery_Time_Label.place(x=520, y=140)
         self.Delivery_Time_Output = ctk.CTkLabel(supply_info_frame, text="", font=output_font)
-        self.Delivery_Time_Output.place(x=520,y=230)
+        self.Delivery_Time_Output.place(x=520, y=170)
+
+        # THIRD ROW - Supplier Name, Previous Restock Expiry, Current Restock Expiry
+        # Supplier Name Label and Output
+        self.Supplier_Name_Label = ctk.CTkLabel(supply_info_frame, text="Supplier Name", font=label_font)
+        self.Supplier_Name_Label.place(x=80, y=210)
+        self.Supplier_Name_Output = ctk.CTkLabel(supply_info_frame, text="ABC Medical Supplies", font=output_font)
+        self.Supplier_Name_Output.place(x=80, y=240)
+
+        # Previous Restock Expiry Label and Output
+        self.Previous_Restock_Expiry_Label = ctk.CTkLabel(supply_info_frame, text="Previous Restock Expiry", font=label_font)
+        self.Previous_Restock_Expiry_Label.place(x=300, y=210)
+        self.Previous_Restock_Expiry_Output = ctk.CTkLabel(supply_info_frame, text="2024-08-15", font=output_font)
+        self.Previous_Restock_Expiry_Output.place(x=300, y=240)
+
+        # Current Restock Expiry Label and Output
+        self.Current_Restock_Expiry_Label = ctk.CTkLabel(supply_info_frame, text="Current Restock Expiry", font=label_font)
+        self.Current_Restock_Expiry_Label.place(x=520, y=210)
+        self.Current_Restock_Expiry_Output = ctk.CTkLabel(supply_info_frame, text="2025-12-31", font=output_font)
+        self.Current_Restock_Expiry_Output.place(x=520, y=240)
 
         # Storage Meter Frame
         storage_meter_frame = ctk.CTkFrame(
@@ -4275,7 +4322,7 @@ class SupplyPage(ctk.CTkFrame):
         self.Top_bar.place(y=0)
 
         # Edit Stock Button
-        self.Edit_Stock_Button = ctk.CTkButton(
+        """self.Edit_Stock_Button = ctk.CTkButton(
             self.Edit_Stock_Frame,
             text="Edit Stock",
             width=150,
@@ -4286,7 +4333,7 @@ class SupplyPage(ctk.CTkFrame):
             hover_color="#5DD4B3",
             command=self.open_edit_stock_window
         )
-        self.Edit_Stock_Button.place(x=130, y=50)
+        self.Edit_Stock_Button.place(x=130, y=50)"""
 
         # def quantity_used_supply(item_id):
         #     try:
@@ -4519,6 +4566,10 @@ class SupplyPage(ctk.CTkFrame):
         self.button_frame.place(x=20, y=50, anchor="nw")  
         self.navbar.pack(fill="x", side="top")
         self.table_frame.place(x=20, y=150, relwidth=0.95, relheight=0.8)
+
+    def edit_stock_clicked(self):
+        """Handle Edit Stock button click"""
+        print("Edit Stock button clicked!")
 
     # SEARCH FUNCTIONALITY METHODS
     def setup_search_functionality(self):
@@ -4772,13 +4823,13 @@ class SupplyPage(ctk.CTkFrame):
     def logout(self):
         print("Logging out...")
 
-    def open_edit_stock_window(self):
+    """def open_edit_stock_window(self):
         if hasattr(self, 'selected_supply_id') and self.selected_supply_id:
             edit_stock_window = EditStockWindow(self, self.selected_supply_id)
             edit_stock_window.grab_set()
             edit_stock_window.focus_force()
         else:
-            print("Please select a supply item first.")
+            print("Please select a supply item first.")"""
 
     def fetch_supply_data(self):
         """Fetch supply data from database including restock_date"""
