@@ -1139,7 +1139,7 @@ class HomePageContent(ctk.CTkFrame):
             df['edit_date'] = pd.to_datetime(df['usage_date'])
 
             from datetime import date, timedelta
-            yesterday = date.today() - timedelta(days=2)
+            yesterday = date.today() - timedelta(days=1)
             df_yesterday = df[df['edit_date'].dt.date == yesterday]
         
             df_yesterday = df_yesterday.sort_values(by='total_used', ascending=False)
@@ -6196,10 +6196,11 @@ class MaintenancePage(ctk.CTkFrame):
                     
                     cursor.execute("""
                         INSERT INTO backup_logs (
-                            employee_id, backup_source, last_date, last_time
-                        ) VALUES (%s, %s, %s, %s)
+                            employee_id, employee_name, backup_source, last_date, last_time
+                        ) VALUES (%s, %s, %s, %s, %s)
                     """, (
                         employee_id_u,
+                        full_name,
                         f"Auto: {filename}",
                         now.date(),
                         now.time()
@@ -6231,11 +6232,37 @@ class MaintenancePage(ctk.CTkFrame):
         def start_scheduled_backup(interval_seconds, filename_prefix):
             """Start the scheduled backup with given interval"""
             print(f"🕒 Next backup in {interval_seconds} seconds...")
+
+            now = datetime.datetime.now()
+            right_now = now.strftime('%Y-%m-%d %H:%M:%S')
+
+            connect = db() 
+            cursor = connect.cursor()
             
+            cursor.execute("""
+                SELECT full_name FROM users WHERE username = %s
+            """, (username,))
+
+            full_name = cursor.fetchone()[0]
+
+
             def backup_loop():
                 success = perform_automatic_backup(filename_prefix)
                 if success:
-                    print(f"✅ Scheduled backup completed successfully!")
+                    cursor.execute("""  
+                        INSERT INTO notification_logs (user_fullname, notification_type, notification_timestamp)
+                        VALUES (%s, %s, %s)
+                    """, (full_name, 'Manual Backup', right_now))
+                    
+                    connect.commit()
+
+                    print(f"""
+                        Scheduled Backup
+
+                        Backup was made by {full_name}.
+                        
+                        {right_now}
+                    """)
                 else:
                     print(f"❌ Scheduled backup failed!")
                 
@@ -6327,23 +6354,39 @@ class MaintenancePage(ctk.CTkFrame):
                 cursor.execute("""
                     SELECT employee_id, full_name FROM users WHERE username = %s
                 """, (username,))
-                
+
+                right_now = now.strftime('%Y-%m-%d %H:%M:%S')
+
                 result = cursor.fetchone()
                 if result:
                     employee_id_u, full_name = result
                     
                     cursor.execute("""
                         INSERT INTO backup_logs (
-                            employee_id, backup_source, last_date, last_time
-                        ) VALUES (%s, %s, %s, %s)
+                            employee_id, employee_name, backup_source, last_date, last_time
+                        ) VALUES (%s, %s, %s, %s, %s)
                     """, (
                         employee_id_u,
+                        full_name,
                         file_path,
                         now.date(),
                         now.time()
                     ))
+
+                    cursor.execute("""  
+                        INSERT INTO notification_logs (user_fullname, notification_type, notification_timestamp)
+                        VALUES (%s, %s, %s)
+                    """, (full_name, 'Manual Backup', right_now))
                     
                     connect.commit()
+
+                    print(f"""
+                        Manual Backup
+
+                        Backup was made by {full_name}.
+                        
+                        {right_now}
+                    """)
                     
                     # Update display
                     self.update_last_backup_time()
