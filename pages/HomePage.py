@@ -25,6 +25,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from matplotlib import font_manager as fm
 from dotenv import load_dotenv
+import math
 
 load_dotenv() 
 
@@ -1141,16 +1142,14 @@ class HomePageContent(ctk.CTkFrame):
             df['edit_date'] = pd.to_datetime(df['usage_date'])
 
             from datetime import date, timedelta
-            yesterday = date.today() - timedelta(days=1)
+            yesterday = date.today() - timedelta(days=2)
             df_yesterday = df[df['edit_date'].dt.date == yesterday]
         
             df_yesterday = df_yesterday.sort_values(by='total_used', ascending=False)
 
-            # Clear existing canvas if it exists
             if self.yesterday_canvas:
                 self.yesterday_canvas.get_tk_widget().destroy()
 
-            # Create new figure
             fig = Figure(figsize=(5.5, 3.5), dpi=100)
             ax = fig.add_subplot(111)
             
@@ -5031,6 +5030,8 @@ class SupplyPage(ctk.CTkFrame):
             current_stock_val = 0
             max_supply_val = 0
 
+        supply_id = supply_data[0]
+
         # Ensure max_supply_val is not zero to avoid division by zero
         if max_supply_val == 0:
             max_supply_val = current_stock_val if current_stock_val > 0 else 1
@@ -5045,35 +5046,44 @@ class SupplyPage(ctk.CTkFrame):
         progress_value = min(progress_value, 1.0)
         self.StorageMeter.set(progress_value)
 
-        # Calculate stock percentage for status based on max_supply
-        stock_percentage = current_stock_val / max_supply_val if max_supply_val > 0 else 0
+        #daily usage for standard dev
+        avg_daily_usage = average_weekly_usage / 7 
+            
+        #standard 20% 
+        daily_standard_dev_estimate = avg_daily_usage * 0.2
+        safety_stock = 2.33 * daily_standard_dev_estimate * math.sqrt(delivery_time_days)
+        reorder_point = (avg_daily_usage * delivery_time_days) + safety_stock
 
-        # Updated color scheme: Critical=Red, Low=Orange, Good=Green, Excellent=Light Blue
-        if stock_percentage == 0:
+        #stock level
+        low_stock_level = reorder_point
+        critical_stock_level = 0.50 * reorder_point
+        good_level = reorder_point * 1.7
+
+        if current_stock == 0:
             status_text = "Out of Stock"
-            status_color = "#8B0000"  # Dark Red
+            status_color = "#8B0000"  
             progress_color = "#8B0000"
             remaining_color = "#8B0000"
-        elif stock_percentage <= 0.25:  # 25% or less of max capacity - CRITICAL
+        elif current_stock <= critical_stock_level:  
             status_text = "Critical Stock Level"
-            status_color = "#FF0000"  # Red
+            status_color = "#FF0000"  
             progress_color = "#FF0000"
             remaining_color = "#FF0000"
-        elif stock_percentage <= 0.50:  # 26-50% of max capacity - LOW
+        elif current_stock <= low_stock_level:  
             status_text = "Low Stock Level"
-            status_color = "#FF8C00"  # Orange
+            status_color = "#FF8C00"  
             progress_color = "#FF8C00"
             remaining_color = "#FF8C00"
-        elif stock_percentage <= 0.80:  # 51-80% of max capacity - GOOD
+        elif current_stock <= good_level:  
             status_text = "Good Stock Level"
-            status_color = "#28A745"  # Green
+            status_color = "#28A745" 
             progress_color = "#28A745"
             remaining_color = "#28A745"
-        else:  # Above 80% of max capacity - EXCELLENT
+        else:  
             status_text = "Excellent Stock Level"
-            status_color = "#17A2B8"  # Light Blue/Cyan
-            progress_color = "#17A2B8"
-            remaining_color = "#17A2B8"
+            status_color = "#27D810"  
+            progress_color = "#27D810"
+            remaining_color = "#27D810"
 
         # Apply the colors
         self.Status_Output.configure(text=status_text, text_color=status_color)
