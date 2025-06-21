@@ -1,4 +1,4 @@
-from .connector import db_connection as db
+from connector import db_connection as db
 import math
 #running as relative import since no ui yet
 # cursor.lastrowid to retrieve recent patient
@@ -418,6 +418,7 @@ def update_patient_medications(patient_id, medication_list):
         return False
 
 def update_patient_list(patient_id, data_dict):
+    
     """Update patient list (main table)"""
     try:
         connect = db()
@@ -437,3 +438,44 @@ def update_patient_list(patient_id, data_dict):
     except Exception as e:
         print(f"Error updating patient list: {e}")
         return False
+    
+connect = db()
+cursor = connect.cursor()
+
+user_input = [
+    {"item_name": "Ivremectin", "quantity": 2, "expiry_date": "2025-08-01"},
+    {"item_name": "Oppo", "quantity": 5, "expiry_date": "2025-08-01"},
+    {"item_name": "Bioflu", "quantity": 3, "expiry_date": "2025-08-01"},  
+]
+
+stock = ' '.join(f"WHEN %s THEN current_stock - %s" for _ in user_input)
+expiry = ' '.join(f"WHEN %s THEN %s" for _ in user_input)
+names = ', '.join(['%s'] * len(user_input))  
+
+store = []
+for item in user_input:
+    store.extend([item['item_name'], item['quantity']]) 
+    print('iq:', store)
+for item in user_input:
+    store.extend([item['item_name'], item['expiry_date']]) 
+    print('ie', store)
+
+store.extend([item['item_name'] for item in user_input])
+
+query = f"""
+    UPDATE supply
+    SET 
+        current_stock = CASE item_name
+            {stock}
+        END,
+        new_expiry_date = CASE item_name
+            {expiry}
+        END
+    WHERE item_name IN ({names});
+"""
+
+print(store)
+
+
+cursor.execute(query, store)
+connect.commit()
