@@ -5217,7 +5217,8 @@ class SupplyPage(ctk.CTkFrame):
                     ) as restock_date,
                     s.date_registered, s.restock_quantity, s.average_daily_usage, 
                     s.average_weekly_usage, s.average_monthly_usage, s.delivery_time_days, 
-                    s.stock_level_status, s.max_supply
+                    s.stock_level_status, s.max_supply, s.new_expiry_date, 
+                    s.previous_expiry_date, s.supplier_name
                 FROM supply s 
                 WHERE s.item_id = %s
             """, (self.selected_supply_id,))
@@ -5237,7 +5238,10 @@ class SupplyPage(ctk.CTkFrame):
                     'average_monthly_usage': updated_data[9] if updated_data[9] else 0,
                     'delivery_time_days': updated_data[10] if updated_data[10] else 0,
                     'stock_level_status': updated_data[11],
-                    'max_supply': updated_data[12] if updated_data[12] else 0
+                    'max_supply': updated_data[12] if updated_data[12] else 0,
+                    'new_expiry_date': updated_data[13] if updated_data[13] else None,
+                    'previous_expiry_date': updated_data[14] if updated_data[14] else None,
+                    'supplier_name': updated_data[15] if updated_data[15] else "N/A"
                 }
                 self.show_detailed_info(updated_data)
                 

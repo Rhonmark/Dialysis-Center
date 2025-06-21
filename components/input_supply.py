@@ -536,13 +536,16 @@ class SupplyWindow(SupplyBaseWindow):
             self.entry_delivery_date.insert(0, str(delivery_time))
         self.entry_delivery_date.configure(text_color="black")
 
-        # Clear and set supplier name
+        # Clear and set supplier name 
         self.entry_supplier_name.delete(0, "end")
-        # Show default supplier name since it's static
-        self.entry_supplier_name.insert(0, "Default Supplier")
+        supplier_name = self.edit_data.get('supplier_name')
+        if supplier_name and supplier_name != 'None' and str(supplier_name).strip():
+            self.entry_supplier_name.insert(0, str(supplier_name))
+        else:
+            self.entry_supplier_name.insert(0, "Default Supplier")  # Fallback only if no data
         self.entry_supplier_name.configure(text_color="black")
         
-        # Clear and set expiration date 
+        # Clear and set expiration date - only in add mode (this condition is never true in edit mode)
         if not self.is_editing:
             self.entry_expiration_date.delete(0, "end")
             self.entry_expiration_date.insert(0, "2025-12-31")
