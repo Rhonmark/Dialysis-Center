@@ -717,15 +717,14 @@ class HomePageContent(ctk.CTkFrame):
         self.search_results_frame = SearchResultsFrame(self)
 
         def get_name():
-            # Commented out backend database call
+            #Commented out backend database call
             username = login_shared_states.get('logged_username', None)
-
             try:
                 connect = db()
                 cursor = connect.cursor()
 
                 cursor.execute("""
-                    SELECT full_name FROM users WHERE username = %s
+                    #SELECT full_name FROM users WHERE username = %s
                 """, (username,))
 
                 full_name = cursor.fetchone()[0]
@@ -740,7 +739,7 @@ class HomePageContent(ctk.CTkFrame):
                 cursor.close()
                 connect.close()
 
-            # Static values for testing
+            #Static values for testing
             #full_name = "User"
             #first_name = "User"
 
@@ -751,7 +750,7 @@ class HomePageContent(ctk.CTkFrame):
         # Setup UI
         self.setup_ui(first_name, full_name)
         
-        # Load initial graphs and patient data
+        #Load initial graphs and patient data
         self.show_overall_usage()
         self.show_yesterday_usage()
         self.load_patient_data_and_pie_chart()
@@ -5255,12 +5254,13 @@ class ReportPage(ctk.CTkFrame):
     def __init__(self, parent):
         super().__init__(parent, fg_color="#EFEFEF")
 
-        label_font = ("Merriweather Sans Bold", 9)
-        Title_font = ("Merriweather Bold", 13)
+        label_font = ("Merriweather Sans Bold", 10)
+        TypeReport_font = ("Merriweather Bold", 12)
+        Title_font = ("Merriweather Bold", 14)
         NumberOuput_font = ("Poppins Regular" ,19)
         DateOutput_font = ("Poppins Regular" ,15)
-        SubLabel_font = ("Merriweather Sans Light" ,9)
-        SubSubLabel_font = ("Poppins Regular" ,9)
+        SubLabel_font = ("Merriweather Sans " ,11)
+        SubSubLabel_font = ("Poppins Regular" ,10)
 
         def data_count(column, value, table_name):
             try:
@@ -5555,26 +5555,41 @@ class ReportPage(ctk.CTkFrame):
 
 #------------------------------------------------------------------------------------------------------------------------------------------
 
-    #Discrepancies
-        Discrepancies_frame = ctk.CTkFrame(self,
+    #Interval
+        Interval_frame = ctk.CTkFrame(self,
                                            width=175,
                                            height=165,
                                            corner_radius=20,
                                            fg_color="#FFFFFF",
                                            bg_color="transparent")
-        Discrepancies_frame.place(x=1380,y=435)
+        Interval_frame.place(x=1380,y=435)
+        
+        topbar_frame = ctk.CTkFrame(Interval_frame,width=175,height=10,fg_color="#AC1616",corner_radius=20)
+        topbar_frame.place(y=0)
 
-        discrenpancies_title = ctk.CTkLabel(Discrepancies_frame,text="Discrepancies",text_color="#104E44",font=("Merriweather Bold",11))
-        discrenpancies_title.place(relx=.175,rely=.125)
+        interval_title = ctk.CTkLabel(Interval_frame,text="Report Summary",text_color="#104E44",font=("Merriweather Bold",11))
+        interval_title.place(relx=.125,rely=.125)
 
-        msg_label = ctk.CTkLabel(Discrepancies_frame,font=SubLabel_font,text="If there are erros in thereport,\ncotact the developers.",text_color="#104E44")
-        msg_label.place(relx=.125,rely=.3)
+        msg_label = ctk.CTkLabel(Interval_frame,font=SubSubLabel_font,text="Choose a date range to view.",text_color="#104E44")
+        msg_label.place(relx=.125,rely=.25)
 
-        click_label= ctk.CTkLabel(Discrepancies_frame,text="Click to find developers\ncontact:",font=SubLabel_font,text_color="#104E44")
-        click_label.place(relx=.125,rely=.525)
+    
+        def on_interval_selected(choice):
+            print(f"Selected Summary Date Report: {choice}")
+            type_label.configure(text=choice)
 
-        Goto_settings = ctk.CTkButton(Discrepancies_frame,fg_color="#88BD8E",text="Go to Settings",font=SubLabel_font,text_color="#ffffff",corner_radius=10,bg_color="#FFFFFF")
-        Goto_settings.place(relx=.125,rely=.725)
+        type_label = ctk.CTkLabel(Interval_frame,font=TypeReport_font,text="",text_color="#104E44",height=12)
+        type_label.place(relx=.5,rely=.72,anchor="center")
+
+        #Options
+        Interval_Dropdown = ctk.CTkComboBox(Interval_frame,command=on_interval_selected,
+                                            width=150,height=20,values=["Current","Last Week","Last Month"],font=label_font,fg_color="#FFFFFF",corner_radius=10,bg_color="#FFFFFF",dropdown_fg_color="#FFFFFF",button_color="#88BD8E",button_hover_color="#1A374D",dropdown_font=label_font)
+        Interval_Dropdown.place(relx=.5,rely=.55,anchor="center")
+
+        view_label = ctk.CTkLabel(Interval_frame,font=SubLabel_font,text="Viewing By",text_color="#104E44",height=10)
+        view_label.place(relx=.5,rely=.825,anchor="center")
+
+        
 
     #Low Stock Level items
         self.LowOnStock_frame = ctk.CTkFrame(self,
