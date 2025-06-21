@@ -4248,19 +4248,19 @@ class SupplyPage(ctk.CTkFrame):
         # Supplier Name Label and Output
         self.Supplier_Name_Label = ctk.CTkLabel(supply_info_frame, text="Supplier Name", font=label_font)
         self.Supplier_Name_Label.place(x=80, y=210)
-        self.Supplier_Name_Output = ctk.CTkLabel(supply_info_frame, text="ABC Medical Supplies", font=output_font)
+        self.Supplier_Name_Output = ctk.CTkLabel(supply_info_frame, text="", font=output_font)
         self.Supplier_Name_Output.place(x=80, y=240)
 
         # Previous Restock Expiry Label and Output
         self.Previous_Restock_Expiry_Label = ctk.CTkLabel(supply_info_frame, text="Previous Restock Expiry", font=label_font)
         self.Previous_Restock_Expiry_Label.place(x=300, y=210)
-        self.Previous_Restock_Expiry_Output = ctk.CTkLabel(supply_info_frame, text="2024-08-15", font=output_font)
+        self.Previous_Restock_Expiry_Output = ctk.CTkLabel(supply_info_frame, text="", font=output_font)
         self.Previous_Restock_Expiry_Output.place(x=300, y=240)
 
         # Current Restock Expiry Label and Output
         self.Current_Restock_Expiry_Label = ctk.CTkLabel(supply_info_frame, text="Current Restock Expiry", font=label_font)
         self.Current_Restock_Expiry_Label.place(x=520, y=210)
-        self.Current_Restock_Expiry_Output = ctk.CTkLabel(supply_info_frame, text="2025-12-31", font=output_font)
+        self.Current_Restock_Expiry_Output = ctk.CTkLabel(supply_info_frame, text="", font=output_font)
         self.Current_Restock_Expiry_Output.place(x=520, y=240)
 
         # Storage Meter Frame

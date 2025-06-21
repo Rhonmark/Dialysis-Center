@@ -561,14 +561,21 @@ def show_detailed_info(self, supply_data):
     
     current_stock = supply_data[6]
     date_registered = supply_data[5] if len(supply_data) > 5 else "N/A"
-    average_weekly_usage = supply_data[8] if len(supply_data) > 6 else "N/A"
-    delivery_time_days = supply_data [10] if len(supply_data) > 7 else "N/A"
+    average_weekly_usage = supply_data[8] if len(supply_data) > 8 else "N/A"
+    delivery_time_days = supply_data [10] if len(supply_data) > 10 else "N/A"
+    current_restock_expiry = supply_data[13] if len(supply_data) > 13 else "N/A"
+    previous_restock_expiry = supply_data[14] if len(supply_data) > 14 else "N/A"
+    supplier_name_output = supply_data[15] if len(supply_data) > 15 else "N/A"
 
     # Display current stock as remaining stock
     self.currentstock_Output.configure(text=str(current_stock))
     self.Registered_Date_Output.configure(text=date_registered)
     self.Average_Weekly_Usage_Output.configure(text=str(average_weekly_usage))
     self.Delivery_Time_Output.configure(text=str(delivery_time_days))
+
+    self.Current_Restock_Expiry_Output.configure(text=str(current_restock_expiry))
+    self.Previous_Restock_Expiry_Output.configure(text=str(previous_restock_expiry))
+    self.Supplier_Name_Output.configure(text=str(supplier_name_output))
     
     # Use current_stock for calculations
     current_stock_value = int(current_stock) if current_stock else 0
