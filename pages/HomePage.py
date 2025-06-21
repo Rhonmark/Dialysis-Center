@@ -717,14 +717,15 @@ class HomePageContent(ctk.CTkFrame):
         self.search_results_frame = SearchResultsFrame(self)
 
         def get_name():
-            #Commented out backend database call
+            # Commented out backend database call
             username = login_shared_states.get('logged_username', None)
+
             try:
                 connect = db()
                 cursor = connect.cursor()
 
                 cursor.execute("""
-                    #SELECT full_name FROM users WHERE username = %s
+                    SELECT full_name FROM users WHERE username = %s
                 """, (username,))
 
                 full_name = cursor.fetchone()[0]
@@ -739,7 +740,7 @@ class HomePageContent(ctk.CTkFrame):
                 cursor.close()
                 connect.close()
 
-            #Static values for testing
+            # Static values for testing
             #full_name = "User"
             #first_name = "User"
 
@@ -750,7 +751,7 @@ class HomePageContent(ctk.CTkFrame):
         # Setup UI
         self.setup_ui(first_name, full_name)
         
-        #Load initial graphs and patient data
+        # Load initial graphs and patient data
         self.show_overall_usage()
         self.show_yesterday_usage()
         self.load_patient_data_and_pie_chart()
@@ -4831,7 +4832,7 @@ class SupplyPage(ctk.CTkFrame):
             print("Please select a supply item first.")"""
 
     def fetch_supply_data(self):
-        """Fetch supply data from database including all fields"""
+        """Fetch supply data from database including restock_date"""
         try:
             connect = db()
             cursor = connect.cursor()
@@ -4845,15 +4846,13 @@ class SupplyPage(ctk.CTkFrame):
                     ) as restock_date,
                     s.date_registered, s.restock_quantity, s.average_daily_usage, 
                     s.average_weekly_usage, s.average_monthly_usage, s.delivery_time_days, 
-                    s.stock_level_status, s.max_supply, s.new_expiry_date, 
-                    s.previous_expiry_date, s.supplier_name
+                    s.stock_level_status, s.max_supply
                 FROM supply s
             """)
             return cursor.fetchall()
         except Exception as e:
             print("Error fetching supply data:", e)
             return []
-
 
     def populate_table(self, data):
         """Populate the table with supply data including restock_date"""
@@ -4867,7 +4866,7 @@ class SupplyPage(ctk.CTkFrame):
             self.tree.insert("", "end", values=display_row)
 
     def on_row_select(self, event):
-        """Handle row selection with all fields"""
+        """Handle row selection with updated column structure"""
         selection = self.tree.selection()
         if selection:
             item = selection[0]
@@ -4887,8 +4886,7 @@ class SupplyPage(ctk.CTkFrame):
                         ) as restock_date,
                         s.date_registered, s.restock_quantity, s.average_daily_usage, 
                         s.average_weekly_usage, s.average_monthly_usage, s.delivery_time_days, 
-                        s.stock_level_status, s.max_supply, s.new_expiry_date, 
-                        s.previous_expiry_date, s.supplier_name
+                        s.stock_level_status, s.max_supply
                     FROM supply s 
                     WHERE s.item_id = %s
                 """, (supply_data[0],))
@@ -4908,10 +4906,7 @@ class SupplyPage(ctk.CTkFrame):
                         'average_monthly_usage': full_data[9] if full_data[9] else 0,
                         'delivery_time_days': full_data[10] if full_data[10] else 0,
                         'stock_level_status': full_data[11],
-                        'max_supply': full_data[12] if full_data[12] else 0,
-                        'new_expiry_date': full_data[13] if full_data[13] else None,
-                        'previous_expiry_date': full_data[14] if full_data[14] else None,
-                        'supplier_name': full_data[15] if full_data[15] else "N/A"
+                        'max_supply': full_data[12] if full_data[12] else 0
                     }
                 cursor.close()
                 connect.close()
@@ -5001,7 +4996,7 @@ class SupplyPage(ctk.CTkFrame):
             )
 
     def on_row_click(self, event):
-        """Handle row click to show detailed info with all fields"""
+        """Handle row click to show detailed info with updated column structure"""
         item_id = self.tree.identify_row(event.y)
         if item_id:
             supply_data = self.tree.item(item_id, 'values')
@@ -5023,8 +5018,7 @@ class SupplyPage(ctk.CTkFrame):
                         ) as restock_date,
                         s.date_registered, s.restock_quantity, s.average_daily_usage, 
                         s.average_weekly_usage, s.average_monthly_usage, s.delivery_time_days, 
-                        s.stock_level_status, s.max_supply, s.new_expiry_date, 
-                        s.previous_expiry_date, s.supplier_name
+                        s.stock_level_status, s.max_supply
                     FROM supply s 
                     WHERE s.item_id = %s
                 """, (supply_id,))
@@ -5055,22 +5049,13 @@ class SupplyPage(ctk.CTkFrame):
         date_registered = supply_data[5] if len(supply_data) > 5 and supply_data[5] else "N/A"     
         average_weekly_usage = supply_data[8] if len(supply_data) > 8 and supply_data[8] else "N/A" 
         delivery_time_days = supply_data[10] if len(supply_data) > 10 and supply_data[10] else "N/A" 
-        max_supply = supply_data[12] if len(supply_data) > 12 and supply_data[12] else 0
+        max_supply = supply_data[12] if len(supply_data) > 12 and supply_data[12] else 0            
         
-        # Get the missing fields
-        current_restock_expiry = supply_data[13] if len(supply_data) > 13 and supply_data[13] else "N/A"
-        previous_restock_expiry = supply_data[14] if len(supply_data) > 14 and supply_data[14] else "N/A"
-        supplier_name = supply_data[15] if len(supply_data) > 15 and supply_data[15] else "N/A"
-        
-        # Display all the fields
+        # Display current stock as remaining stock
         self.currentstock_Output.configure(text=str(current_stock))
         self.Registered_Date_Output.configure(text=date_registered)
         self.Average_Weekly_Usage_Output.configure(text=str(average_weekly_usage))
         self.Delivery_Time_Output.configure(text=str(delivery_time_days))
-        
-        self.Current_Restock_Expiry_Output.configure(text=str(current_restock_expiry))
-        self.Previous_Restock_Expiry_Output.configure(text=str(previous_restock_expiry))
-        self.Supplier_Name_Output.configure(text=str(supplier_name))
         
         # For the meter and status calculations using max_supply
         try:
@@ -5216,8 +5201,7 @@ class SupplyPage(ctk.CTkFrame):
                     ) as restock_date,
                     s.date_registered, s.restock_quantity, s.average_daily_usage, 
                     s.average_weekly_usage, s.average_monthly_usage, s.delivery_time_days, 
-                    s.stock_level_status, s.max_supply, s.new_expiry_date, 
-                    s.previous_expiry_date, s.supplier_name
+                    s.stock_level_status, s.max_supply
                 FROM supply s 
                 WHERE s.item_id = %s
             """, (self.selected_supply_id,))
@@ -5237,10 +5221,7 @@ class SupplyPage(ctk.CTkFrame):
                     'average_monthly_usage': updated_data[9] if updated_data[9] else 0,
                     'delivery_time_days': updated_data[10] if updated_data[10] else 0,
                     'stock_level_status': updated_data[11],
-                    'max_supply': updated_data[12] if updated_data[12] else 0,
-                    'new_expiry_date': updated_data[13] if updated_data[13] else None,
-                    'previous_expiry_date': updated_data[14] if updated_data[14] else None,
-                    'supplier_name': updated_data[15] if updated_data[15] else "N/A"
+                    'max_supply': updated_data[12] if updated_data[12] else 0
                 }
                 self.show_detailed_info(updated_data)
                 
@@ -5254,13 +5235,12 @@ class ReportPage(ctk.CTkFrame):
     def __init__(self, parent):
         super().__init__(parent, fg_color="#EFEFEF")
 
-        label_font = ("Merriweather Sans Bold", 10)
-        TypeReport_font = ("Merriweather Bold", 12)
-        Title_font = ("Merriweather Bold", 14)
+        label_font = ("Merriweather Sans Bold", 9)
+        Title_font = ("Merriweather Bold", 13)
         NumberOuput_font = ("Poppins Regular" ,19)
         DateOutput_font = ("Poppins Regular" ,15)
-        SubLabel_font = ("Merriweather Sans " ,11)
-        SubSubLabel_font = ("Poppins Regular" ,10)
+        SubLabel_font = ("Merriweather Sans Light" ,9)
+        SubSubLabel_font = ("Poppins Regular" ,9)
 
         def data_count(column, value, table_name):
             try:
@@ -5555,41 +5535,26 @@ class ReportPage(ctk.CTkFrame):
 
 #------------------------------------------------------------------------------------------------------------------------------------------
 
-    #Interval
-        Interval_frame = ctk.CTkFrame(self,
+    #Discrepancies
+        Discrepancies_frame = ctk.CTkFrame(self,
                                            width=175,
                                            height=165,
                                            corner_radius=20,
                                            fg_color="#FFFFFF",
                                            bg_color="transparent")
-        Interval_frame.place(x=1380,y=435)
-        
-        topbar_frame = ctk.CTkFrame(Interval_frame,width=175,height=10,fg_color="#AC1616",corner_radius=20)
-        topbar_frame.place(y=0)
+        Discrepancies_frame.place(x=1380,y=435)
 
-        interval_title = ctk.CTkLabel(Interval_frame,text="Report Summary",text_color="#104E44",font=("Merriweather Bold",11))
-        interval_title.place(relx=.125,rely=.125)
+        discrenpancies_title = ctk.CTkLabel(Discrepancies_frame,text="Discrepancies",text_color="#104E44",font=("Merriweather Bold",11))
+        discrenpancies_title.place(relx=.175,rely=.125)
 
-        msg_label = ctk.CTkLabel(Interval_frame,font=SubSubLabel_font,text="Choose a date range to view.",text_color="#104E44")
-        msg_label.place(relx=.125,rely=.25)
+        msg_label = ctk.CTkLabel(Discrepancies_frame,font=SubLabel_font,text="If there are erros in thereport,\ncotact the developers.",text_color="#104E44")
+        msg_label.place(relx=.125,rely=.3)
 
-    
-        def on_interval_selected(choice):
-            print(f"Selected Summary Date Report: {choice}")
-            type_label.configure(text=choice)
+        click_label= ctk.CTkLabel(Discrepancies_frame,text="Click to find developers\ncontact:",font=SubLabel_font,text_color="#104E44")
+        click_label.place(relx=.125,rely=.525)
 
-        type_label = ctk.CTkLabel(Interval_frame,font=TypeReport_font,text="",text_color="#104E44",height=12)
-        type_label.place(relx=.5,rely=.72,anchor="center")
-
-        #Options
-        Interval_Dropdown = ctk.CTkComboBox(Interval_frame,command=on_interval_selected,
-                                            width=150,height=20,values=["Current","Last Week","Last Month"],font=label_font,fg_color="#FFFFFF",corner_radius=10,bg_color="#FFFFFF",dropdown_fg_color="#FFFFFF",button_color="#88BD8E",button_hover_color="#1A374D",dropdown_font=label_font)
-        Interval_Dropdown.place(relx=.5,rely=.55,anchor="center")
-
-        view_label = ctk.CTkLabel(Interval_frame,font=SubLabel_font,text="Viewing By",text_color="#104E44",height=10)
-        view_label.place(relx=.5,rely=.825,anchor="center")
-
-        
+        Goto_settings = ctk.CTkButton(Discrepancies_frame,fg_color="#88BD8E",text="Go to Settings",font=SubLabel_font,text_color="#ffffff",corner_radius=10,bg_color="#FFFFFF")
+        Goto_settings.place(relx=.125,rely=.725)
 
     #Low Stock Level items
         self.LowOnStock_frame = ctk.CTkFrame(self,

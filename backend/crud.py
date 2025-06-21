@@ -534,3 +534,13 @@ def update_patient_list(patient_id, data_dict):
 # string_dropdown = ', '.join(usable_result)
 
 # print(string_dropdown)
+
+connect = db()
+cursor = connect.cursor()
+
+cursor.execute("SELECT patient_name FROM patient_list WHERE patient_id = %s") #pasa mo nalang yung id after makapamili ni user
+
+result = cursor.fetchone()[0]
+
+print(result)
+
