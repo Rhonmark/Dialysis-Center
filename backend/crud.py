@@ -1,4 +1,4 @@
-from connector import db_connection as db
+from .connector import db_connection as db
 import math
 #running as relative import since no ui yet
 # cursor.lastrowid to retrieve recent patient
@@ -538,9 +538,9 @@ def update_patient_list(patient_id, data_dict):
 connect = db()
 cursor = connect.cursor()
 
-cursor.execute("SELECT patient_name FROM patient_list WHERE patient_id = %s") #pasa mo nalang yung id after makapamili ni user
+#cursor.execute("SELECT patient_name FROM patient_list WHERE patient_id = %s") #pasa mo nalang yung id after makapamili ni user
 
-result = cursor.fetchone()[0]
+#result = cursor.fetchone()[0]
 
-print(result)
+#print(result)
 
