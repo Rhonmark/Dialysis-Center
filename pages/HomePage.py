@@ -4832,7 +4832,7 @@ class SupplyPage(ctk.CTkFrame):
             print("Please select a supply item first.")"""
 
     def fetch_supply_data(self):
-        """Fetch supply data from database including restock_date"""
+        """Fetch supply data from database including all fields"""
         try:
             connect = db()
             cursor = connect.cursor()
@@ -4846,7 +4846,8 @@ class SupplyPage(ctk.CTkFrame):
                     ) as restock_date,
                     s.date_registered, s.restock_quantity, s.average_daily_usage, 
                     s.average_weekly_usage, s.average_monthly_usage, s.delivery_time_days, 
-                    s.stock_level_status, s.max_supply
+                    s.stock_level_status, s.max_supply, s.new_expiry_date, 
+                    s.previous_expiry_date, s.supplier_name
                 FROM supply s
             """)
             return cursor.fetchall()
@@ -4866,7 +4867,7 @@ class SupplyPage(ctk.CTkFrame):
             self.tree.insert("", "end", values=display_row)
 
     def on_row_select(self, event):
-        """Handle row selection with updated column structure"""
+        """Handle row selection with all fields"""
         selection = self.tree.selection()
         if selection:
             item = selection[0]
@@ -4886,7 +4887,8 @@ class SupplyPage(ctk.CTkFrame):
                         ) as restock_date,
                         s.date_registered, s.restock_quantity, s.average_daily_usage, 
                         s.average_weekly_usage, s.average_monthly_usage, s.delivery_time_days, 
-                        s.stock_level_status, s.max_supply
+                        s.stock_level_status, s.max_supply, s.new_expiry_date, 
+                        s.previous_expiry_date, s.supplier_name
                     FROM supply s 
                     WHERE s.item_id = %s
                 """, (supply_data[0],))
@@ -4906,7 +4908,10 @@ class SupplyPage(ctk.CTkFrame):
                         'average_monthly_usage': full_data[9] if full_data[9] else 0,
                         'delivery_time_days': full_data[10] if full_data[10] else 0,
                         'stock_level_status': full_data[11],
-                        'max_supply': full_data[12] if full_data[12] else 0
+                        'max_supply': full_data[12] if full_data[12] else 0,
+                        'new_expiry_date': full_data[13] if full_data[13] else None,
+                        'previous_expiry_date': full_data[14] if full_data[14] else None,
+                        'supplier_name': full_data[15] if full_data[15] else "N/A"
                     }
                 cursor.close()
                 connect.close()
@@ -4996,7 +5001,7 @@ class SupplyPage(ctk.CTkFrame):
             )
 
     def on_row_click(self, event):
-        """Handle row click to show detailed info with updated column structure"""
+        """Handle row click to show detailed info with all fields"""
         item_id = self.tree.identify_row(event.y)
         if item_id:
             supply_data = self.tree.item(item_id, 'values')
@@ -5018,7 +5023,8 @@ class SupplyPage(ctk.CTkFrame):
                         ) as restock_date,
                         s.date_registered, s.restock_quantity, s.average_daily_usage, 
                         s.average_weekly_usage, s.average_monthly_usage, s.delivery_time_days, 
-                        s.stock_level_status, s.max_supply
+                        s.stock_level_status, s.max_supply, s.new_expiry_date, 
+                        s.previous_expiry_date, s.supplier_name
                     FROM supply s 
                     WHERE s.item_id = %s
                 """, (supply_id,))
@@ -5049,13 +5055,21 @@ class SupplyPage(ctk.CTkFrame):
         date_registered = supply_data[5] if len(supply_data) > 5 and supply_data[5] else "N/A"     
         average_weekly_usage = supply_data[8] if len(supply_data) > 8 and supply_data[8] else "N/A" 
         delivery_time_days = supply_data[10] if len(supply_data) > 10 and supply_data[10] else "N/A" 
-        max_supply = supply_data[12] if len(supply_data) > 12 and supply_data[12] else 0            
+        max_supply = supply_data[12] if len(supply_data) > 12 and supply_data[12] else 0
         
-        # Display current stock as remaining stock
+        current_restock_expiry = supply_data[13] if len(supply_data) > 13 and supply_data[13] else "N/A"
+        previous_restock_expiry = supply_data[14] if len(supply_data) > 14 and supply_data[14] else "N/A"
+        supplier_name = supply_data[15] if len(supply_data) > 15 and supply_data[15] else "N/A"
+        
+        # Display all the fields
         self.currentstock_Output.configure(text=str(current_stock))
         self.Registered_Date_Output.configure(text=date_registered)
         self.Average_Weekly_Usage_Output.configure(text=str(average_weekly_usage))
         self.Delivery_Time_Output.configure(text=str(delivery_time_days))
+
+        self.Current_Restock_Expiry_Output.configure(text=str(current_restock_expiry))
+        self.Previous_Restock_Expiry_Output.configure(text=str(previous_restock_expiry))
+        self.Supplier_Name_Output.configure(text=str(supplier_name))
         
         # For the meter and status calculations using max_supply
         try:
@@ -5201,7 +5215,8 @@ class SupplyPage(ctk.CTkFrame):
                     ) as restock_date,
                     s.date_registered, s.restock_quantity, s.average_daily_usage, 
                     s.average_weekly_usage, s.average_monthly_usage, s.delivery_time_days, 
-                    s.stock_level_status, s.max_supply
+                    s.stock_level_status, s.max_supply, s.new_expiry_date, 
+                    s.previous_expiry_date, s.supplier_name
                 FROM supply s 
                 WHERE s.item_id = %s
             """, (self.selected_supply_id,))
@@ -5221,7 +5236,10 @@ class SupplyPage(ctk.CTkFrame):
                     'average_monthly_usage': updated_data[9] if updated_data[9] else 0,
                     'delivery_time_days': updated_data[10] if updated_data[10] else 0,
                     'stock_level_status': updated_data[11],
-                    'max_supply': updated_data[12] if updated_data[12] else 0
+                    'max_supply': updated_data[12] if updated_data[12] else 0,
+                    'new_expiry_date': updated_data[13] if updated_data[13] else None,
+                    'previous_expiry_date': updated_data[14] if updated_data[14] else None,
+                    'supplier_name': updated_data[15] if updated_data[15] else "N/A"
                 }
                 self.show_detailed_info(updated_data)
                 
