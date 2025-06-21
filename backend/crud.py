@@ -535,8 +535,8 @@ def update_patient_list(patient_id, data_dict):
 
 # print(string_dropdown)
 
-connect = db()
-cursor = connect.cursor()
+# connect = db()
+# cursor = connect.cursor()
 
 #cursor.execute("SELECT patient_name FROM patient_list WHERE patient_id = %s") #pasa mo nalang yung id after makapamili ni user
 
@@ -544,3 +544,128 @@ cursor = connect.cursor()
 
 #print(result)
 
+#########################################@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+# def data_count(column, value, table_name, period=None, date_column=None, join_table=None, join_condition=None):
+#     from datetime import datetime, timedelta
+#     import calendar
+#     try:
+#         connect = db()
+#         cursor = connect.cursor()
+        
+#         if period and date_column:
+#             today = datetime.now().date()
+            
+#             if period.lower() == 'Weekly':
+#                 # Get current week (Monday to Sunday)
+#                 days_since_monday = today.weekday()
+#                 start_of_week = today - timedelta(days=days_since_monday)
+#                 end_of_week = start_of_week + timedelta(days=6)
+                
+#                 if join_table and join_condition:
+#                     cursor.execute(f"""
+#                         SELECT COUNT(*) FROM {table_name}
+#                         JOIN {join_table} ON {join_condition}
+#                         WHERE {table_name}.{column} = '{value}' 
+#                         AND {join_table}.{date_column} >= '{start_of_week}' 
+#                         AND {join_table}.{date_column} <= '{end_of_week}'
+#                     """)
+#                 else:
+#                     cursor.execute(f"""
+#                         SELECT COUNT(*) FROM {table_name}
+#                         WHERE {column} = '{value}' 
+#                         AND {date_column} >= '{start_of_week}' 
+#                         AND {date_column} <= '{end_of_week}'
+#                     """)
+                
+#             elif period.lower() == 'Monthly':
+#                 # Get current month
+#                 start_of_month = today.replace(day=1)
+#                 last_day = calendar.monthrange(today.year, today.month)[1]
+#                 end_of_month = today.replace(day=last_day)
+                
+#                 if join_table and join_condition:
+#                     cursor.execute(f"""
+#                         SELECT COUNT(*) FROM {table_name}
+#                         JOIN {join_table} ON {join_condition}
+#                         WHERE {table_name}.{column} = '{value}' 
+#                         AND {join_table}.{date_column} >= '{start_of_month}' 
+#                         AND {join_table}.{date_column} <= '{end_of_month}'
+#                     """)
+#                 else:
+#                     cursor.execute(f"""
+#                         SELECT COUNT(*) FROM {table_name}
+#                         WHERE {column} = '{value}' 
+#                         AND {date_column} >= '{start_of_month}' 
+#                         AND {date_column} <= '{end_of_month}'
+#                     """)
+#         else:
+#             # Original query without date filtering
+#             cursor.execute(f"""
+#                 SELECT COUNT(*) FROM {table_name}
+#                 WHERE {column} = '{value}'
+#             """)
+        
+#         count_result = cursor.fetchone()
+#         count = count_result[0] if count_result else 0
+    
+#         if period and date_column:
+#             if period.lower() == 'weekly':
+#                 date_range = f"{start_of_week.strftime('%B %d')} - {end_of_week.strftime('%B %d, %Y')}"
+#             elif period.lower() == 'monthly':
+#                 date_range = f"{start_of_month.strftime('%B %Y')}"
+            
+#             return {
+#                 'count': count,
+#                 'date_range': date_range,
+#                 'period': period.lower()
+#             }
+#         else:
+#             return count
+        
+#     except Exception as e:
+#         print(f'Error finding column ({column}), value ({value}) in table: {table_name}', e)
+#         return 0
+#     finally:
+#         cursor.close()
+#         connect.close()
+
+# # Usage examples with JOIN:
+
+# # Regular counts (no date filtering) - still works the same
+# active_patient = data_count('status', 'Active', table_name='patient_info')
+# inactive_patient = data_count('status', 'Inactive', table_name='patient_info')
+
+# # Weekly/Monthly counts with JOIN (assuming patient_info and patient_list share a common ID)
+# weekly_active = data_count(
+#     column='status', 
+#     value='Active', 
+#     table_name='patient_info',
+#     period='weekly', 
+#     date_column='date_registered',
+#     join_table='patient_list',
+#     join_condition='patient_info.patient_id = patient_list.patient_id'  # Adjust based on your actual column names
+# )
+
+# monthly_active = data_count(
+#     column='status', 
+#     value='Active', 
+#     table_name='patient_info',
+#     period='monthly', 
+#     date_column='date_registered',
+#     join_table='patient_list',
+#     join_condition='patient_info.patient_id = patient_list.patient_id'  # Adjust based on your actual column names
+# )
+
+# print('active patients: ', active_patient)
+# print('inactive patients: ', inactive_patient)
+
+# weekly_act_keys = [f'{items}' for items in weekly_active.keys()]
+# weekly_act_usable_keys = ', '.join(weekly_act_keys)
+
+
+# weekly_act_values = [f'{items}' for items in weekly_active.values()]
+# weekly_act_usable_values = ', '.join(weekly_act_values)
+
+# for key, value in zip(weekly_act_keys, weekly_act_values):
+#     print(key, value)

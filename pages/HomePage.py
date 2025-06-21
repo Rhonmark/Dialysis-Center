@@ -23,6 +23,7 @@ from matplotlib.figure import Figure
 from matplotlib import font_manager as fm
 from dotenv import load_dotenv
 import math
+import calendar
 
 load_dotenv() 
 
@@ -5255,24 +5256,86 @@ class ReportPage(ctk.CTkFrame):
 
         label_font = ("Merriweather Sans Bold", 9)
         Title_font = ("Merriweather Bold", 13)
+        TypeReport_font = ("Merriweather Bold", 12)
         NumberOuput_font = ("Poppins Regular" ,19)
         DateOutput_font = ("Poppins Regular" ,15)
         SubLabel_font = ("Merriweather Sans Light" ,9)
         SubSubLabel_font = ("Poppins Regular" ,9)
 
-        def data_count(column, value, table_name):
+        def data_count(column, value, table_name, period=None, date_column=None, join_table=None, join_condition=None):
+            from datetime import datetime, timedelta
+            import calendar
             try:
                 connect = db()
                 cursor = connect.cursor()
-
-                cursor.execute(f"""
-                    SELECT COUNT(*) FROM {table_name}
-                    WHERE {column} = '{value}'
-                """)
-
+                
+                if period and date_column:
+                    today = datetime.now().date()
+                    
+                    if period.lower() == 'Weekly':
+                        days_since_monday = today.weekday()
+                        start_of_week = today - timedelta(days=days_since_monday)
+                        end_of_week = start_of_week + timedelta(days=6)
+                        
+                        if join_table and join_condition:
+                            cursor.execute(f"""
+                                SELECT COUNT(*) FROM {table_name}
+                                JOIN {join_table} ON {join_condition}
+                                WHERE {table_name}.{column} = '{value}' 
+                                AND {join_table}.{date_column} >= '{start_of_week}' 
+                                AND {join_table}.{date_column} <= '{end_of_week}'
+                            """)
+                        else:
+                            cursor.execute(f"""
+                                SELECT COUNT(*) FROM {table_name}
+                                WHERE {column} = '{value}' 
+                                AND {date_column} >= '{start_of_week}' 
+                                AND {date_column} <= '{end_of_week}'
+                            """)
+                        
+                    elif period.lower() == 'Monthly':
+                        start_of_month = today.replace(day=1)
+                        last_day = calendar.monthrange(today.year, today.month)[1]
+                        end_of_month = today.replace(day=last_day)
+                        
+                        if join_table and join_condition:
+                            cursor.execute(f"""
+                                SELECT COUNT(*) FROM {table_name}
+                                JOIN {join_table} ON {join_condition}
+                                WHERE {table_name}.{column} = '{value}' 
+                                AND {join_table}.{date_column} >= '{start_of_month}' 
+                                AND {join_table}.{date_column} <= '{end_of_month}'
+                            """)
+                        else:
+                            cursor.execute(f"""
+                                SELECT COUNT(*) FROM {table_name}
+                                WHERE {column} = '{value}' 
+                                AND {date_column} >= '{start_of_month}' 
+                                AND {date_column} <= '{end_of_month}'
+                            """)
+                else:
+                    cursor.execute(f"""
+                        SELECT COUNT(*) FROM {table_name}
+                        WHERE {column} = '{value}'
+                    """)
+                
                 count_result = cursor.fetchone()
-                return count_result[0] if count_result else 0
-
+                count = count_result[0] if count_result else 0
+            
+                if period and date_column:
+                    if period.lower() == 'weekly':
+                        date_range = f"{start_of_week.strftime('%B %d')} - {end_of_week.strftime('%B %d, %Y')}"
+                    elif period.lower() == 'monthly':
+                        date_range = f"{start_of_month.strftime('%B %Y')}"
+                    
+                    return {
+                        'count': count,
+                        'date_range': date_range,
+                        'period': period.lower()
+                    }
+                else:
+                    return count
+                
             except Exception as e:
                 print(f'Error finding column ({column}), value ({value}) in table: {table_name}', e)
                 return 0
@@ -5297,9 +5360,27 @@ class ReportPage(ctk.CTkFrame):
                 cursor.close()
                 connect.close()
 
-        # Get dynamic data from database
-        self.active_patient = data_count('status', 'Active', table_name='patient_info')
-        self.inactive_patient = data_count('status', 'Inactive', table_name='patient_info')
+        
+
+        self.active_patient = data_count(
+            column='status', 
+            value='Active', 
+            table_name='patient_info',
+            period='weekly', 
+            date_column='date_registered',
+            join_table='patient_list',
+            join_condition='patient_info.patient_id = patient_list.patient_id'  
+        )
+
+        self.inactive_patient = data_count(
+            column='status', 
+            value='Active', 
+            table_name='patient_info',
+            period='weekly', 
+            date_column='date_registered',
+            join_table='patient_list',
+            join_condition='patient_info.patient_id = patient_list.patient_id'  
+        )
         
         self.lowstock_count = data_count('stock_level_status', 'Low Stock Level', table_name='supply')
         self.criticalstock_count = data_count('stock_level_status', 'Critical Stock Level', table_name='supply')
@@ -5553,26 +5634,39 @@ class ReportPage(ctk.CTkFrame):
 
 #------------------------------------------------------------------------------------------------------------------------------------------
 
-    #Discrepancies
-        Discrepancies_frame = ctk.CTkFrame(self,
+    #Interval
+        Interval_frame = ctk.CTkFrame(self,
                                            width=175,
                                            height=165,
                                            corner_radius=20,
                                            fg_color="#FFFFFF",
                                            bg_color="transparent")
-        Discrepancies_frame.place(x=1380,y=435)
+        Interval_frame.place(x=1380,y=435)
+        
+        topbar_frame = ctk.CTkFrame(Interval_frame,width=175,height=10,fg_color="#AC1616",corner_radius=20)
+        topbar_frame.place(y=0)
 
-        discrenpancies_title = ctk.CTkLabel(Discrepancies_frame,text="Discrepancies",text_color="#104E44",font=("Merriweather Bold",11))
-        discrenpancies_title.place(relx=.175,rely=.125)
+        interval_title = ctk.CTkLabel(Interval_frame,text="Report Summary",text_color="#104E44",font=("Merriweather Bold",11))
+        interval_title.place(relx=.125,rely=.125)
 
-        msg_label = ctk.CTkLabel(Discrepancies_frame,font=SubLabel_font,text="If there are erros in thereport,\ncotact the developers.",text_color="#104E44")
-        msg_label.place(relx=.125,rely=.3)
+        msg_label = ctk.CTkLabel(Interval_frame,font=SubSubLabel_font,text="Choose a date range to view.",text_color="#104E44")
+        msg_label.place(relx=.125,rely=.25)
 
-        click_label= ctk.CTkLabel(Discrepancies_frame,text="Click to find developers\ncontact:",font=SubLabel_font,text_color="#104E44")
-        click_label.place(relx=.125,rely=.525)
+    
+        def on_interval_selected(choice):
+            print(f"Selected Summary Date Report: {choice}")
+            type_label.configure(text=choice)
 
-        Goto_settings = ctk.CTkButton(Discrepancies_frame,fg_color="#88BD8E",text="Go to Settings",font=SubLabel_font,text_color="#ffffff",corner_radius=10,bg_color="#FFFFFF")
-        Goto_settings.place(relx=.125,rely=.725)
+        type_label = ctk.CTkLabel(Interval_frame,font=TypeReport_font,text="",text_color="#104E44",height=12)
+        type_label.place(relx=.5,rely=.72,anchor="center")
+
+        #Options
+        Interval_Dropdown = ctk.CTkComboBox(Interval_frame,command=on_interval_selected,
+                                            width=150,height=20,values=["Current","Weekly","Monthly"],font=label_font,fg_color="#FFFFFF",corner_radius=10,bg_color="#FFFFFF",dropdown_fg_color="#FFFFFF",button_color="#88BD8E",button_hover_color="#1A374D",dropdown_font=label_font)
+        Interval_Dropdown.place(relx=.5,rely=.55,anchor="center")
+
+        view_label = ctk.CTkLabel(Interval_frame,font=SubLabel_font,text="Viewing By",text_color="#104E44",height=10)
+        view_label.place(relx=.5,rely=.825,anchor="center")
 
     #Low Stock Level items
         self.LowOnStock_frame = ctk.CTkFrame(self,
@@ -5867,16 +5961,83 @@ class ReportPage(ctk.CTkFrame):
 
     def refresh_data(self):
         """Refresh all data counts and update the labels"""
-        def data_count(column, value, table_name):
+        def data_count(column, value, table_name, period=None, date_column=None, join_table=None, join_condition=None):
+            from datetime import datetime, timedelta
+            import calendar
             try:
                 connect = db()
                 cursor = connect.cursor()
-                cursor.execute(f"""
-                    SELECT COUNT(*) FROM {table_name}
-                    WHERE {column} = '{value}'
-                """)
+                
+                if period and date_column:
+                    today = datetime.now().date()
+                    
+                    if period.lower() == 'Weekly':
+                        # Get current week (Monday to Sunday)
+                        days_since_monday = today.weekday()
+                        start_of_week = today - timedelta(days=days_since_monday)
+                        end_of_week = start_of_week + timedelta(days=6)
+                        
+                        if join_table and join_condition:
+                            cursor.execute(f"""
+                                SELECT COUNT(*) FROM {table_name}
+                                JOIN {join_table} ON {join_condition}
+                                WHERE {table_name}.{column} = '{value}' 
+                                AND {join_table}.{date_column} >= '{start_of_week}' 
+                                AND {join_table}.{date_column} <= '{end_of_week}'
+                            """)
+                        else:
+                            cursor.execute(f"""
+                                SELECT COUNT(*) FROM {table_name}
+                                WHERE {column} = '{value}' 
+                                AND {date_column} >= '{start_of_week}' 
+                                AND {date_column} <= '{end_of_week}'
+                            """)
+                        
+                    elif period.lower() == 'Monthly':
+                        # Get current month
+                        start_of_month = today.replace(day=1)
+                        last_day = calendar.monthrange(today.year, today.month)[1]
+                        end_of_month = today.replace(day=last_day)
+                        
+                        if join_table and join_condition:
+                            cursor.execute(f"""
+                                SELECT COUNT(*) FROM {table_name}
+                                JOIN {join_table} ON {join_condition}
+                                WHERE {table_name}.{column} = '{value}' 
+                                AND {join_table}.{date_column} >= '{start_of_month}' 
+                                AND {join_table}.{date_column} <= '{end_of_month}'
+                            """)
+                        else:
+                            cursor.execute(f"""
+                                SELECT COUNT(*) FROM {table_name}
+                                WHERE {column} = '{value}' 
+                                AND {date_column} >= '{start_of_month}' 
+                                AND {date_column} <= '{end_of_month}'
+                            """)
+                else:
+                    # Original query without date filtering
+                    cursor.execute(f"""
+                        SELECT COUNT(*) FROM {table_name}
+                        WHERE {column} = '{value}'
+                    """)
+                
                 count_result = cursor.fetchone()
-                return count_result[0] if count_result else 0
+                count = count_result[0] if count_result else 0
+            
+                if period and date_column:
+                    if period.lower() == 'weekly':
+                        date_range = f"{start_of_week.strftime('%B %d')} - {end_of_week.strftime('%B %d, %Y')}"
+                    elif period.lower() == 'monthly':
+                        date_range = f"{start_of_month.strftime('%B %Y')}"
+                    
+                    return {
+                        'count': count,
+                        'date_range': date_range,
+                        'period': period.lower()
+                    }
+                else:
+                    return count
+                
             except Exception as e:
                 print(f'Error finding column ({column}), value ({value}) in table: {table_name}', e)
                 return 0
