@@ -439,43 +439,85 @@ def update_patient_list(patient_id, data_dict):
         print(f"Error updating patient list: {e}")
         return False
     
-connect = db()
-cursor = connect.cursor()
 
-user_input = [
-    {"item_name": "Ivremectin", "quantity": 2, "expiry_date": "2025-08-01"},
-    {"item_name": "Oppo", "quantity": 5, "expiry_date": "2025-08-01"},
-    {"item_name": "Bioflu", "quantity": 3, "expiry_date": "2025-08-01"},  
-]
+################################EDIT STOCK SUPPLY#########################3
+################################EDIT STOCK SUPPLY#########################3
+################################EDIT STOCK SUPPLY#########################3
 
-stock = ' '.join(f"WHEN %s THEN current_stock - %s" for _ in user_input)
-expiry = ' '.join(f"WHEN %s THEN %s" for _ in user_input)
-names = ', '.join(['%s'] * len(user_input))  
+# connect = db()
+# cursor = connect.cursor()
 
-store = []
-for item in user_input:
-    store.extend([item['item_name'], item['quantity']]) 
-    print('iq:', store)
-for item in user_input:
-    store.extend([item['item_name'], item['expiry_date']]) 
-    print('ie', store)
+# user_input = [
+#     {"item_name": "Ivremectin", "quantity": 2, "expiry_date": "2025-08-01"},
+#     {"item_name": "Oppo", "quantity": 5, "expiry_date": "2025-08-01"},
+#     {"item_name": "Bioflu", "quantity": 3, "expiry_date": "2025-08-01"},  
+# ]
 
-store.extend([item['item_name'] for item in user_input])
+# stock = ' '.join(f"WHEN %s THEN current_stock + %s" for _ in user_input)
+# expiry = ' '.join(f"WHEN %s THEN %s" for _ in user_input)
+# names = ', '.join(['%s'] * len(user_input))  
 
-query = f"""
-    UPDATE supply
-    SET 
-        current_stock = CASE item_name
-            {stock}
-        END,
-        new_expiry_date = CASE item_name
-            {expiry}
-        END
-    WHERE item_name IN ({names});
-"""
+# store = []
+# for item in user_input:
+#     store.extend([item['item_name'], item['quantity']]) 
+#     print('iq:', store)
+# for item in user_input:
+#     store.extend([item['item_name'], item['expiry_date']]) 
+#     print('ie', store)
 
-print(store)
+# store.extend([item['item_name'] for item in user_input])
+
+# query = f"""
+#     UPDATE supply
+#     SET 
+#         current_stock = CASE item_name
+#             {stock}
+#         END,
+#         new_expiry_date = CASE item_name
+#             {expiry}
+#         END
+#     WHERE item_name IN ({names});
+# """
+
+# print(store)
 
 
-cursor.execute(query, store)
-connect.commit()
+# cursor.execute(query, store)
+# connect.commit()
+
+################################EDIT USAGE PATIENT#########################3
+################################EDIT USAGE PATIENT#########################3
+################################EDIT USAGE PATIENT#########################3
+
+# connect = db()
+# cursor = connect.cursor()
+
+# user_input = [
+#     {"item_name": "Ivremectin", "quantity": 2},
+#     {"item_name": "Oppo", "quantity": 5},
+#     {"item_name": "Bioflu", "quantity": 3},  
+# ]
+
+# stock = ' '.join(f"WHEN %s THEN current_stock - %s" for _ in user_input)
+# names = ', '.join(['%s'] * len(user_input))  
+
+# store = []
+# for item in user_input:
+#     store.extend([item['item_name'], item['quantity']]) 
+
+# store.extend([item['item_name'] for item in user_input])
+
+# query = f"""
+#     UPDATE supply
+#     SET 
+#         current_stock = CASE item_name
+#             {stock}
+#         END
+#     WHERE item_name IN ({names});
+# """
+
+# print(store)
+
+
+# cursor.execute(query, store)
+# connect.commit()
