@@ -367,7 +367,9 @@ class SupplyWindow(SupplyBaseWindow):
                 'current_stock': current_stock,
                 'restock_quantity': restock_quantity,
                 'average_weekly_usage': avg_weekly_usage,
-                'delivery_time_days': delivery_time
+                'delivery_time_days': delivery_time,
+                'new_expiry_date': expiration_date_str,
+                'supplier_name': supplier_name_str,
             }
 
             supply_column = ', '.join(supply_information.keys())
@@ -413,9 +415,18 @@ class SupplyWindow(SupplyBaseWindow):
                     # Update the supply record
                     cursor.execute("""  
                         UPDATE supply 
-                        SET item_name = %s, category = %s, average_weekly_usage = %s, delivery_time_days = %s
+                        SET item_name = %s, category = %s, average_weekly_usage = %s, delivery_time_days = %s, supplier_name = %s
                         WHERE item_id = %s 
-                    """, (item_name, category, avg_weekly_usage, delivery_time, self.edit_data['item_id']))
+                    """, (item_name, category, avg_weekly_usage, delivery_time, supplier_name_str, self.edit_data['item_id']))
+                    connect.commit()
+
+                    # cursor.execute("""
+                    #     SELECT new_expiry_date FROM supply
+                    #     WHERE item_id = %s
+                    # """, (self.edit_data['item_id']),)
+                    # new_expiry_date = cursor.fetchone()[0]
+
+                    # cursor.execute("UPDATE supply SET previous_")
 
                     # Current stock remains the same in edit mode
                     new_current_stock = current_stock_before
@@ -425,7 +436,7 @@ class SupplyWindow(SupplyBaseWindow):
                     status = set_stock_levels(avg_weekly_usage, delivery_time, new_current_stock)
                     set_status = set_supply_data(cursor, 'stock_level_status', status, self.edit_data['item_id']) 
 
-                    connect.commit()
+                    
                     CTkMessageBox.show_success("Success", "Supply information updated successfully!", parent=self)
 
                 else:
