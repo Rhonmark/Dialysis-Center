@@ -5656,6 +5656,81 @@ class ReportPage(ctk.CTkFrame):
         def on_interval_selected(choice):
             print(f"Selected Summary Date Report: {choice}")
             type_label.configure(text=choice)
+            
+            # Update patient counts based on selected interval
+            if choice == "Current":
+                # No period filtering - show all data
+                self.active_patient = data_count(
+                    column='stock_level_status', 
+                    value='Active', 
+                    table_name='patient_info'
+                )
+                self.inactive_patient = data_count(
+                    column='stock_level_status', 
+                    value='Inactive',  # FIXED: was 'Active', should be 'Inactive'
+                    table_name='patient_info'
+                )
+            elif choice == "Weekly":
+                # Weekly filtering
+                self.active_patient = data_count(
+                    column='stock_level_status', 
+                    value='Active', 
+                    table_name='patient_info',
+                    period='weekly', 
+                    date_column='date_registered',
+                    join_table='patient_list',
+                    join_condition='patient_info.patient_id = patient_list.patient_id'  
+                )
+                self.inactive_patient = data_count(
+                    column='stock_level_status', 
+                    value='Inactive',  # FIXED: was 'Active', should be 'Inactive'
+                    table_name='patient_info',
+                    period='weekly', 
+                    date_column='date_registered',
+                    join_table='patient_list',
+                    join_condition='patient_info.patient_id = patient_list.patient_id'  
+                )
+            elif choice == "Monthly":
+                # Monthly filtering
+                self.active_patient = data_count(
+                    column='stock_level_status', 
+                    value='Active', 
+                    table_name='patient_info',
+                    period='monthly', 
+                    date_column='date_registered',
+                    join_table='patient_list',
+                    join_condition='patient_info.patient_id = patient_list.patient_id'  
+                )
+                self.inactive_patient = data_count(
+                    column='stock_level_status', 
+                    value='Inactive',  # FIXED: was 'Active', should be 'Inactive'
+                    table_name='patient_info',
+                    period='monthly', 
+                    date_column='date_registered',
+                    join_table='patient_list',
+                    join_condition='patient_info.patient_id = patient_list.patient_id'  
+                )
+            
+            # Update the UI labels with new counts
+            # Handle the case where data_count returns a dictionary (with period info)
+            if isinstance(self.active_patient, dict):
+                active_count = self.active_patient['count']
+            else:
+                active_count = self.active_patient
+                
+            if isinstance(self.inactive_patient, dict):
+                inactive_count = self.inactive_patient['count']
+            else:
+                inactive_count = self.inactive_patient
+            
+            # Update the labels on the UI
+            self.ActivePatientCount.configure(text=str(active_count))
+            self.InactivePatientCount.configure(text=str(inactive_count))
+            
+            # Optionally refresh the patient table to show filtered data
+            self.load_patient_data()
+            
+            print(f"Updated counts - Active: {active_count}, Inactive: {inactive_count}")
 
         type_label = ctk.CTkLabel(Interval_frame,font=TypeReport_font,text="",text_color="#104E44",height=12)
         type_label.place(relx=.5,rely=.72,anchor="center")
