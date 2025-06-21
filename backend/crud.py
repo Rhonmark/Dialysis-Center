@@ -521,3 +521,16 @@ def update_patient_list(patient_id, data_dict):
 
 # cursor.execute(query, store)
 # connect.commit()
+
+
+# connect = db()
+# cursor = connect.cursor()
+
+# cursor.execute("SELECT item_name FROM supply")
+
+# result = cursor.fetchall()
+
+# usable_result = [i[0] for i in result]
+# string_dropdown = ', '.join(usable_result)
+
+# print(string_dropdown)
