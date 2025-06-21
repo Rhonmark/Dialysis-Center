@@ -5272,7 +5272,7 @@ class ReportPage(ctk.CTkFrame):
                 if period and date_column:
                     today = datetime.now().date()
                     
-                    if period.lower() == 'Weekly':
+                    if period.lower() == 'weekly':
                         days_since_monday = today.weekday()
                         start_of_week = today - timedelta(days=days_since_monday)
                         end_of_week = start_of_week + timedelta(days=6)
@@ -5293,7 +5293,7 @@ class ReportPage(ctk.CTkFrame):
                                 AND {date_column} <= '{end_of_week}'
                             """)
                         
-                    elif period.lower() == 'Monthly':
+                    elif period.lower() == 'monthly':
                         start_of_month = today.replace(day=1)
                         last_day = calendar.monthrange(today.year, today.month)[1]
                         end_of_month = today.replace(day=last_day)
@@ -5359,28 +5359,6 @@ class ReportPage(ctk.CTkFrame):
             finally:
                 cursor.close()
                 connect.close()
-
-        
-
-        self.active_patient = data_count(
-            column='status', 
-            value='Active', 
-            table_name='patient_info',
-            period='weekly', 
-            date_column='date_registered',
-            join_table='patient_list',
-            join_condition='patient_info.patient_id = patient_list.patient_id'  
-        )
-
-        self.inactive_patient = data_count(
-            column='status', 
-            value='Active', 
-            table_name='patient_info',
-            period='weekly', 
-            date_column='date_registered',
-            join_table='patient_list',
-            join_condition='patient_info.patient_id = patient_list.patient_id'  
-        )
         
         self.lowstock_count = data_count('stock_level_status', 'Low Stock Level', table_name='supply')
         self.criticalstock_count = data_count('stock_level_status', 'Critical Stock Level', table_name='supply')
@@ -5415,7 +5393,7 @@ class ReportPage(ctk.CTkFrame):
 
          #Output for Active User - NOW DYNAMIC
         PatientIcon_image = ctk.CTkImage(Image.open("assets/PatientIcon.png"), size=(15,15))
-        self.ActivePatientCount = ctk.CTkLabel(Activepatient_BG,font=NumberOuput_font,text=str(self.active_patient),text_color="#fFFFFF",fg_color="transparent",image=PatientIcon_image,compound='right')
+        self.ActivePatientCount = ctk.CTkLabel(Activepatient_BG,font=NumberOuput_font,text='',text_color="#fFFFFF",fg_color="transparent",image=PatientIcon_image,compound='right')
         self.ActivePatientCount.place(relx=.5,rely=.45,anchor="center")
         PatientCount_SubLabel = ctk.CTkLabel(Activepatient_BG,font=SubLabel_font,text="Patient",text_color="#FfFFFF",fg_color="transparent",height=10)
         PatientCount_SubLabel.place(relx=.5,rely=.7,anchor="center")
@@ -5431,7 +5409,7 @@ class ReportPage(ctk.CTkFrame):
 
         #Output for Inactive User - NOW DYNAMIC
         PatientIcon_image = ctk.CTkImage(Image.open("assets/PatientIcon.png"), size=(15,15))
-        self.InactivePatientCount = ctk.CTkLabel(Inactivepatient_BG,font=NumberOuput_font,text=str(self.inactive_patient),text_color="#fFFFFF",fg_color="transparent",image=PatientIcon_image,compound='right')
+        self.InactivePatientCount = ctk.CTkLabel(Inactivepatient_BG,font=NumberOuput_font,text='',text_color="#fFFFFF",fg_color="transparent",image=PatientIcon_image,compound='right')
         self.InactivePatientCount.place(relx=.5,rely=.45,anchor="center")
         PatientCount_SubLabel = ctk.CTkLabel(Inactivepatient_BG,font=SubLabel_font,text="Patient",text_color="#FfFFFF",fg_color="transparent",height=10)
         PatientCount_SubLabel.place(relx=.5,rely=.7,anchor="center")
@@ -5661,19 +5639,18 @@ class ReportPage(ctk.CTkFrame):
             if choice == "Current":
                 # No period filtering - show all data
                 self.active_patient = data_count(
-                    column='stock_level_status', 
+                    column='status', 
                     value='Active', 
                     table_name='patient_info'
                 )
                 self.inactive_patient = data_count(
-                    column='stock_level_status', 
+                    column='status', 
                     value='Inactive',  # FIXED: was 'Active', should be 'Inactive'
                     table_name='patient_info'
                 )
             elif choice == "Weekly":
-                # Weekly filtering
                 self.active_patient = data_count(
-                    column='stock_level_status', 
+                    column='status', 
                     value='Active', 
                     table_name='patient_info',
                     period='weekly', 
@@ -5682,8 +5659,8 @@ class ReportPage(ctk.CTkFrame):
                     join_condition='patient_info.patient_id = patient_list.patient_id'  
                 )
                 self.inactive_patient = data_count(
-                    column='stock_level_status', 
-                    value='Inactive',  # FIXED: was 'Active', should be 'Inactive'
+                    column='status', 
+                    value='Inactive',
                     table_name='patient_info',
                     period='weekly', 
                     date_column='date_registered',
@@ -5693,7 +5670,7 @@ class ReportPage(ctk.CTkFrame):
             elif choice == "Monthly":
                 # Monthly filtering
                 self.active_patient = data_count(
-                    column='stock_level_status', 
+                    column='status', 
                     value='Active', 
                     table_name='patient_info',
                     period='monthly', 
@@ -5702,7 +5679,7 @@ class ReportPage(ctk.CTkFrame):
                     join_condition='patient_info.patient_id = patient_list.patient_id'  
                 )
                 self.inactive_patient = data_count(
-                    column='stock_level_status', 
+                    column='status', 
                     value='Inactive',  # FIXED: was 'Active', should be 'Inactive'
                     table_name='patient_info',
                     period='monthly', 

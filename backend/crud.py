@@ -556,7 +556,7 @@ def update_patient_list(patient_id, data_dict):
 #         if period and date_column:
 #             today = datetime.now().date()
             
-#             if period.lower() == 'Weekly':
+#             if period.lower() == 'weekly':
 #                 # Get current week (Monday to Sunday)
 #                 days_since_monday = today.weekday()
 #                 start_of_week = today - timedelta(days=days_since_monday)
@@ -578,7 +578,7 @@ def update_patient_list(patient_id, data_dict):
 #                         AND {date_column} <= '{end_of_week}'
 #                     """)
                 
-#             elif period.lower() == 'Monthly':
+#             elif period.lower() == 'monthly':
 #                 # Get current month
 #                 start_of_month = today.replace(day=1)
 #                 last_day = calendar.monthrange(today.year, today.month)[1]
@@ -659,6 +659,9 @@ def update_patient_list(patient_id, data_dict):
 
 # print('active patients: ', active_patient)
 # print('inactive patients: ', inactive_patient)
+
+# print(monthly_active)
+# print(weekly_active)
 
 # weekly_act_keys = [f'{items}' for items in weekly_active.keys()]
 # weekly_act_usable_keys = ', '.join(weekly_act_keys)
