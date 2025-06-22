@@ -5343,32 +5343,102 @@ class ReportPage(ctk.CTkFrame):
                 cursor.close()
                 connect.close()
 
-        def overall_data_count(table_name):
+        def data_count_no_join(column, value, table_name, period=None, date_column=None):
+            from datetime import datetime, timedelta
+            import calendar
+
             try:
                 connect = db()
                 cursor = connect.cursor()
-
-                cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
-
+                
+                if period and date_column:
+                    today = datetime.now().date()
+                    
+                    if period.lower() == 'weekly':
+                        days_since_monday = today.weekday()
+                        start_of_week = today - timedelta(days=days_since_monday)
+                        end_of_week = start_of_week + timedelta(days=6)
+                        
+                        cursor.execute(f"""
+                            SELECT COUNT(*) FROM {table_name}
+                            WHERE {column} = '{value}' 
+                            AND {date_column} >= '{start_of_week}' 
+                            AND {date_column} <= '{end_of_week}'
+                        """)
+                        
+                    elif period.lower() == 'monthly':
+                        start_of_month = today.replace(day=1)
+                        last_day = calendar.monthrange(today.year, today.month)[1]
+                        end_of_month = today.replace(day=last_day)
+                        
+                        cursor.execute(f"""
+                            SELECT COUNT(*) FROM {table_name}
+                            WHERE {column} = '{value}' 
+                            AND {date_column} >= '{start_of_month}' 
+                            AND {date_column} <= '{end_of_month}'
+                        """)
+                        
+                    else:
+                        cursor.execute(f"""
+                            SELECT COUNT(*) FROM {table_name}
+                            WHERE {column} = '{value}'
+                        """)
+                
                 count_result = cursor.fetchone()
                 return count_result[0] if count_result else 0
-
+                
             except Exception as e:
-                print(f'Error finding value in table: {table_name}', e)
+                print(f'Error finding column ({column}), value ({value}) in table: {table_name}', e)
                 return 0
             finally:
                 cursor.close()
                 connect.close()
-        
-        self.lowstock_count = data_count('stock_level_status', 'Low Stock Level', table_name='supply')
-        self.criticalstock_count = data_count('stock_level_status', 'Critical Stock Level', table_name='supply')
-        self.overall_supply_count = overall_data_count('supply')
 
-        # print('count of active patient: ', self.active_patient)
-        # print('count of inactive patient: ', self.inactive_patient)
-        # print('count of low stock items: ', self.lowstock_count)
-        # print('count of critical stock items: ', self.criticalstock_count)
-        # print('overall supply count: ', self.overall_supply_count)
+        def overall_data_count(table_name, period=None, date_column=None):
+            from datetime import datetime, timedelta
+            import calendar
+
+            try:
+                connect = db()
+                cursor = connect.cursor()
+                
+                if period and date_column:
+                    today = datetime.now().date()
+                    
+                    if period.lower() == 'weekly':
+                        days_since_monday = today.weekday()
+                        start_of_week = today - timedelta(days=days_since_monday)
+                        end_of_week = start_of_week + timedelta(days=6)
+                        
+                        cursor.execute(f"""
+                            SELECT COUNT(*) FROM {table_name}
+                            WHERE {date_column} >= '{start_of_week}' 
+                            AND {date_column} <= '{end_of_week}'
+                        """)
+                        
+                    elif period.lower() == 'monthly':
+                        start_of_month = today.replace(day=1)
+                        last_day = calendar.monthrange(today.year, today.month)[1]
+                        end_of_month = today.replace(day=last_day)
+                        
+                        cursor.execute(f"""
+                            SELECT COUNT(*) FROM {table_name}
+                            WHERE {date_column} >= '{start_of_month}' 
+                            AND {date_column} <= '{end_of_month}'
+                        """)
+
+                    else:
+                        cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
+                
+                count_result = cursor.fetchone()
+                return count_result[0] if count_result else 0
+                
+            except Exception as e:
+                print(f'Error finding data in table: {table_name}', e)
+                return 0
+            finally:
+                cursor.close()
+                connect.close()
 
         self.low_stock_canvas = None
         self.critical_stock_canvas = None
@@ -5523,7 +5593,7 @@ class ReportPage(ctk.CTkFrame):
 
         #Output Supply Count - NOW DYNAMIC
         SupplyCountIcon_image = ctk.CTkImage(Image.open("assets/SupplyCountIcon.png"), size=(15,15))
-        self.SupplyCount = ctk.CTkLabel(SupplyCount_BG,font=NumberOuput_font,text=str(self.overall_supply_count),text_color="#fFFFFF",fg_color="transparent",image=SupplyCountIcon_image,compound='right')
+        self.SupplyCount = ctk.CTkLabel(SupplyCount_BG,font=NumberOuput_font,text='',text_color="#fFFFFF",fg_color="transparent",image=SupplyCountIcon_image,compound='right')
         self.SupplyCount.place(relx=.5,rely=.45,anchor="center")
         SupplyCount_SubLabel = ctk.CTkLabel(SupplyCount_BG,font=SubLabel_font,text="Items",text_color="#FfFFFF",fg_color="transparent",height=10)
         SupplyCount_SubLabel.place(relx=.5,rely=.7,anchor="center")
@@ -5538,7 +5608,7 @@ class ReportPage(ctk.CTkFrame):
 
         #Output Low Stock - NOW DYNAMIC
         LowStockIcon_image = ctk.CTkImage(Image.open("assets/LowStockIcon.png"), size=(15,15))
-        self.LowStockCount = ctk.CTkLabel(Lowstock_BG,font=NumberOuput_font,text=str(self.lowstock_count),text_color="#fFFFFF",fg_color="transparent",image=LowStockIcon_image,compound='right')
+        self.LowStockCount = ctk.CTkLabel(Lowstock_BG,font=NumberOuput_font,text='',text_color="#fFFFFF",fg_color="transparent",image=LowStockIcon_image,compound='right')
         self.LowStockCount.place(relx=.5,rely=.45,anchor="center")
         LowStockCount_SubLabel = ctk.CTkLabel(Lowstock_BG,font=SubLabel_font,text="Items",text_color="#FfFFFF",fg_color="transparent",height=10)
         LowStockCount_SubLabel.place(relx=.5,rely=.7,anchor="center")
@@ -5553,7 +5623,7 @@ class ReportPage(ctk.CTkFrame):
 
         #Output Critical Stock - NOW DYNAMIC
         CriticalStockIcon_image = ctk.CTkImage(Image.open("assets/CriticalStockIcon.png"), size=(15,15))
-        self.CriticalStockCount = ctk.CTkLabel(CriticalStock_BG,font=NumberOuput_font,text=str(self.criticalstock_count),text_color="#fFFFFF",fg_color="transparent",image=CriticalStockIcon_image,compound='right')
+        self.CriticalStockCount = ctk.CTkLabel(CriticalStock_BG,font=NumberOuput_font,text='',text_color="#fFFFFF",fg_color="transparent",image=CriticalStockIcon_image,compound='right')
         self.CriticalStockCount.place(relx=.5,rely=.45,anchor="center")
         CriticalStockCount_SubLabel = ctk.CTkLabel(CriticalStock_BG,font=SubLabel_font,text="Items",text_color="#FfFFFF",fg_color="transparent",height=10)
         CriticalStockCount_SubLabel.place(relx=.5,rely=.7,anchor="center")
@@ -5643,11 +5713,37 @@ class ReportPage(ctk.CTkFrame):
                     value='Active', 
                     table_name='patient_info'
                 )
+                
+                viewing_date = date.today()
+                
                 self.inactive_patient = data_count(
                     column='status', 
                     value='Inactive',  # FIXED: was 'Active', should be 'Inactive'
                     table_name='patient_info'
                 )
+
+                self.supply_overall_count = overall_data_count(
+                    table_name='supply', 
+                    period='current', 
+                    date_column='date_registered')
+
+                self.lowstock_count = data_count_no_join(
+                    column='stock_level_status', 
+                    value='Low Stock Level', 
+                    table_name='supply', 
+                    period='current', 
+                    date_column='date_registered')
+
+                self.criticalstock_count = data_count_no_join(
+                    column='stock_level_status', 
+                    value='Critical Stock Level', 
+                    table_name='supply', 
+                    period='current', 
+                    date_column='date_registered')
+                
+                self.low_stock_graph(period='current', date_column='date_registered')
+                self.critical_stock_graph(period='current', date_column='date_registered')
+
             elif choice == "Weekly":
                 self.active_patient = data_count(
                     column='status', 
@@ -5658,6 +5754,9 @@ class ReportPage(ctk.CTkFrame):
                     join_table='patient_list',
                     join_condition='patient_info.patient_id = patient_list.patient_id'  
                 )
+
+                viewing_date = self.active_patient['date_range']
+
                 self.inactive_patient = data_count(
                     column='status', 
                     value='Inactive',
@@ -5667,6 +5766,29 @@ class ReportPage(ctk.CTkFrame):
                     join_table='patient_list',
                     join_condition='patient_info.patient_id = patient_list.patient_id'  
                 )
+
+                self.supply_overall_count = overall_data_count(
+                    table_name='supply', 
+                    period='weekly', 
+                    date_column='date_registered')
+
+                self.lowstock_count = data_count_no_join(
+                    column='stock_level_status', 
+                    value='Low Stock Level', 
+                    table_name='supply', 
+                    period='weekly', 
+                    date_column='date_registered')
+
+                self.criticalstock_count = data_count_no_join(
+                    column='stock_level_status', 
+                    value='Critical Stock Level', 
+                    table_name='supply', 
+                    period='weekly', 
+                    date_column='date_registered')
+
+                self.low_stock_graph(period='weekly', date_column='date_registered')
+                self.critical_stock_graph(period='weekly', date_column='date_registered')
+
             elif choice == "Monthly":
                 # Monthly filtering
                 self.active_patient = data_count(
@@ -5678,6 +5800,9 @@ class ReportPage(ctk.CTkFrame):
                     join_table='patient_list',
                     join_condition='patient_info.patient_id = patient_list.patient_id'  
                 )
+
+                viewing_date = self.active_patient['date_range']
+
                 self.inactive_patient = data_count(
                     column='status', 
                     value='Inactive',  # FIXED: was 'Active', should be 'Inactive'
@@ -5687,7 +5812,29 @@ class ReportPage(ctk.CTkFrame):
                     join_table='patient_list',
                     join_condition='patient_info.patient_id = patient_list.patient_id'  
                 )
-            
+
+                self.supply_overall_count = overall_data_count(
+                    table_name='supply', 
+                    period='monthly', 
+                    date_column='date_registered')
+
+                self.lowstock_count = data_count_no_join(
+                    column='stock_level_status', 
+                    value='Low Stock Level', 
+                    table_name='supply', 
+                    period='monthly', 
+                    date_column='date_registered')
+
+                self.criticalstock_count = data_count_no_join(
+                    column='stock_level_status', 
+                    value='Critical Stock Level', 
+                    table_name='supply', 
+                    period='monthly', 
+                    date_column='date_registered')
+                
+                self.low_stock_graph(period='monthly', date_column='date_registered')
+                self.critical_stock_graph(period='monthly', date_column='date_registered')
+
             # Update the UI labels with new counts
             # Handle the case where data_count returns a dictionary (with period info)
             if isinstance(self.active_patient, dict):
@@ -5699,12 +5846,34 @@ class ReportPage(ctk.CTkFrame):
                 inactive_count = self.inactive_patient['count']
             else:
                 inactive_count = self.inactive_patient
+
+            if isinstance(self.lowstock_count, dict):
+                supply_overall_count = self.supply_overall_count['count']
+            else:
+                supply_overall_count = self.supply_overall_count
+
+            if isinstance(self.lowstock_count, dict):
+                lowstock_count = self.lowstock_count['count']
+            else:
+                lowstock_count = self.lowstock_count
+                
+            if isinstance(self.criticalstock_count, dict):
+                criticalstock_count = self.criticalstock_count['count']
+            else:
+                criticalstock_count = self.criticalstock_count
             
             # Update the labels on the UI
             self.ActivePatientCount.configure(text=str(active_count))
             self.InactivePatientCount.configure(text=str(inactive_count))
+
+            self.SupplyCount.configure(text=str(supply_overall_count))
+            self.LowStockCount.configure(text=str(lowstock_count))
+            self.CriticalStockCount.configure(text=str(criticalstock_count))
+
+            self.view_label.configure(text=str(viewing_date))
             
             # Optionally refresh the patient table to show filtered data
+            #period, date_column
             self.load_patient_data()
             
             print(f"Updated counts - Active: {active_count}, Inactive: {inactive_count}")
@@ -5717,8 +5886,10 @@ class ReportPage(ctk.CTkFrame):
                                             width=150,height=20,values=["Current","Weekly","Monthly"],font=label_font,fg_color="#FFFFFF",corner_radius=10,bg_color="#FFFFFF",dropdown_fg_color="#FFFFFF",button_color="#88BD8E",button_hover_color="#1A374D",dropdown_font=label_font)
         Interval_Dropdown.place(relx=.5,rely=.55,anchor="center")
 
-        view_label = ctk.CTkLabel(Interval_frame,font=SubLabel_font,text="Viewing By",text_color="#104E44",height=10)
-        view_label.place(relx=.5,rely=.825,anchor="center")
+        # view_label = ctk.CTkLabel(Interval_frame,font=SubLabel_font,text="Viewing By",text_color="#104E44",height=10)
+        # view_label.place(relx=.5,rely=.825,anchor="center")
+        self.view_label = ctk.CTkLabel(Interval_frame,font=SubLabel_font,text="",text_color="#104E44",height=10)
+        self.view_label.place(relx=.5,rely=.825,anchor="center")
 
     #Low Stock Level items
         self.LowOnStock_frame = ctk.CTkFrame(self,
@@ -5741,33 +5912,6 @@ class ReportPage(ctk.CTkFrame):
 
         LowonStock_title = ctk.CTkLabel(self.LowOnStock_frame,font=Title_font,text="Low Stock Level Items")
         LowonStock_title.place(x=20,y=40)
-
-        # Refresh icon for Low Stock
-        try:
-            low_stock_refresh_icon = ctk.CTkImage(light_image=Image.open("assets/refresh.png"), size=(20, 20))
-            low_stock_refresh_btn = ctk.CTkButton(
-                self.LowOnStock_frame,
-                image=low_stock_refresh_icon,
-                text="",
-                width=25,
-                height=25,
-                fg_color="transparent",
-                hover_color="#f0f0f0",
-                command=self.refresh_data
-            )
-            low_stock_refresh_btn.place(x=220, y=40)
-        except:
-            low_stock_refresh_btn = ctk.CTkButton(
-                self.LowOnStock_frame,
-                text="🔄",
-                font=("Arial", 14),
-                width=25,
-                height=25,
-                fg_color="transparent",
-                hover_color="#f0f0f0",
-                command=self.refresh_data
-            )
-            low_stock_refresh_btn.place(x=220, y=40)
 
         LowonStock_sublabel = ctk.CTkLabel(self.LowOnStock_frame,font=SubSubLabel_font,text="Current Data")
         LowonStock_sublabel.place(x=20,y=65)
@@ -5793,33 +5937,6 @@ class ReportPage(ctk.CTkFrame):
 
         CriticalStock_title = ctk.CTkLabel(self.CriticalStock_frame,font=Title_font,text="Critical Stock Level Items")
         CriticalStock_title.place(x=20,y=40)
-
-        # Refresh icon for Critical Stock
-        try:
-            critical_stock_refresh_icon = ctk.CTkImage(light_image=Image.open("assets/refresh.png"), size=(20, 20))
-            critical_stock_refresh_btn = ctk.CTkButton(
-                self.CriticalStock_frame,
-                image=critical_stock_refresh_icon,
-                text="",
-                width=25,
-                height=25,
-                fg_color="transparent",
-                hover_color="#f0f0f0",
-                command=self.refresh_data
-            )
-            critical_stock_refresh_btn.place(x=250, y=40)
-        except:
-            critical_stock_refresh_btn = ctk.CTkButton(
-                self.CriticalStock_frame,
-                text="🔄",
-                font=("Arial", 14),
-                width=25,
-                height=25,
-                fg_color="transparent",
-                hover_color="#f0f0f0",
-                command=self.refresh_data
-            )
-            critical_stock_refresh_btn.place(x=250, y=40)
 
         CriticalStock_sublabel = ctk.CTkLabel(self.CriticalStock_frame,font=SubSubLabel_font,text="Current Data")
         CriticalStock_sublabel.place(x=20,y=65)
@@ -5888,12 +6005,10 @@ class ReportPage(ctk.CTkFrame):
         RecentBackuplabel.place(relx=.5,rely=.4,anchor="center")
 
         # Load initial graphs
-        self.low_stock_graph()
-        self.critical_stock_graph()
 
     def load_patient_data(self):
         """Load patient data from database and display in table"""
-        try:
+        try:    
             connect = db()
             cursor = connect.cursor()
             
@@ -6013,134 +6128,36 @@ class ReportPage(ctk.CTkFrame):
 
     def refresh_data(self):
         """Refresh all data counts and update the labels"""
-        def data_count(column, value, table_name, period=None, date_column=None, join_table=None, join_condition=None):
-            from datetime import datetime, timedelta
-            import calendar
-            try:
-                connect = db()
-                cursor = connect.cursor()
-                
-                if period and date_column:
-                    today = datetime.now().date()
-                    
-                    if period.lower() == 'Weekly':
-                        # Get current week (Monday to Sunday)
-                        days_since_monday = today.weekday()
-                        start_of_week = today - timedelta(days=days_since_monday)
-                        end_of_week = start_of_week + timedelta(days=6)
-                        
-                        if join_table and join_condition:
-                            cursor.execute(f"""
-                                SELECT COUNT(*) FROM {table_name}
-                                JOIN {join_table} ON {join_condition}
-                                WHERE {table_name}.{column} = '{value}' 
-                                AND {join_table}.{date_column} >= '{start_of_week}' 
-                                AND {join_table}.{date_column} <= '{end_of_week}'
-                            """)
-                        else:
-                            cursor.execute(f"""
-                                SELECT COUNT(*) FROM {table_name}
-                                WHERE {column} = '{value}' 
-                                AND {date_column} >= '{start_of_week}' 
-                                AND {date_column} <= '{end_of_week}'
-                            """)
-                        
-                    elif period.lower() == 'Monthly':
-                        # Get current month
-                        start_of_month = today.replace(day=1)
-                        last_day = calendar.monthrange(today.year, today.month)[1]
-                        end_of_month = today.replace(day=last_day)
-                        
-                        if join_table and join_condition:
-                            cursor.execute(f"""
-                                SELECT COUNT(*) FROM {table_name}
-                                JOIN {join_table} ON {join_condition}
-                                WHERE {table_name}.{column} = '{value}' 
-                                AND {join_table}.{date_column} >= '{start_of_month}' 
-                                AND {join_table}.{date_column} <= '{end_of_month}'
-                            """)
-                        else:
-                            cursor.execute(f"""
-                                SELECT COUNT(*) FROM {table_name}
-                                WHERE {column} = '{value}' 
-                                AND {date_column} >= '{start_of_month}' 
-                                AND {date_column} <= '{end_of_month}'
-                            """)
-                else:
-                    # Original query without date filtering
-                    cursor.execute(f"""
-                        SELECT COUNT(*) FROM {table_name}
-                        WHERE {column} = '{value}'
-                    """)
-                
-                count_result = cursor.fetchone()
-                count = count_result[0] if count_result else 0
-            
-                if period and date_column:
-                    if period.lower() == 'weekly':
-                        date_range = f"{start_of_week.strftime('%B %d')} - {end_of_week.strftime('%B %d, %Y')}"
-                    elif period.lower() == 'monthly':
-                        date_range = f"{start_of_month.strftime('%B %Y')}"
-                    
-                    return {
-                        'count': count,
-                        'date_range': date_range,
-                        'period': period.lower()
-                    }
-                else:
-                    return count
-                
-            except Exception as e:
-                print(f'Error finding column ({column}), value ({value}) in table: {table_name}', e)
-                return 0
-            finally:
-                cursor.close()
-                connect.close()
-
-        def overall_data_count(table_name):
-            try:
-                connect = db()
-                cursor = connect.cursor()
-                cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
-                count_result = cursor.fetchone()
-                return count_result[0] if count_result else 0
-            except Exception as e:
-                print(f'Error finding value in table: {table_name}', e)
-                return 0
-            finally:
-                cursor.close()
-                connect.close()
-
-        # Update data
-        self.active_patient = data_count('status', 'Active', table_name='patient_info')
-        self.inactive_patient = data_count('status', 'Inactive', table_name='patient_info')
-        self.lowstock_count = data_count('stock_level_status', 'Low Stock Level', table_name='supply')
-        self.criticalstock_count = data_count('stock_level_status', 'Critical Stock Level', table_name='supply')
-        self.overall_supply_count = overall_data_count('supply')
-
-        # Update labels
-        self.ActivePatientCount.configure(text=str(self.active_patient))
-        self.InactivePatientCount.configure(text=str(self.inactive_patient))
-        self.SupplyCount.configure(text=str(self.overall_supply_count))
-        self.LowStockCount.configure(text=str(self.lowstock_count))
-        self.CriticalStockCount.configure(text=str(self.criticalstock_count))
 
         # Refresh patient table
         self.load_patient_data()
-        
-        # Refresh graphs
-        self.low_stock_graph()
-        self.critical_stock_graph()
 
         print('Data refreshed successfully')
 
-    def low_stock_graph(self):
+    def low_stock_graph(self, period=None, date_column=None):
         """Show low stock items chart in LowOnStock_frame"""
+        from datetime import datetime, timedelta
+        import calendar
         try:
+            today = datetime.now().date()
+
+            if period.lower() == 'weekly':
+                start = today - timedelta(days=today.weekday())
+                end = start + timedelta(days=6)
+                date_filter = f"AND {date_column} >= '{start}' AND {date_column} <= '{end}'"
+            elif period.lower() == 'monthly':
+                start = today.replace(day=1)
+                last_day = calendar.monthrange(today.year, today.month)[1]
+                end = today.replace(day=last_day)
+                date_filter = f"AND {date_column} >= '{start}' AND {date_column} <= '{end}'"
+            else:
+                date_filter = ""
+            
             connect = db()
-            query = """
+            query = f"""
                 SELECT item_name, current_stock FROM supply
                 WHERE stock_level_status = 'Low Stock Level'
+                {date_filter}
                 ORDER BY current_stock ASC
             """
 
@@ -6204,13 +6221,30 @@ class ReportPage(ctk.CTkFrame):
             if 'connect' in locals():
                 connect.close()
 
-    def critical_stock_graph(self):
+    def critical_stock_graph(self, period=None, date_column=None):
         """Show critical stock items chart in CriticalStock_frame"""
+        from datetime import datetime, timedelta
+        import calendar
         try:
+            today = datetime.now().date()
+
+            if period.lower() == 'weekly':
+                start = today - timedelta(days=today.weekday())
+                end = start + timedelta(days=6)
+                date_filter = f"AND {date_column} >= '{start}' AND {date_column} <= '{end}'"
+            elif period.lower() == 'monthly':
+                start = today.replace(day=1)
+                last_day = calendar.monthrange(today.year, today.month)[1]
+                end = today.replace(day=last_day)
+                date_filter = f"AND {date_column} >= '{start}' AND {date_column} <= '{end}'"
+            else:
+                date_filter = ""
+
             connect = db()
-            query = """
+            query = f"""
                 SELECT item_name, current_stock FROM supply
                 WHERE stock_level_status = 'Critical Stock Level'
+                {date_filter}
                 ORDER BY current_stock ASC
             """
 

@@ -672,3 +672,61 @@ def update_patient_list(patient_id, data_dict):
 
 # for key, value in zip(weekly_act_keys, weekly_act_values):
 #     print(key, value)
+
+# def data_count_no_join(column, value, table_name, period=None, date_column=None):
+
+#     from datetime import datetime, timedelta
+#     import calendar
+
+#     try:
+#         connect = db()
+#         cursor = connect.cursor()
+        
+#         if period and date_column:
+#             today = datetime.now().date()
+            
+#             if period.lower() == 'weekly':
+#                 days_since_monday = today.weekday()
+#                 start_of_week = today - timedelta(days=days_since_monday)
+#                 end_of_week = start_of_week + timedelta(days=6)
+                
+#                 cursor.execute(f"""
+#                     SELECT COUNT(*) FROM {table_name}
+#                     WHERE {column} = '{value}' 
+#                     AND {date_column} >= '{start_of_week}' 
+#                     AND {date_column} <= '{end_of_week}'
+#                 """)
+                
+#             elif period.lower() == 'monthly':
+#                 start_of_month = today.replace(day=1)
+#                 last_day = calendar.monthrange(today.year, today.month)[1]
+#                 end_of_month = today.replace(day=last_day)
+                
+#                 cursor.execute(f"""
+#                     SELECT COUNT(*) FROM {table_name}
+#                     WHERE {column} = '{value}' 
+#                     AND {date_column} >= '{start_of_month}' 
+#                     AND {date_column} <= '{end_of_month}'
+#                 """)
+
+#             else:
+#                 cursor.execute(f"""
+#                     SELECT COUNT(*) FROM {table_name}
+#                     WHERE {column} = '{value}'
+#                 """)
+        
+#         count_result = cursor.fetchone()
+#         return count_result[0] if count_result else 0
+        
+#     except Exception as e:
+#         print(f'Error finding column ({column}), value ({value}) in table: {table_name}', e)
+#         return 0
+#     finally:
+#         cursor.close()
+#         connect.close()
+
+# lowstock_count = data_count_no_join('stock_level_status', 'Low Stock Level', 'supply', 'current', 'date_registered')
+# criticalstock_count = data_count_no_join('stock_level_status', 'Critical Stock Level', 'supply', 'current', 'date_registered')
+
+# print(lowstock_count)
+# print(criticalstock_count)
