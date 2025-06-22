@@ -5436,10 +5436,113 @@ class ReportPage(ctk.CTkFrame):
             except Exception as e:
                 print(f'Error finding data in table: {table_name}', e)
                 return 0
+            
             finally:
                 cursor.close()
                 connect.close()
 
+        def date_desc_order(column, id, table_name, period=None, date_column=None):
+            from datetime import datetime, timedelta
+            import calendar
+
+            try:
+                connect = db()
+                cursor = connect.cursor(dictionary=True)  
+                
+                query = f"SELECT {column} FROM {table_name}"
+                
+                if period and date_column:
+                    today = datetime.now().date()
+                    
+                    if period.lower() == 'weekly':
+                        days_since_monday = today.weekday()
+                        start_of_week = today - timedelta(days=days_since_monday)
+                        end_of_week = start_of_week + timedelta(days=6)
+                        
+                        query += f"""
+                            WHERE {date_column} >= '{start_of_week}' 
+                            AND {date_column} <= '{end_of_week}'
+                        """
+                        
+                    elif period.lower() == 'monthly':
+                        start_of_month = today.replace(day=1)
+                        last_day = calendar.monthrange(today.year, today.month)[1]
+                        end_of_month = today.replace(day=last_day)
+                        
+                        query += f"""
+                            WHERE {date_column} >= '{start_of_month}' 
+                            AND {date_column} <= '{end_of_month}'
+                        """
+
+                query += f" ORDER BY {date_column or column} DESC LIMIT 1"
+                
+                cursor.execute(query)
+                result = cursor.fetchone()
+                
+                return result[column] if result else None
+                
+            except Exception as e:
+                print(f'Error finding most recent date in table: {table_name}', e)
+                return None
+            
+            finally:
+                cursor.close()
+                connect.close()
+
+        def notif_count(value, table_name, period=None, date_column=None):
+            from datetime import datetime, timedelta
+            import calendar
+
+            try:
+                connect = db()
+                cursor = connect.cursor()
+
+                list_value = [f"notification_type = '{identifiers}'" for identifiers in value]
+                actual_values = ' OR '.join(list_value)
+
+                if period and date_column:
+                    today = datetime.now()  
+                    
+                    if period.lower() == 'weekly':
+                        days_since_monday = today.weekday()
+                        start_of_week = (today - timedelta(days=days_since_monday)).replace(hour=0, minute=0, second=0, microsecond=0)
+                        end_of_week = (start_of_week + timedelta(days=6)).replace(hour=23, minute=59, second=59, microsecond=999)
+                        
+                        cursor.execute(f"""
+                            SELECT COUNT(*) FROM {table_name}
+                            WHERE ({actual_values})
+                            AND {date_column} >= '{start_of_week}' 
+                            AND {date_column} <= '{end_of_week}'
+                        """)
+                        
+                    elif period.lower() == 'monthly':
+                        start_of_month = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+                        last_day = calendar.monthrange(today.year, today.month)[1]
+                        end_of_month = today.replace(day=last_day, hour=23, minute=59, second=59, microsecond=999)
+                        
+                        cursor.execute(f"""
+                            SELECT COUNT(*) FROM {table_name}
+                            WHERE ({actual_values})
+                            AND {date_column} >= '{start_of_month}' 
+                            AND {date_column} <= '{end_of_month}'
+                        """)
+                        
+                    else:
+                        cursor.execute(f"""
+                            SELECT COUNT(*) FROM {table_name}
+                            WHERE ({actual_values})
+                        """)
+                
+                count_result = cursor.fetchone()    
+                return count_result[0] if count_result else 0
+                
+            except Exception as e:
+                print(f'Error finding values in table: {table_name}', e)
+                return 0
+            finally:
+                cursor.close()
+                connect.close()
+        
         self.low_stock_canvas = None
         self.critical_stock_canvas = None
 
@@ -5655,8 +5758,8 @@ class ReportPage(ctk.CTkFrame):
 
         #Output Backup Count
         BackupIcon_image = ctk.CTkImage(Image.open("assets/BackupIcon.png"), size=(15,15))
-        BackupCount = ctk.CTkLabel(BackupCount_BG,font=NumberOuput_font,text="68",text_color="#fFFFFF",fg_color="transparent",image=BackupIcon_image,compound='right')
-        BackupCount.place(relx=.5,rely=.45,anchor="center")
+        self.BackupCount = ctk.CTkLabel(BackupCount_BG,font=NumberOuput_font,text="",text_color="#fFFFFF",fg_color="transparent",image=BackupIcon_image,compound='right')
+        self.BackupCount.place(relx=.5,rely=.45,anchor="center")
         BackupCount_SubLabel = ctk.CTkLabel(BackupCount_BG,font=SubLabel_font,text="Backups",text_color="#FfFFFF",fg_color="transparent",height=10)
         BackupCount_SubLabel.place(relx=.5,rely=.7,anchor="center")
         
@@ -5670,8 +5773,8 @@ class ReportPage(ctk.CTkFrame):
 
         #Output Recent backup Date
         CalendarIcon_image = ctk.CTkImage(Image.open("assets/Calendaricon.png"), size=(18,18))
-        RecentBackupDate = ctk.CTkLabel(MostRecentBackup_BG,font=DateOutput_font,text="2025-06-13",text_color="#FFFFFF",fg_color="transparent",image=CalendarIcon_image,compound='right')
-        RecentBackupDate.place(relx=.5,rely=.45,anchor="center")
+        self.RecentBackupDate = ctk.CTkLabel(MostRecentBackup_BG,font=DateOutput_font,text="",text_color="#FFFFFF",fg_color="transparent",image=CalendarIcon_image,compound='right')
+        self.RecentBackupDate.place(relx=.5,rely=.45,anchor="center")
         RecentBackup_SubLabel = ctk.CTkLabel(MostRecentBackup_BG,font=SubLabel_font,text="yyyy - mm - dd",text_color="#FFFFFF",fg_color="transparent",height=10)
         RecentBackup_SubLabel.place(relx=.5,rely=.7,anchor="center")
 
@@ -5704,6 +5807,10 @@ class ReportPage(ctk.CTkFrame):
         def on_interval_selected(choice):
             print(f"Selected Summary Date Report: {choice}")
             type_label.configure(text=choice)
+
+            supply_identifiers = ['Item Restocked', 'Item Stock Status Alert', 'New Item Added']
+            patient_identifier =  ['Patient Status', 'New Patient Added']
+            backup_identifier = ['Manual Backup', 'Scheduled Backup']
             
             # Update patient counts based on selected interval
             if choice == "Current":
@@ -5740,6 +5847,36 @@ class ReportPage(ctk.CTkFrame):
                     table_name='supply', 
                     period='current', 
                     date_column='date_registered')
+                
+                self.backup_overall_count = overall_data_count(
+                    table_name='backup_logs', 
+                    period='current', 
+                    date_column='last_date')
+                
+                self.most_recent_backup = date_desc_order(
+                    column='last_date', 
+                    id='backup_id', 
+                    table_name='backup_logs', 
+                    period='current', 
+                    date_column='last_date')
+
+                self.supplies_notif = notif_count(
+                    value=supply_identifiers, 
+                    table_name='notification_logs', 
+                    period='current', 
+                    date_column='notification_timestamp')
+                
+                self.patient_notif = notif_count(
+                    value=patient_identifier, 
+                    table_name='notification_logs', 
+                    period='current', 
+                    date_column='notification_timestamp')
+                
+                self.backup_notif = notif_count(
+                    value=backup_identifier, 
+                    table_name='notification_logs', 
+                    period='current', 
+                    date_column='notification_timestamp')
                 
                 self.low_stock_graph(period='current', date_column='date_registered')
                 self.critical_stock_graph(period='current', date_column='date_registered')
@@ -5785,6 +5922,36 @@ class ReportPage(ctk.CTkFrame):
                     table_name='supply', 
                     period='weekly', 
                     date_column='date_registered')
+                
+                self.backup_overall_count = overall_data_count(
+                    table_name='backup_logs', 
+                    period='weekly', 
+                    date_column='last_date')
+                
+                self.most_recent_backup = date_desc_order(
+                    column='last_date', 
+                    id='backup_id', 
+                    table_name='backup_logs', 
+                    period='weekly', 
+                    date_column='last_date')
+                
+                self.supplies_notif = notif_count(
+                    value=supply_identifiers, 
+                    table_name='notification_logs', 
+                    period='weekly', 
+                    date_column='notification_timestamp')
+                
+                self.patient_notif = notif_count(
+                    value=patient_identifier, 
+                    table_name='notification_logs', 
+                    period='weekly', 
+                    date_column='notification_timestamp')
+                
+                self.backup_notif = notif_count(
+                    value=backup_identifier, 
+                    table_name='notification_logs', 
+                    period='weekly', 
+                    date_column='notification_timestamp')
 
                 self.low_stock_graph(period='weekly', date_column='date_registered')
                 self.critical_stock_graph(period='weekly', date_column='date_registered')
@@ -5832,6 +5999,36 @@ class ReportPage(ctk.CTkFrame):
                     period='monthly', 
                     date_column='date_registered')
                 
+                self.backup_overall_count = overall_data_count(
+                    table_name='backup_logs', 
+                    period='monthly', 
+                    date_column='last_date')
+                
+                self.most_recent_backup = date_desc_order(
+                    column='last_date', 
+                    id='backup_id', 
+                    table_name='backup_logs', 
+                    period='monthly', 
+                    date_column='last_date')
+                
+                self.supplies_notif = notif_count(
+                    value=supply_identifiers, 
+                    table_name='notification_logs', 
+                    period='monthly', 
+                    date_column='notification_timestamp')
+                
+                self.patient_notif = notif_count(
+                    value=patient_identifier, 
+                    table_name='notification_logs', 
+                    period='monthly', 
+                    date_column='notification_timestamp')
+                
+                self.backup_notif = notif_count(
+                    value=backup_identifier, 
+                    table_name='notification_logs', 
+                    period='monthly', 
+                    date_column='notification_timestamp')
+                
                 self.low_stock_graph(period='monthly', date_column='date_registered')
                 self.critical_stock_graph(period='monthly', date_column='date_registered')
 
@@ -5847,7 +6044,7 @@ class ReportPage(ctk.CTkFrame):
             else:
                 inactive_count = self.inactive_patient
 
-            if isinstance(self.lowstock_count, dict):
+            if isinstance(self.supply_overall_count, dict):
                 supply_overall_count = self.supply_overall_count['count']
             else:
                 supply_overall_count = self.supply_overall_count
@@ -5861,7 +6058,18 @@ class ReportPage(ctk.CTkFrame):
                 criticalstock_count = self.criticalstock_count['count']
             else:
                 criticalstock_count = self.criticalstock_count
+
+            if isinstance(self.backup_overall_count, dict):
+                backup_overall_count = self.backup_overall_count['count']
+            else:
+                backup_overall_count = self.backup_overall_count
             
+            most_recent_backup = self.most_recent_backup
+
+            supplies_notif = self.supplies_notif
+            patient_notif = self.patient_notif
+            backup_notif = self.backup_notif
+
             # Update the labels on the UI
             self.ActivePatientCount.configure(text=str(active_count))
             self.InactivePatientCount.configure(text=str(inactive_count))
@@ -5870,6 +6078,13 @@ class ReportPage(ctk.CTkFrame):
             self.LowStockCount.configure(text=str(lowstock_count))
             self.CriticalStockCount.configure(text=str(criticalstock_count))
 
+            self.BackupCount.configure(text=str(backup_overall_count))
+            self.RecentBackupDate.configure(text=str(most_recent_backup))
+
+            self.StockLevelCount.configure(text=str(supplies_notif))
+            self.PatientNotificationCount.configure(text=str(patient_notif))
+            self.RecentNotificationCount.configure(text=str(backup_notif))
+    
             self.view_label.configure(text=str(viewing_date))
             
             # Optionally refresh the patient table to show filtered data
@@ -5962,14 +6177,14 @@ class ReportPage(ctk.CTkFrame):
 
          #Output for Stock Levels
         StockLevelIcon_image = ctk.CTkImage(Image.open("assets/LowStockIcon.png"), size=(15,15))
-        StockLevelCount = ctk.CTkLabel(Stocklevels_BG,font=NumberOuput_font,text="68",text_color="#fFFFFF",fg_color="transparent",image=StockLevelIcon_image,compound='right')
-        StockLevelCount.place(relx=.5,rely=.45,anchor="center")
+        self.StockLevelCount = ctk.CTkLabel(Stocklevels_BG,font=NumberOuput_font,text="",text_color="#fFFFFF",fg_color="transparent",image=StockLevelIcon_image,compound='right')
+        self.StockLevelCount.place(relx=.5,rely=.45,anchor="center")
         StockCount_SubLabel = ctk.CTkLabel(Stocklevels_BG,font=SubLabel_font,text="Notifications",text_color="#FfFFFF",fg_color="transparent",height=10)
         StockCount_SubLabel.place(relx=.5,rely=.7,anchor="center")
 
         StocklevelsLabel_bg = ctk.CTkFrame(NotificationReport_frame,width=140,height=25,corner_radius=10,fg_color="#FFFFFF",bg_color="transparent",border_width=1.5,border_color="#BBBBBB",)
         StocklevelsLabel_bg.place(x=62,y=125)
-        StockLevelsLabel = ctk.CTkLabel(StocklevelsLabel_bg,font=label_font,text="Stock Levels",text_color="#104E44",bg_color="transparent",height=11)
+        StockLevelsLabel = ctk.CTkLabel(StocklevelsLabel_bg,font=label_font,text="Supplies",text_color="#104E44",bg_color="transparent",height=11)
         StockLevelsLabel.place(relx=.5,rely=.4,anchor="center")
 
 
@@ -5978,8 +6193,8 @@ class ReportPage(ctk.CTkFrame):
 
          #Output for Patient Information
         PatientNotificationIcon_image = ctk.CTkImage(Image.open("assets/PatientNotificationIcon.png"), size=(15,15))
-        PatientNotificationCount = ctk.CTkLabel(PatientInformation_BG,font=NumberOuput_font,text="68",text_color="#fFFFFF",bg_color="#57CFBB",image=PatientNotificationIcon_image,compound='right')
-        PatientNotificationCount.place(relx=.5,rely=.45,anchor="center")
+        self.PatientNotificationCount = ctk.CTkLabel(PatientInformation_BG,font=NumberOuput_font,text="",text_color="#fFFFFF",bg_color="#57CFBB",image=PatientNotificationIcon_image,compound='right')
+        self.PatientNotificationCount.place(relx=.5,rely=.45,anchor="center")
         PatientNotification_SubLabel = ctk.CTkLabel(PatientInformation_BG,font=SubLabel_font,text="Notifications",text_color="#FfFFFF",fg_color="transparent",height=10)
         PatientNotification_SubLabel.place(relx=.5,rely=.7,anchor="center")
 
@@ -5993,8 +6208,8 @@ class ReportPage(ctk.CTkFrame):
 
          #Output for Backup
         BackupNotificationIcon_image = ctk.CTkImage(Image.open("assets/BackupNotificationIcon.png"), size=(15,15))
-        RecentNotificationCount = ctk.CTkLabel(RecentBackup_BG,font=NumberOuput_font,text="68",text_color="#fFFFFF",bg_color="#AB8C6F",image=BackupNotificationIcon_image,compound='right')
-        RecentNotificationCount.place(relx=.5,rely=.45,anchor="center")
+        self.RecentNotificationCount = ctk.CTkLabel(RecentBackup_BG,font=NumberOuput_font,text="",text_color="#fFFFFF",bg_color="#AB8C6F",image=BackupNotificationIcon_image,compound='right')
+        self.RecentNotificationCount.place(relx=.5,rely=.45,anchor="center")
         BackupNotification_SubLabel = ctk.CTkLabel(RecentBackup_BG,font=SubLabel_font,text="Notifications",text_color="#FfFFFF",fg_color="transparent",height=10)
         BackupNotification_SubLabel.place(relx=.5,rely=.7,anchor="center")
 
@@ -6568,7 +6783,7 @@ class MaintenancePage(ctk.CTkFrame):
                     cursor.execute("""  
                         INSERT INTO notification_logs (user_fullname, notification_type, notification_timestamp)
                         VALUES (%s, %s, %s)
-                    """, (full_name, 'Manual Backup', right_now))
+                    """, (full_name, 'Scheduled Backup', right_now))
                     
                     connect.commit()
 
