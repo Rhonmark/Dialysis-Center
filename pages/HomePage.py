@@ -5271,8 +5271,23 @@ class ReportPage(ctk.CTkFrame):
                 
                 if period and date_column:
                     today = datetime.now().date()
+
+                    if period.lower() == 'today':
+                        if join_table and join_condition:
+                            cursor.execute(f"""
+                                SELECT COUNT(*) FROM {table_name}
+                                JOIN {join_table} ON {join_condition}
+                                WHERE {table_name}.{column} = '{value}' 
+                                AND DATE({join_table}.{date_column}) = '{today}'
+                            """)
+                        else:
+                            cursor.execute(f"""
+                                SELECT COUNT(*) FROM {table_name}
+                                WHERE {column} = '{value}' 
+                                AND DATE({date_column}) = '{today}'
+                            """)
                     
-                    if period.lower() == 'weekly':
+                    elif period.lower() == 'weekly':
                         days_since_monday = today.weekday()
                         start_of_week = today - timedelta(days=days_since_monday)
                         end_of_week = start_of_week + timedelta(days=6)
@@ -5323,7 +5338,11 @@ class ReportPage(ctk.CTkFrame):
                 count = count_result[0] if count_result else 0
             
                 if period and date_column:
-                    if period.lower() == 'weekly':
+                    if period.lower() == 'today':
+                        today = datetime.now()
+                        formatted_today = today.strftime("%B %d, %Y")
+                        date_range = f"{formatted_today}"
+                    elif period.lower() == 'weekly':
                         date_range = f"{start_of_week.strftime('%B %d')} - {end_of_week.strftime('%B %d, %Y')}"
                     elif period.lower() == 'monthly':
                         date_range = f"{start_of_month.strftime('%B %Y')}"
@@ -5353,8 +5372,15 @@ class ReportPage(ctk.CTkFrame):
                 
                 if period and date_column:
                     today = datetime.now().date()
+
+                    if period.lower() == 'today':
+                        cursor.execute(f"""
+                            SELECT COUNT(*) FROM {table_name}
+                            WHERE {column} = '{value}'  
+                            AND {date_column} = '{today}'
+                        """)
                     
-                    if period.lower() == 'weekly':
+                    elif period.lower() == 'weekly':
                         days_since_monday = today.weekday()
                         start_of_week = today - timedelta(days=days_since_monday)
                         end_of_week = start_of_week + timedelta(days=6)
@@ -5405,7 +5431,13 @@ class ReportPage(ctk.CTkFrame):
                 if period and date_column:
                     today = datetime.now().date()
                     
-                    if period.lower() == 'weekly':
+                    if period.lower() == 'today':
+                        cursor.execute(f"""
+                            SELECT COUNT(*) FROM {table_name}
+                            WHERE {date_column} = '{today}' 
+                        """)
+                    
+                    elif period.lower() == 'weekly':
                         days_since_monday = today.weekday()
                         start_of_week = today - timedelta(days=days_since_monday)
                         end_of_week = start_of_week + timedelta(days=6)
@@ -5453,8 +5485,14 @@ class ReportPage(ctk.CTkFrame):
                 
                 if period and date_column:
                     today = datetime.now().date()
+
+                    if period.lower() == 'today':
+                        cursor.execute(f"""
+                            SELECT COUNT(*) FROM {table_name}
+                            AND {date_column} = '{today}' 
+                        """)
                     
-                    if period.lower() == 'weekly':
+                    elif period.lower() == 'weekly':
                         days_since_monday = today.weekday()
                         start_of_week = today - timedelta(days=days_since_monday)
                         end_of_week = start_of_week + timedelta(days=6)
@@ -5502,8 +5540,16 @@ class ReportPage(ctk.CTkFrame):
 
                 if period and date_column:
                     today = datetime.now()  
+                    now_today = datetime.now().date() 
+
+                    if period.lower() == 'today':
+                        cursor.execute(f"""
+                            SELECT COUNT(*) FROM {table_name}
+                            WHERE ({actual_values})
+                            AND DATE({date_column}) = '{now_today}' 
+                        """)
                     
-                    if period.lower() == 'weekly':
+                    elif period.lower() == 'weekly':
                         days_since_monday = today.weekday()
                         start_of_week = (today - timedelta(days=days_since_monday)).replace(hour=0, minute=0, second=0, microsecond=0)
                         end_of_week = (start_of_week + timedelta(days=6)).replace(hour=23, minute=59, second=59, microsecond=999)
@@ -5807,21 +5853,20 @@ class ReportPage(ctk.CTkFrame):
         def on_interval_selected(choice):
             print(f"Selected Summary Date Report: {choice}")
             type_label.configure(text=choice)
+            from datetime import datetime
 
             supply_identifiers = ['Item Restocked', 'Item Stock Status Alert', 'New Item Added']
             patient_identifier =  ['Patient Status', 'New Patient Added']
             backup_identifier = ['Manual Backup', 'Scheduled Backup']
             
             # Update patient counts based on selected interval
-            if choice == "Current":
+            if choice == "Overall":
                 # No period filtering - show all data
                 self.active_patient = data_count(
                     column='status', 
                     value='Active', 
                     table_name='patient_info'
                 )
-                
-                viewing_date = date.today()
                 
                 self.inactive_patient = data_count(
                     column='status', 
@@ -5880,6 +5925,81 @@ class ReportPage(ctk.CTkFrame):
                 
                 self.low_stock_graph(period='current', date_column='date_registered')
                 self.critical_stock_graph(period='current', date_column='date_registered')
+
+            elif choice == "Today":
+                self.active_patient = data_count(
+                    column='status', 
+                    value='Active', 
+                    table_name='patient_info',
+                    period='today', 
+                    date_column='date_registered',
+                    join_table='patient_list',
+                    join_condition='patient_info.patient_id = patient_list.patient_id'
+                )
+                
+                self.inactive_patient = data_count(
+                    column='status', 
+                    value='Inactive',
+                    table_name='patient_info',
+                    period='today', 
+                    date_column='date_registered',
+                    join_table='patient_list',
+                    join_condition='patient_info.patient_id = patient_list.patient_id' 
+                )
+
+                self.supply_overall_count = overall_data_count(
+                    table_name='supply', 
+                    period='today', 
+                    date_column='date_registered')
+
+                self.lowstock_count = data_count_no_join(
+                    column='stock_level_status', 
+                    value='Low Stock Level', 
+                    table_name='supply', 
+                    period='today', 
+                    date_column='date_registered')
+
+                self.criticalstock_count = data_count_no_join(
+                    column='stock_level_status', 
+                    value='Critical Stock Level', 
+                    table_name='supply', 
+                    period='today', 
+                    date_column='date_registered')
+                
+                self.backup_overall_count = overall_data_count(
+                    table_name='backup_logs', 
+                    period='today', 
+                    date_column='last_date')
+                
+                self.most_recent_backup = date_desc_order(
+                    column='last_date', 
+                    id='backup_id', 
+                    table_name='backup_logs', 
+                    period='today', 
+                    date_column='last_date')
+
+                self.supplies_notif = notif_count(
+                    value=supply_identifiers, 
+                    table_name='notification_logs', 
+                    period='today', 
+                    date_column='notification_timestamp')
+                
+                self.patient_notif = notif_count(
+                    value=patient_identifier, 
+                    table_name='notification_logs', 
+                    period='today', 
+                    date_column='notification_timestamp')
+                
+                self.backup_notif = notif_count(
+                    value=backup_identifier, 
+                    table_name='notification_logs', 
+                    period='today',  
+                    date_column='notification_timestamp')
+                
+                self.low_stock_graph(period='current', date_column='date_registered')
+                self.critical_stock_graph(period='current', date_column='date_registered')
+                
+                viewing_date = self.active_patient['date_range']
 
             elif choice == "Weekly":
                 self.active_patient = data_count(
@@ -6098,7 +6218,7 @@ class ReportPage(ctk.CTkFrame):
 
         #Options
         Interval_Dropdown = ctk.CTkComboBox(Interval_frame,command=on_interval_selected,
-                                            width=150,height=20,values=["Current","Weekly","Monthly"],font=label_font,fg_color="#FFFFFF",corner_radius=10,bg_color="#FFFFFF",dropdown_fg_color="#FFFFFF",button_color="#88BD8E",button_hover_color="#1A374D",dropdown_font=label_font)
+                                            width=150,height=20,values=["Today","Weekly","Monthly", "Overall"],font=label_font,fg_color="#FFFFFF",corner_radius=10,bg_color="#FFFFFF",dropdown_fg_color="#FFFFFF",button_color="#88BD8E",button_hover_color="#1A374D",dropdown_font=label_font)
         Interval_Dropdown.place(relx=.5,rely=.55,anchor="center")
 
         # view_label = ctk.CTkLabel(Interval_frame,font=SubLabel_font,text="Viewing By",text_color="#104E44",height=10)
