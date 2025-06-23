@@ -219,7 +219,7 @@ class SupplyWindow(SupplyBaseWindow):
                 return result
             
             except Exception as e:
-                print('error retrieving supply data (retrieve_supply_data)', e)
+                print(f'error retrieving supply data (retrieve_supply_data) in column {column}', e)
 
         def set_supply_data(cursor, column, row, unique_id):
             try:
@@ -232,7 +232,7 @@ class SupplyWindow(SupplyBaseWindow):
                 cursor.execute(query, [row, unique_id])
 
             except Exception as e:
-                print('error setting supply data (set_supply_data)', e)
+                print(f'error setting supply data (set_supply_data) in column {column}', e)
 
         def set_stock_levels(avg_weekly_usage, delivery_time, current_stock_val):
 
@@ -290,6 +290,8 @@ class SupplyWindow(SupplyBaseWindow):
             avg_weekly_usage_str = self.entry_averageuse.get().strip()      
             delivery_time_str = self.entry_delivery_date.get().strip()
             supplier_name_str = self.entry_supplier_name.get().strip()
+
+            today_now = datetime.now().date()
             
             # Only get expiration date in add mode
             if not self.is_editing:
@@ -408,6 +410,7 @@ class SupplyWindow(SupplyBaseWindow):
 
                 now = datetime.now()
                 right_now = now.strftime('%Y-%m-%d %H:%M:%S')
+                today = datetime.now().date()
 
                 if self.is_editing:
                     current_stock_before = retrieve_supply_data(cursor, 'current_stock', self.edit_data['item_id'])
@@ -434,7 +437,8 @@ class SupplyWindow(SupplyBaseWindow):
 
                     # Update stock level status with required values
                     status = set_stock_levels(avg_weekly_usage, delivery_time, new_current_stock)
-                    set_status = set_supply_data(cursor, 'stock_level_status', status, self.edit_data['item_id']) 
+                    set_supply_data(cursor, 'stock_level_status', status, self.edit_data['item_id']) 
+                    set_supply_data(cursor, 'status_update', today, self.edit_data['item_id'])
 
                     
                     CTkMessageBox.show_success("Success", "Supply information updated successfully!", parent=self)
@@ -466,6 +470,7 @@ class SupplyWindow(SupplyBaseWindow):
                     # Set stock level status with all required values
                     status = set_stock_levels(avg_weekly_usage, delivery_time, current_stock_val)
                     set_supply_data(cursor, 'stock_level_status', status, item_id)
+                    set_supply_data(cursor, 'status_update', today, self.edit_data['item_id'])
 
                     cursor.execute("""
                         INSERT INTO notification_logs(user_fullname, item_name, notification_type, notification_timestamp) 
@@ -799,12 +804,56 @@ class EditStockWindow(SupplyBaseWindow):
         
         self.stock_rows.append(row_data)
 
+    def set_stock_levels(self, avg_weekly_usage, delivery_time, current_stock_val):
+        #daily usage for standard dev
+        avg_daily_usage = avg_weekly_usage / 7 
+            
+        #standard 20% 
+        daily_standard_dev_estimate = avg_daily_usage * 0.2
+        safety_stock = 2.33 * daily_standard_dev_estimate * math.sqrt(delivery_time)
+        reorder_point = (avg_daily_usage * delivery_time) + safety_stock
+
+        #stock level
+        low_stock_level = reorder_point
+        critical_stock_level = 0.50 * reorder_point
+        good_level = reorder_point * 1.7
+
+        if current_stock_val <= critical_stock_level:
+            status = 'Critical Stock Level'
+
+        elif current_stock_val <= low_stock_level:
+            status = 'Low Stock Level'
+
+        elif current_stock_val <= good_level:
+            status = 'Good Stock Level'
+        
+        elif current_stock_val > good_level:
+            status = 'Excellent Stock Level'         
+
+        return status	
+
+    def set_supply_data(self, cursor, column, row, unique_id):
+        try:
+            query = f"""
+            UPDATE supply
+            SET {column} = %s 
+            WHERE item_id = %s
+            """
+            
+            cursor.execute(query, [row, unique_id])
+
+        except Exception as e:
+            print(f'error setting supply data (set_supply_data) in column {column}', e)
+
     def submit_changes(self):
         """Process and submit stock changes to database"""
         print("Submit button clicked!")
         
+        from datetime import datetime
+
         # Collect data from all rows
         stock_changes = []
+        today_date = datetime.now().date() 
         
         for i, row in enumerate(self.stock_rows):
             item_name = row['item_var'].get()
@@ -849,7 +898,6 @@ class EditStockWindow(SupplyBaseWindow):
             CTkMessageBox.show_error("Input Error", "Please fill at least one row with complete information.", parent=self)
             return
         
-        # Now perform the actual database update using your CRUD logic
         try:
             connect = db()
             cursor = connect.cursor()
@@ -930,6 +978,28 @@ class EditStockWindow(SupplyBaseWindow):
                     FROM supply 
                     WHERE item_name = %s
                 """, (item['quantity'], item['item_name']))
+
+            for item in stock_changes:
+                cursor.execute("""
+                    SELECT item_id, average_weekly_usage, delivery_time_days, current_stock
+                    FROM supply 
+                    WHERE item_name = %s
+                """, (item['item_name'],))
+                
+                result = cursor.fetchone()
+                if result:
+                    item_id, avg_weekly_usage, delivery_time, current_stock_val = result
+                    
+                    if avg_weekly_usage and delivery_time and current_stock_val is not None:
+                        stock_status = self.set_stock_levels(avg_weekly_usage, delivery_time, current_stock_val)
+
+                        self.set_supply_data(cursor, 'stock_level_status', stock_status, item_id)
+                        if stock_status == 'Critical Stock Level' or stock_status == 'Low Stock Level':
+                            self.set_supply_data(cursor, 'status_update', today_date, item_id)
+                        
+                        print(f"Updated stock status for {item['item_name']}: {stock_status}")
+                    else:
+                        print(f"Skipping stock level calculation for {item['item_name']} - missing required data")
             
             connect.commit()
             
@@ -1094,7 +1164,7 @@ class EditUsageWindow(SupplyBaseWindow):
             connect = db()
             cursor = connect.cursor()
             
-            cursor.execute("SELECT patient_id, patient_name FROM patient_list ORDER BY patient_name")
+            cursor.execute("SELECT patient_id, patient_name FROM patient_list ORDER BY patient_id")
             result = cursor.fetchall()
             
             patient_dict = {}
@@ -1309,6 +1379,47 @@ class EditUsageWindow(SupplyBaseWindow):
         
         self.item_rows.append(row_data)
 
+    def set_stock_levels(self, avg_weekly_usage, delivery_time, current_stock_val):
+        #daily usage for standard dev
+        avg_daily_usage = avg_weekly_usage / 7 
+            
+        #standard 20% 
+        daily_standard_dev_estimate = avg_daily_usage * 0.2
+        safety_stock = 2.33 * daily_standard_dev_estimate * math.sqrt(delivery_time)
+        reorder_point = (avg_daily_usage * delivery_time) + safety_stock
+
+        #stock level
+        low_stock_level = reorder_point
+        critical_stock_level = 0.50 * reorder_point
+        good_level = reorder_point * 1.7
+
+        if current_stock_val <= critical_stock_level:
+            status = 'Critical Stock Level'
+
+        elif current_stock_val <= low_stock_level:
+            status = 'Low Stock Level'
+
+        elif current_stock_val <= good_level:
+            status = 'Good Stock Level'
+        
+        elif current_stock_val > good_level:
+            status = 'Excellent Stock Level'         
+
+        return status	
+
+    def set_supply_data(self, cursor, column, row, unique_id):
+        try:
+            query = f"""
+            UPDATE supply
+            SET {column} = %s 
+            WHERE item_id = %s
+            """
+            
+            cursor.execute(query, [row, unique_id])
+
+        except Exception as e:
+            print(f'error setting supply data (set_supply_data) in column {column}', e)
+
     def submit_usage_changes(self):
         """Process and submit usage changes to database"""
         print("Submit usage button clicked!")
@@ -1361,12 +1472,10 @@ class EditUsageWindow(SupplyBaseWindow):
             CTkMessageBox.show_error("Input Error", "Please fill at least one item row with complete information.", parent=self)
             return
         
-        # perform the actual database update 
         try:
             connect = db()
             cursor = connect.cursor()
             
-            # First, verify all items exist and have sufficient stock
             item_names = [item['item_name'] for item in usage_changes]
             placeholders = ', '.join(['%s'] * len(item_names))
             
@@ -1449,13 +1558,13 @@ class EditUsageWindow(SupplyBaseWindow):
             
             from datetime import datetime
             now = datetime.now()
+            today_date = datetime.now().date()
             
             for item in usage_changes:
                 item_id = existing_item_dict[item['item_name']]['item_id']
                 
                 print(f"Inserting usage: patient_id={patient_id}, item_id={item_id}, quantity={item['quantity_used']}")
                 
-                # Insert into item_usage table
                 try:
                     cursor.execute("""
                         INSERT INTO item_usage (patient_id, item_id, quantity_used, usage_date, usage_time, usage_timestamp)
@@ -1466,7 +1575,28 @@ class EditUsageWindow(SupplyBaseWindow):
                     print(f"Error inserting usage log: {usage_error}")
                     raise usage_error
                 
-                # Insert notification log
+                for item in usage_changes:
+                    cursor.execute("""
+                        SELECT item_id, average_weekly_usage, delivery_time_days, current_stock
+                        FROM supply 
+                        WHERE item_name = %s
+                    """, (item['item_name'],))
+                    
+                    result = cursor.fetchone()
+                    if result:
+                        item_id, avg_weekly_usage, delivery_time, current_stock_val = result
+                        
+                        if avg_weekly_usage and delivery_time and current_stock_val is not None:
+                            stock_status = self.set_stock_levels(avg_weekly_usage, delivery_time, current_stock_val)
+
+                            self.set_supply_data(cursor, 'stock_level_status', stock_status, item_id)
+                            if stock_status == 'Critical Stock Level' or stock_status == 'Low Stock Level':
+                                self.set_supply_data(cursor, 'status_update', today_date, item_id)
+                            
+                            print(f"Updated stock status for {item['item_name']}: {stock_status}")
+                        else:
+                            print(f"Skipping stock level calculation for {item['item_name']} - missing required data")
+                
                 try:
                     cursor.execute("""
                         INSERT INTO notification_logs (user_fullname, item_name, patient_id, 
@@ -1476,7 +1606,6 @@ class EditUsageWindow(SupplyBaseWindow):
                           'Item Usage Recorded', now))
                 except Exception as notif_error:
                     print(f"Error inserting notification log: {notif_error}")
-                    # Don't raise here, notification failure shouldn't stop the process
             
             connect.commit()
             

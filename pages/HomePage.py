@@ -5571,7 +5571,7 @@ class ReportPage(ctk.CTkFrame):
                     if period.lower() == 'today':
                         cursor.execute(f"""
                             SELECT COUNT(*) FROM {table_name}
-                            AND {date_column} = '{today}' 
+                            AND {date_column} = {today} 
                         """)
                     
                     elif period.lower() == 'weekly':
@@ -5937,7 +5937,7 @@ class ReportPage(ctk.CTkFrame):
             type_label.configure(text=choice)
             from datetime import datetime
 
-            supply_identifiers = ['Item Restocked', 'Item Stock Status Alert', 'New Item Added']
+            supply_identifiers = ['Item Restocked', 'Item Stock Status Alert', 'New Item Added', 'Item Usage Recorded']
             patient_identifier =  ['Patient Status', 'New Patient Added']
             backup_identifier = ['Manual Backup', 'Scheduled Backup']
             
@@ -8492,6 +8492,25 @@ class SettingsPage(ctk.CTkFrame):
             )
             body_label.place(x=60, y=35)
 
+        username = login_shared_states.get('logged_username', None)
+
+        try:
+            connect, cursor = self.db_connection()
+        
+            cursor.execute("""
+                SELECT full_name, role, username FROM users
+                WHERE username = %s
+            """, (username,))
+
+            fetched_result = cursor.fetchone()
+
+        except Exception as e:
+            print('Error fetching current user credentials', e)
+
+        finally:
+            cursor.close()
+            connect.close()
+
     #Current User Frame
         User_frame = ctk.CTkFrame(self,height=95,width=230,fg_color="#fFFFFF",corner_radius=10)
         User_frame.place(x=1070,y=100)
@@ -8500,18 +8519,18 @@ class SettingsPage(ctk.CTkFrame):
         topbar_frame.place(y=0)
 
         #Output
-        User_Output=ctk.CTkLabel(User_frame,text="Tristan Joe Lopez",text_color="#000000",font=Ouput_font,height=18,bg_color="#FFFFFF")
+        User_Output=ctk.CTkLabel(User_frame,text=fetched_result[0],text_color="#000000",font=Ouput_font,height=18,bg_color="#FFFFFF")
         User_Output.place(relx=.125,rely=.25)
 
         #Output
-        position_output = ctk.CTkLabel(User_frame,text="Admin",text_color="#104E44",font=SubOutput_font,height=13,bg_color="#FFFFFF")
+        position_output = ctk.CTkLabel(User_frame,text=fetched_result[1],text_color="#104E44",font=SubOutput_font,height=13,bg_color="#FFFFFF")
         position_output.place(relx=.125,rely=.525)
 
         seperator = ctk.CTkLabel(User_frame,text=" | ",text_color="#104E44",font=SubOutput_font,height=13,bg_color="#FFFFFF")
         seperator.place(relx=.3125,rely=.525)
 
         #Output
-        username_output = ctk.CTkLabel(User_frame,text="trsitojoe",text_color="#104E44",font=SubOutput_font,height=13,bg_color="#FFFFFF")
+        username_output = ctk.CTkLabel(User_frame,text=fetched_result[2],text_color="#104E44",font=SubOutput_font,height=13,bg_color="#FFFFFF")
         username_output.place(relx=.3625,rely=.525)
 
     #Date Time Frame
