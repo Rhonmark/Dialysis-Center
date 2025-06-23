@@ -5036,7 +5036,6 @@ class SupplyPage(ctk.CTkFrame):
                     FROM supply s 
                     WHERE s.item_id = %s
                 """, (supply_id,))
-                
                 full_supply_data = cursor.fetchone()
                 if full_supply_data:
                     self.show_detailed_info(full_supply_data)
@@ -5889,6 +5888,9 @@ class ReportPage(ctk.CTkFrame):
             patient_identifier =  ['Patient Status', 'New Patient Added']
             backup_identifier = ['Manual Backup', 'Scheduled Backup']
             
+            # Initialize viewing_date for all cases
+            viewing_date = "All Data"  # Default value for Overall
+            
             # Update patient counts based on selected interval
             if choice == "Overall":
                 # No period filtering - show all data
@@ -5955,6 +5957,9 @@ class ReportPage(ctk.CTkFrame):
                 
                 self.low_stock_graph(period='current', date_column='date_registered')
                 self.critical_stock_graph(period='current', date_column='date_registered')
+                
+                # Set viewing_date for Overall
+                viewing_date = "All Data"
 
             elif choice == "Today":
                 self.active_patient = data_count(
@@ -6234,7 +6239,7 @@ class ReportPage(ctk.CTkFrame):
             self.StockLevelCount.configure(text=str(supplies_notif))
             self.PatientNotificationCount.configure(text=str(patient_notif))
             self.RecentNotificationCount.configure(text=str(backup_notif))
-    
+
             self.view_label.configure(text=str(viewing_date))
             
             # Optionally refresh the patient table to show filtered data
@@ -6368,6 +6373,10 @@ class ReportPage(ctk.CTkFrame):
         RecentBackuplabel_bg.place(x=62,y=340)
         RecentBackuplabel = ctk.CTkLabel(RecentBackuplabel_bg,font=label_font,text="Back Up",text_color="#104E44",bg_color="transparent",height=11)
         RecentBackuplabel.place(relx=.5,rely=.4,anchor="center")
+
+        # Set default value to "Overall" and trigger the selection
+        Interval_Dropdown.set("Overall") 
+        on_interval_selected("Overall") 
 
         # Load initial graphs
 
