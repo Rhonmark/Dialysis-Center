@@ -588,6 +588,9 @@ class EditStockWindow(SupplyBaseWindow):
     def __init__(self, parent):
         super().__init__(parent, "Edit Stock")
         
+        # Store parent reference for later use
+        self.parent = parent
+        
         # Remove the sidebar
         self.sidebar.destroy()
         
@@ -627,7 +630,7 @@ class EditStockWindow(SupplyBaseWindow):
         # Store row widgets
         self.stock_rows = []
         
-        # Create first row
+        # Create first row with database items
         self.add_stock_row()
 
         # Bottom frame for buttons
@@ -659,6 +662,24 @@ class EditStockWindow(SupplyBaseWindow):
                                      command=self.submit_changes)
         submit_button.pack(side="right", pady=(5, 0))
 
+    def get_database_items(self):
+        """Get item names from database for dropdown initialization"""
+        try:
+            connect = db()
+            cursor = connect.cursor()
+            
+            cursor.execute("SELECT item_name FROM supply ORDER BY item_name")
+            result = cursor.fetchall()
+            
+            cursor.close()
+            connect.close()
+            
+            return ["Click to choose"] + [row[0] for row in result]
+            
+        except Exception as e:
+            print(f"Error fetching item names from database: {e}")
+            return ["Click to choose"]
+
     def add_stock_row(self):
         """Add a new stock row"""
         row_index = len(self.stock_rows)
@@ -685,11 +706,13 @@ class EditStockWindow(SupplyBaseWindow):
                                  text_color="#333333")
         item_label.pack(anchor="w", pady=(0, 8))
 
-        # Item dropdown with sample items
+        # Get actual items from database instead of hardcoded values
+        database_items = self.get_database_items()
+        
         item_var = ctk.StringVar(value="Click to choose")
         item_dropdown = ctk.CTkComboBox(item_frame,
                                        variable=item_var,
-                                       values=["Click to choose", "Syringe", "Bandage", "Medicine", "Gloves", "Alcohol", "Cotton"],
+                                       values=database_items,  # Use database items here
                                        state="readonly",
                                        width=220,
                                        height=35,
@@ -705,16 +728,12 @@ class EditStockWindow(SupplyBaseWindow):
                                        dropdown_text_color="black")
         item_dropdown.pack(fill="x")
 
-        # Remove underline since we have border
-        # underline1 = ctk.CTkFrame(item_frame, height=1, fg_color="black")
-        # underline1.pack(fill="x", pady=(1, 0))
-
         # Quantity Used section
         qty_frame = ctk.CTkFrame(row_frame, fg_color="transparent")
         qty_frame.grid(row=0, column=1, sticky="ew", padx=7)
 
         qty_label = ctk.CTkLabel(qty_frame, 
-                                text="Quantity Used", 
+                                text="Quantity to Add", 
                                 font=("Merriweather Sans bold", 14), 
                                 text_color="#333333")
         qty_label.pack(anchor="w", pady=(0, 8))
@@ -748,10 +767,6 @@ class EditStockWindow(SupplyBaseWindow):
         qty_entry.bind('<FocusIn>', on_qty_focus_in)
         qty_entry.bind('<FocusOut>', on_qty_focus_out)
 
-        # Remove underline since we have border
-        # underline2 = ctk.CTkFrame(qty_frame, height=1, fg_color="black")
-        # underline2.pack(fill="x", pady=(1, 0))
-
         # Expiry Date section  
         date_frame = ctk.CTkFrame(row_frame, fg_color="transparent")
         date_frame.grid(row=0, column=2, sticky="ew", padx=(15, 0))
@@ -762,7 +777,6 @@ class EditStockWindow(SupplyBaseWindow):
                                  text_color="#333333")
         date_label.pack(anchor="w", pady=(0, 8))
 
-        date_var = ctk.StringVar(value="Choose a date")
         # Use DateEntry instead of regular entry
         from tkcalendar import DateEntry
         date_entry = DateEntry(date_frame, 
@@ -772,12 +786,6 @@ class EditStockWindow(SupplyBaseWindow):
                               date_pattern="yyyy-MM-dd", 
                               state="normal")
         date_entry.pack(fill="x", pady=(0, 0))
-
-        # No need for manual placeholder behavior with DateEntry
-
-        # Remove underline since we have border
-        # underline3 = ctk.CTkFrame(date_frame, height=1, fg_color="black")
-        # underline3.pack(fill="x", pady=(1, 0))
 
         # Store row data
         row_data = {
@@ -861,16 +869,28 @@ class EditStockWindow(SupplyBaseWindow):
             missing_items = [item for item in item_names if item not in existing_items]
             if missing_items:
                 CTkMessageBox.show_error("Database Error", 
-                                    f"The following items don't exist in the database: {', '.join(missing_items)}", 
-                                    parent=self)
+                                       f"The following items don't exist in the database: {', '.join(missing_items)}", 
+                                       parent=self)
                 return
             
-            # Build the dynamic SQL query based on your CRUD logic
-            stock = ' '.join(f"WHEN %s THEN current_stock + %s" for _ in stock_changes)
-            expiry = ' '.join(f"WHEN %s THEN %s" for _ in stock_changes)
+            # Use a simpler two-step approach for expiry dates
             names = ', '.join(['%s'] * len(stock_changes))
             
-            # Build the parameters list exactly like your CRUD logic
+            # Step 1: Move current expiry to previous expiry (only if current expiry exists)
+            cursor.execute(f"""
+                UPDATE supply
+                SET previous_expiry_date = CASE 
+                    WHEN new_expiry_date IS NOT NULL THEN new_expiry_date 
+                    ELSE previous_expiry_date 
+                END
+                WHERE item_name IN ({names});
+            """, [item['item_name'] for item in stock_changes])
+            
+            # Step 2: Update stock and set new expiry date
+            stock = ' '.join(f"WHEN %s THEN current_stock + %s" for _ in stock_changes)
+            expiry = ' '.join(f"WHEN %s THEN %s" for _ in stock_changes)
+            
+            # Build the parameters list for step 2
             store = []
             
             # Add item names and quantities for stock update
@@ -884,7 +904,7 @@ class EditStockWindow(SupplyBaseWindow):
             # Add item names for WHERE clause
             store.extend([item['item_name'] for item in stock_changes])
             
-            # Execute the update query
+            # Execute the main update query
             query = f"""
                 UPDATE supply
                 SET 
@@ -924,8 +944,14 @@ class EditStockWindow(SupplyBaseWindow):
             self.clear_all_rows()
             
             # Refresh parent table if it exists
-            if hasattr(self.parent, 'refresh_table'):
+            if hasattr(self, 'parent') and hasattr(self.parent, 'refresh_table'):
                 self.parent.refresh_table()
+                print("Parent table refreshed successfully")
+                
+            # Also refresh the detailed view if an item is selected
+            if hasattr(self.parent, 'selected_supply_id') and self.parent.selected_supply_id:
+                self.parent.refresh_detailed_view()
+                print("Parent detailed view refreshed successfully")
             
             print("Stock changes successfully committed to database")
             
@@ -976,23 +1002,9 @@ class EditStockWindow(SupplyBaseWindow):
             print(f"Error fetching item names: {e}")
             return ["Click to choose"]  # Return minimal fallback
 
-    def get_database_items(self):
-        """Get item names from database for dropdown initialization"""
-        try:
-            connect = db()
-            cursor = connect.cursor()
-            
-            cursor.execute("SELECT item_name FROM supply ORDER BY item_name")
-            result = cursor.fetchall()
-            
-            cursor.close()
-            connect.close()
-            
-            return ["Click to choose"] + [row[0] for row in result]
-            
-        except Exception as e:
-            print(f"Error fetching item names from database: {e}")
-            return ["Click to choose"]
+    def refresh_dropdowns(self):
+        """Refresh all dropdowns with latest database items"""
+        self.populate_item_dropdown()
 
 class EditUsageWindow(SupplyBaseWindow):
     def __init__(self, parent):
