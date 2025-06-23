@@ -585,317 +585,752 @@ def show_detailed_info(self, supply_data):
     max_stock = supply_data[12]  # max stock value
 
 class EditStockWindow(SupplyBaseWindow):
-    def __init__(self, parent, item_id=None):
+    def __init__(self, parent):
         super().__init__(parent, "Edit Stock")
+        
+        # Remove the sidebar
+        self.sidebar.destroy()
+        
+        # Blue decorative header bar at the top - smaller and fixed
+        header_bar = ctk.CTkFrame(self.main_frame, 
+                                 height=40, 
+                                 fg_color="#1A374D",
+                                 corner_radius=0)
+        header_bar.pack(fill="x", side="top")
+        header_bar.pack_propagate(False)
 
-        # Store the item_id
-        self.item_id = item_id
+        # Main content frame
+        content_frame = ctk.CTkFrame(self.main_frame, 
+                                   fg_color="white",
+                                   corner_radius=0)
+        content_frame.pack(fill="both", expand=True, padx=20, pady=20)
 
-        print("edit stock - item_id:", self.item_id)
+        # Title and subtitle in content area - smaller sizes
+        title_label = ctk.CTkLabel(content_frame, 
+                                  text="Edit Stock", 
+                                  font=("Merriweather Bold", 20), 
+                                  text_color="#1A374D")
+        title_label.pack(anchor="w", pady=(0, 3))
 
-        # Title
-        ctk.CTkLabel(
-            self, 
-            text="Edit Stock", 
-            font=("Merriweather bold", 25), 
-            text_color="black", 
-            bg_color="white"
-        ).place(x=90, y=60)
+        subtitle_label = ctk.CTkLabel(content_frame, 
+                                     text="Item restock will be processed here", 
+                                     font=("Merriweather Sans", 11), 
+                                     text_color="#666666")
+        subtitle_label.pack(anchor="w", pady=(0, 20))
 
-        # for placeholders
-        def add_placeholder(entry, text):
-            entry.insert(0, text)
-            entry.configure(text_color="gray")
-            entry.bind("<FocusIn>", lambda event: clear_placeholder(entry, text))
-            entry.bind("<FocusOut>", lambda event: restore_placeholder(entry, text))
-            entry.bind("<Button-1>", lambda event: force_clear(entry))
+        # Scrollable frame for multiple rows - bigger height
+        self.scrollable_frame = ctk.CTkScrollableFrame(content_frame,
+                                                      height=320,
+                                                      fg_color="transparent")
+        self.scrollable_frame.pack(fill="both", expand=True, pady=(0, 20))
 
-        def clear_placeholder(entry, text):
-            if entry.get() == text:
-                entry.delete(0, "end")
-                entry.configure(text_color="black")
+        # Store row widgets
+        self.stock_rows = []
+        
+        # Create first row
+        self.add_stock_row()
 
-        def restore_placeholder(entry, text):
-            if entry.get() == "":
-                entry.insert(0, text)
-                entry.configure(text_color="gray")
+        # Bottom frame for buttons
+        bottom_frame = ctk.CTkFrame(content_frame, fg_color="transparent")
+        bottom_frame.pack(fill="x", side="bottom")
 
-        def force_clear(entry):
-            entry.delete(0, "end")
-            entry.configure(text_color="black")
-
-        def create_underline(x, y, width):
-            ctk.CTkFrame(self, height=1, width=width, fg_color="black").place(x=x, y=y)
-
-        # Font styles
-        entry_font = ("Merriweather Sans", 13)
-        label_font = ("Merriweather Sans bold", 15)
-        required_font = ("Merriweather Sans bold", 10)
-
-        # Patient ID Input
-        ctk.CTkLabel(self, text="Patient ID", font=label_font, fg_color="white", text_color="black").place(x=120, y=150)
-        self.entry_patient_id = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white")
-        self.entry_patient_id.place(x=120, y=200)
-        create_underline(120, 230, 180)
-        add_placeholder(self.entry_patient_id, "Type here")
-
-        # Quantity Used Input
-        ctk.CTkLabel(self, text="Quantity Used", font=label_font, fg_color="white", text_color="black").place(x=420, y=150)
-        self.entry_quantity_used = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white")
-        self.entry_quantity_used.place(x=420, y=200)
-        create_underline(420, 230, 180)
-        add_placeholder(self.entry_quantity_used, "Type here")
-
-        def retrieve_supply_data(cursor, column, unique_id):
-            try:
-                query = f"SELECT {column} FROM supply WHERE item_id = %s"
-                
-                cursor.execute(query, [unique_id])
-                result = cursor.fetchone()[0]
-                return result
-            
-            except Exception as e:
-                print('error retrieving supply data (retrieve_supply_data)', e)
-
-        def set_supply_data(cursor, column, row, unique_id):
-            try:
-                query = f"""
-                UPDATE supply
-                SET {column} = %s 
-                WHERE item_id = %s
-                """
-                
-                cursor.execute(query, [row, unique_id])
-
-            except Exception as e:
-                print('error setting supply data (set_supply_data)', e)
-
-        def set_stock_levels(avg_weekly_usage, delivery_time, current_stock_val):
-
-            #daily usage for standard dev
-            avg_daily_usage = avg_weekly_usage / 7 
-
-            #standard 20% 
-            daily_standard_dev_estimate = avg_daily_usage * 0.2
-            safety_stock = 2.33 * daily_standard_dev_estimate * math.sqrt(delivery_time)
-            reorder_point = (avg_daily_usage * delivery_time) + safety_stock
-
-            #stock level
-            low_stock_level = reorder_point
-            critical_stock_level = 0.50 * reorder_point
-            good_level = reorder_point * 1.7
-
-            if current_stock_val <= critical_stock_level:
-                status = 'Critical Stock Level'
-
-            elif current_stock_val <= low_stock_level:
-                status = 'Low Stock Level'
-
-            elif current_stock_val <= good_level:
-                status = 'Good Stock Level'
-
-            elif current_stock_val > good_level:   
-                status = 'Excellent Stock Level' 
-
-            return status
-
-        def update_notif_status(cursor, user_fn, item_name, curr_stock, status, notif_type):
-            try:
-                cursor.execute("""
-                    INSERT INTO notification_logs(user_fullname, item_name, current_stock, stock_status, notification_type, notification_timestamp) 
-                    VALUES(%s, %s, %s, %s, %s, NOW())
-                """, (user_fn, item_name, curr_stock, status, notif_type))
-
-                unique_id = cursor.lastrowid  
-                return unique_id
-
-            except Exception as e:
-                print(f'Error inserting ({notif_type}):', e)
-
-        def on_submit_click():
-            quantity_used = self.entry_quantity_used.get().strip()
-            patient_id = self.entry_patient_id.get().strip()
-
-            # Validation for quantity_used 
-            if not quantity_used or quantity_used.lower() == 'type here':
-                print("Quantity used is required.")
-                return
-
-            try:
-                quantity_used = int(quantity_used)
-                if quantity_used <= 0:
-                    print("Quantity used must be greater than 0.")
-                    return
-            except ValueError:
-                print("Quantity used must be a valid integer.")
-                return
-
-            # Validation for patient_id 
-            if not patient_id or patient_id.lower() == 'type here':
-                print("Patient ID is required.")
-                return
-            try:
-                patient_id = int(patient_id)
-            except ValueError:
-                print("Patient ID must be a valid integer.")
-                return
-
-            # Get current timestamp for usage
-            from datetime import datetime
-            current_timestamp = datetime.now()
-            usage_date = current_timestamp.date()  # Date only
-            usage_time = current_timestamp.time()  # Time only
-            usage_datetime = current_timestamp     # Full datetime
-
-            usage_information = {
-                'item_id': self.item_id,
-                'patient_id': patient_id,
-                'quantity_used': quantity_used,
-                'usage_date': usage_date,
-                'usage_time': usage_time,
-                'usage_timestamp': usage_datetime  # Full timestamp with date and time
-            }
-
-            username = login_shared_states.get('logged_username', None)
-
-            try:
-                connect = db()
-                cursor = connect.cursor()
-
-                # Add safety checks for user lookup
-                if username:
-                    cursor.execute("""
-                        SELECT full_name FROM users
-                        WHERE username = %s
-                    """, (username,))
-                    
-                    user_result = cursor.fetchone()
-                    if user_result:
-                        user_fn = user_result[0]
-                    else:
-                        print(f"WARNING: No user found with username '{username}', using default")
-                        user_fn = "Unknown User"
-                else:
-                    print("WARNING: No username in shared state, using default")
-                    user_fn = "Unknown User"
-
-                # Add safety check for item lookup
-                cursor.execute("""
-                    SELECT item_name FROM supply
-                    WHERE item_id = %s
-                """, (self.item_id,))
-
-                item_result = cursor.fetchone()
-                if item_result:
-                    notif_item_name = item_result[0]
-                else:
-                    print(f"ERROR: No item found with item_id '{self.item_id}'")
-                    return
-
-                # Check if there's enough stock
-                current_stock = retrieve_supply_data(cursor, 'current_stock', self.item_id)
-                if current_stock is None:
-                    print(f"ERROR: Could not retrieve current stock for item_id '{self.item_id}'")
-                    return
-                    
-                if current_stock < quantity_used:
-                    print(f"Insufficient stock. Available: {current_stock}, Requested: {quantity_used}")
-                    return
-
-                # Insert usage record with full timestamp information
-                try:
-                    cursor.execute("""
-                        INSERT INTO item_usage (item_id, patient_id, quantity_used, usage_date, usage_time, usage_timestamp)
-                        VALUES (%s, %s, %s, %s, %s, %s)
-                    """, (self.item_id, patient_id, quantity_used, usage_date, usage_time, usage_datetime))
-                    
-                    usage_id = cursor.lastrowid
-                    print(f'Usage record created successfully with ID: {usage_id}')
-                    print(f'Timestamp recorded: {usage_datetime}')
-                    
-                except Exception as e:
-                    # If the table doesn't have separate time columns, try with just timestamp
-                    print(f"Error with full timestamp insert, trying alternative: {e}")
-                    cursor.execute("""
-                        INSERT INTO item_usage (item_id, patient_id, quantity_used, usage_date)
-                        VALUES (%s, %s, %s, %s)
-                    """, (self.item_id, patient_id, quantity_used, usage_datetime))
-                    
-                    usage_id = cursor.lastrowid
-                    print(f'Usage record created with basic timestamp: {usage_id}')
-
-                if usage_id:
-                    print(f'Usage ID creation successful: {usage_id}')
-                    print(f'Stock usage recorded at: {current_timestamp.strftime("%Y-%m-%d %H:%M:%S")}')
-
-                    # IMPORTANT: Only update current_stock, DO NOT change max_supply
-                    total_stock = current_stock - quantity_used
-                    set_supply_data(cursor, 'current_stock', total_stock, self.item_id)
-                    print(f'Item ID {self.item_id}: Previous stock was {current_stock} now updated to {total_stock}')
-                    print(f'IMPORTANT: max_supply remains unchanged when using quantity')
-
-                    # Update stock level status
-                    current_stock_val = retrieve_supply_data(cursor, 'current_stock', self.item_id)
-                    avg_weekly_usage_result = retrieve_supply_data(cursor, 'average_weekly_usage', self.item_id)
-                    delivery_time_result = retrieve_supply_data(cursor, 'delivery_time_days', self.item_id)
-
-                    right_now = current_timestamp.strftime('%Y-%m-%d %H:%M:%S')
-
-                    if avg_weekly_usage_result and avg_weekly_usage_result > 0 and delivery_time_result and delivery_time_result > 0:
-                        status = set_stock_levels(avg_weekly_usage_result, delivery_time_result, current_stock_val)
-                        set_supply_data(cursor, 'stock_level_status', status, self.item_id)
-                        if status:
-                            notification_id = update_notif_status(cursor, user_fn, notif_item_name, total_stock, status, 'Item Stock Status Alert')
-
-                            print(f"""
-                                Item Stock Status Alert
-
-                                {notif_item_name} is at {status} and only has {total_stock} quantities left, please inform the admin.
-
-                                {right_now}
-                            """)
-
-                    connect.commit()
-                    
-                    print(f"Stock updated successfully! New stock: {total_stock}")
-                    print(f"Usage timestamp: {right_now}")
-                    
-                    # Refresh 
-                    if hasattr(self.master, 'selected_supply_id') and self.master.selected_supply_id == self.item_id:
-                        self.master.refresh_detailed_view()
-                        print("Detailed view refreshed with new stock levels")
-                    
-                    # Also refresh the table view
-                    if hasattr(self.master, 'refresh_table'):
-                        self.master.refresh_table()
-                        print("Table view refreshed")
-                    
-                    self.close_window()
-                else:
-                    print("ERROR: Failed to create usage record")
-                    return
-
-            except Exception as e:
-                print('Error with editing supply stocks', e)
-                # Add more detailed error information
-                import traceback
-                print("Full traceback:")
-                traceback.print_exc()
-            finally:
-                cursor.close()
-                connect.close()
+        # Add more rows button
+        self.add_row_button = ctk.CTkButton(bottom_frame,
+                                           text="+ Add more rows",
+                                           font=("Merriweather Sans", 11),
+                                           fg_color="transparent",
+                                           text_color="#1A374D",
+                                           hover_color="#F0F0F0",
+                                           width=120,
+                                           height=25,
+                                           command=self.add_stock_row)
+        self.add_row_button.pack(side="left", pady=(5, 0))
 
         # Submit button
-        button_font = ("Merriweather Bold", 20)
-        self.btn_submit = ctk.CTkButton(self, text="Submit", fg_color="#1A374D", hover_color="#16C79A", text_color="white",
-                                      bg_color="white", corner_radius=20, font=button_font, width=200, height=50,
-                                      command=on_submit_click)
-        self.btn_submit.place(x=720, y=300)
+        submit_button = ctk.CTkButton(bottom_frame,
+                                     text="Submit",
+                                     font=("Merriweather Bold", 14),
+                                     fg_color="#1A374D",
+                                     hover_color="#16C79A",
+                                     text_color="white",
+                                     width=100,
+                                     height=35,
+                                     corner_radius=8,
+                                     command=self.submit_changes)
+        submit_button.pack(side="right", pady=(5, 0))
 
-        exit_image = ctk.CTkImage(light_image=Image.open("assets/exit.png"), size=(30, 30))
-        self.exit_button = ctk.CTkButton(self, image=exit_image, text="", fg_color="transparent", bg_color="white", hover_color="white",
-                                         width=40, height=40, command=self.close_window)
-        self.exit_button.place(x=1200, y=15)
+    def add_stock_row(self):
+        """Add a new stock row"""
+        row_index = len(self.stock_rows)
+
+        # Create row frame - bigger height
+        row_frame = ctk.CTkFrame(self.scrollable_frame, 
+                                fg_color="transparent",
+                                height=110)
+        row_frame.pack(fill="x", pady=(0, 20), padx=5)
+        row_frame.pack_propagate(False)
+
+        # Configure grid
+        row_frame.grid_columnconfigure(0, weight=1)
+        row_frame.grid_columnconfigure(1, weight=1) 
+        row_frame.grid_columnconfigure(2, weight=1)
+
+        # Item Name section
+        item_frame = ctk.CTkFrame(row_frame, fg_color="transparent")
+        item_frame.grid(row=0, column=0, sticky="ew", padx=(0, 15))
+
+        item_label = ctk.CTkLabel(item_frame, 
+                                 text="Item Name", 
+                                 font=("Merriweather Sans bold", 14), 
+                                 text_color="#333333")
+        item_label.pack(anchor="w", pady=(0, 8))
+
+        # Item dropdown with sample items
+        item_var = ctk.StringVar(value="Click to choose")
+        item_dropdown = ctk.CTkComboBox(item_frame,
+                                       variable=item_var,
+                                       values=["Click to choose", "Syringe", "Bandage", "Medicine", "Gloves", "Alcohol", "Cotton"],
+                                       state="readonly",
+                                       width=220,
+                                       height=35,
+                                       font=("Merriweather Sans", 12),
+                                       fg_color="#e8e8e8",
+                                       border_width=1,
+                                       border_color="black",
+                                       button_color="#1A374D",
+                                       button_hover_color="#68EDC6",
+                                       dropdown_fg_color="white",
+                                       dropdown_hover_color="#68EDC6",
+                                       text_color="black",
+                                       dropdown_text_color="black")
+        item_dropdown.pack(fill="x")
+
+        # Remove underline since we have border
+        # underline1 = ctk.CTkFrame(item_frame, height=1, fg_color="black")
+        # underline1.pack(fill="x", pady=(1, 0))
+
+        # Quantity Used section
+        qty_frame = ctk.CTkFrame(row_frame, fg_color="transparent")
+        qty_frame.grid(row=0, column=1, sticky="ew", padx=7)
+
+        qty_label = ctk.CTkLabel(qty_frame, 
+                                text="Quantity Used", 
+                                font=("Merriweather Sans bold", 14), 
+                                text_color="#333333")
+        qty_label.pack(anchor="w", pady=(0, 8))
+
+        qty_var = ctk.StringVar()
+        qty_entry = ctk.CTkEntry(qty_frame,
+                                textvariable=qty_var,
+                                width=220,
+                                height=35,
+                                font=("Merriweather Sans", 12),
+                                fg_color="#e8e8e8",
+                                border_width=1,
+                                border_color="black",
+                                text_color="black")
+        qty_entry.pack(fill="x")
+
+        # Add placeholder behavior
+        qty_entry.insert(0, "Enter Quantity")
+        qty_entry.configure(text_color="gray")
+
+        def on_qty_focus_in(event):
+            if qty_entry.get() == "Enter Quantity":
+                qty_entry.delete(0, "end")
+                qty_entry.configure(text_color="black")
+
+        def on_qty_focus_out(event):
+            if qty_entry.get() == "":
+                qty_entry.insert(0, "Enter Quantity")
+                qty_entry.configure(text_color="gray")
+
+        qty_entry.bind('<FocusIn>', on_qty_focus_in)
+        qty_entry.bind('<FocusOut>', on_qty_focus_out)
+
+        # Remove underline since we have border
+        # underline2 = ctk.CTkFrame(qty_frame, height=1, fg_color="black")
+        # underline2.pack(fill="x", pady=(1, 0))
+
+        # Expiry Date section  
+        date_frame = ctk.CTkFrame(row_frame, fg_color="transparent")
+        date_frame.grid(row=0, column=2, sticky="ew", padx=(15, 0))
+
+        date_label = ctk.CTkLabel(date_frame, 
+                                 text="Expiry Date", 
+                                 font=("Merriweather Sans bold", 14), 
+                                 text_color="#333333")
+        date_label.pack(anchor="w", pady=(0, 8))
+
+        date_var = ctk.StringVar(value="Choose a date")
+        # Use DateEntry instead of regular entry
+        from tkcalendar import DateEntry
+        date_entry = DateEntry(date_frame, 
+                              width=18, 
+                              font=("Merriweather Sans", 12), 
+                              bg="#e8e8e8", 
+                              date_pattern="yyyy-MM-dd", 
+                              state="normal")
+        date_entry.pack(fill="x", pady=(0, 0))
+
+        # No need for manual placeholder behavior with DateEntry
+
+        # Remove underline since we have border
+        # underline3 = ctk.CTkFrame(date_frame, height=1, fg_color="black")
+        # underline3.pack(fill="x", pady=(1, 0))
+
+        # Store row data
+        row_data = {
+            'frame': row_frame,
+            'item_var': item_var,
+            'item_dropdown': item_dropdown,
+            'qty_var': qty_var,
+            'qty_entry': qty_entry,
+            'date_entry': date_entry  # DateEntry doesn't need a StringVar
+        }
+        
+        self.stock_rows.append(row_data)
+
+    def submit_changes(self):
+        """Process and submit stock changes to database"""
+        print("Submit button clicked!")
+        
+        # Collect data from all rows
+        stock_changes = []
+        
+        for i, row in enumerate(self.stock_rows):
+            item_name = row['item_var'].get()
+            quantity_str = row['qty_var'].get().strip()
+            expiry_date = row['date_entry'].get()  # DateEntry returns date string directly
+            
+            # Skip empty rows
+            if (item_name == "Click to choose" and 
+                (not quantity_str or quantity_str == "Enter Quantity") and 
+                not expiry_date):
+                continue
+            
+            # Basic validation
+            if item_name == "Click to choose":
+                CTkMessageBox.show_error("Input Error", f"Please select an item for row {i+1}.", parent=self)
+                return
+            
+            if not quantity_str or quantity_str == "Enter Quantity":
+                CTkMessageBox.show_error("Input Error", f"Please enter quantity for row {i+1}.", parent=self)
+                return
+            
+            try:
+                quantity = int(quantity_str)
+                if quantity <= 0:
+                    CTkMessageBox.show_error("Input Error", f"Quantity must be greater than 0 for row {i+1}.", parent=self)
+                    return
+            except ValueError:
+                CTkMessageBox.show_error("Input Error", f"Please enter a valid number for quantity in row {i+1}.", parent=self)
+                return
+            
+            if not expiry_date:
+                CTkMessageBox.show_error("Input Error", f"Please select an expiry date for row {i+1}.", parent=self)
+                return
+            
+            stock_changes.append({
+                'item_name': item_name,
+                'quantity': quantity,
+                'expiry_date': expiry_date
+            })
+        
+        if not stock_changes:
+            CTkMessageBox.show_error("Input Error", "Please fill at least one row with complete information.", parent=self)
+            return
+        
+        # Now perform the actual database update using your CRUD logic
+        try:
+            connect = db()
+            cursor = connect.cursor()
+            
+            # First, verify all items exist in the database
+            item_names = [item['item_name'] for item in stock_changes]
+            placeholders = ', '.join(['%s'] * len(item_names))
+            
+            cursor.execute(f"""
+                SELECT item_name FROM supply 
+                WHERE item_name IN ({placeholders})
+            """, item_names)
+            
+            existing_items = [row[0] for row in cursor.fetchall()]
+            
+            # Check for non-existent items
+            missing_items = [item for item in item_names if item not in existing_items]
+            if missing_items:
+                CTkMessageBox.show_error("Database Error", 
+                                    f"The following items don't exist in the database: {', '.join(missing_items)}", 
+                                    parent=self)
+                return
+            
+            # Build the dynamic SQL query based on your CRUD logic
+            stock = ' '.join(f"WHEN %s THEN current_stock + %s" for _ in stock_changes)
+            expiry = ' '.join(f"WHEN %s THEN %s" for _ in stock_changes)
+            names = ', '.join(['%s'] * len(stock_changes))
+            
+            # Build the parameters list exactly like your CRUD logic
+            store = []
+            
+            # Add item names and quantities for stock update
+            for item in stock_changes:
+                store.extend([item['item_name'], item['quantity']])
+            
+            # Add item names and expiry dates for expiry update  
+            for item in stock_changes:
+                store.extend([item['item_name'], item['expiry_date']])
+            
+            # Add item names for WHERE clause
+            store.extend([item['item_name'] for item in stock_changes])
+            
+            # Execute the update query
+            query = f"""
+                UPDATE supply
+                SET 
+                    current_stock = CASE item_name
+                        {stock}
+                    END,
+                    new_expiry_date = CASE item_name
+                        {expiry}
+                    END
+                WHERE item_name IN ({names});
+            """
+            
+            print("Executing query:", query)
+            print("Parameters:", store)
+            
+            cursor.execute(query, store)
+            
+            # Insert restock logs for tracking
+            for item in stock_changes:
+                cursor.execute("""
+                    INSERT INTO restock_logs (item_id, restock_quantity, restock_date)
+                    SELECT item_id, %s, CURDATE()
+                    FROM supply 
+                    WHERE item_name = %s
+                """, (item['quantity'], item['item_name']))
+            
+            connect.commit()
+            
+            # Show success message
+            message = "Stock successfully updated:\n\n"
+            for change in stock_changes:
+                message += f"• {change['item_name']}: +{change['quantity']} (Expiry: {change['expiry_date']})\n"
+            
+            CTkMessageBox.show_success("Success", message, parent=self)
+            
+            # Clear the form
+            self.clear_all_rows()
+            
+            # Refresh parent table if it exists
+            if hasattr(self.parent, 'refresh_table'):
+                self.parent.refresh_table()
+            
+            print("Stock changes successfully committed to database")
+            
+        except Exception as e:
+            connect.rollback()
+            error_msg = f"Database error occurred: {str(e)}"
+            print(error_msg)
+            CTkMessageBox.show_error("Database Error", error_msg, parent=self)
+            
+        finally:
+            if 'cursor' in locals():
+                cursor.close()
+            if 'connect' in locals():
+                connect.close()
+
+    def clear_all_rows(self):
+        """Clear all rows and reset to single empty row"""
+        # Remove all existing rows
+        for row in self.stock_rows:
+            row['frame'].destroy()
+        
+        self.stock_rows.clear()
+        
+        # Add one fresh row
+        self.add_stock_row()
+
+    def populate_item_dropdown(self):
+        """Populate dropdown with actual items from database"""
+        try:
+            connect = db()
+            cursor = connect.cursor()
+            
+            cursor.execute("SELECT item_name FROM supply ORDER BY item_name")
+            result = cursor.fetchall()
+            
+            item_names = ["Click to choose"] + [row[0] for row in result]
+            
+            # Update all existing dropdowns
+            for row in self.stock_rows:
+                row['item_dropdown'].configure(values=item_names)
+            
+            cursor.close()
+            connect.close()
+            
+            return item_names
+            
+        except Exception as e:
+            print(f"Error fetching item names: {e}")
+            return ["Click to choose"]  # Return minimal fallback
+
+    def get_database_items(self):
+        """Get item names from database for dropdown initialization"""
+        try:
+            connect = db()
+            cursor = connect.cursor()
+            
+            cursor.execute("SELECT item_name FROM supply ORDER BY item_name")
+            result = cursor.fetchall()
+            
+            cursor.close()
+            connect.close()
+            
+            return ["Click to choose"] + [row[0] for row in result]
+            
+        except Exception as e:
+            print(f"Error fetching item names from database: {e}")
+            return ["Click to choose"]
+
+class EditUsageWindow(SupplyBaseWindow):
+    def __init__(self, parent):
+        super().__init__(parent, "Edit Usage")
+        
+        # Remove the sidebar
+        self.sidebar.destroy()
+        
+        # Blue decorative header bar at the top - smaller and fixed
+        header_bar = ctk.CTkFrame(self.main_frame, 
+                                 height=40, 
+                                 fg_color="#1A374D",
+                                 corner_radius=0)
+        header_bar.pack(fill="x", side="top")
+        header_bar.pack_propagate(False)
+
+        # Main content frame
+        content_frame = ctk.CTkFrame(self.main_frame, 
+                                   fg_color="white",
+                                   corner_radius=0)
+        content_frame.pack(fill="both", expand=True, padx=20, pady=20)
+
+        # Title and subtitle in content area - smaller sizes
+        title_label = ctk.CTkLabel(content_frame, 
+                                  text="Edit Usage", 
+                                  font=("Merriweather Bold", 20), 
+                                  text_color="#1A374D")
+        title_label.pack(anchor="w", pady=(0, 3))
+
+        subtitle_label = ctk.CTkLabel(content_frame, 
+                                     text="Every patient item usage will be processed here", 
+                                     font=("Merriweather Sans", 11), 
+                                     text_color="#666666")
+        subtitle_label.pack(anchor="w", pady=(0, 20))
+
+        # Scrollable frame for multiple rows - bigger height
+        self.scrollable_frame = ctk.CTkScrollableFrame(content_frame,
+                                                      height=320,
+                                                      fg_color="transparent")
+        self.scrollable_frame.pack(fill="both", expand=True, pady=(0, 20))
+
+        # Store row widgets
+        self.item_rows = []
+        
+        # Dummy patient data for testing
+        self.patient_data = {
+            "P001": "John Michael Doe",
+            "P002": "Maria Santos Garcia",
+            "P003": "James Robert Smith",
+            "P004": "Ana Marie Cruz",
+            "P005": "David Lee Johnson"
+        }
+        
+        # Dummy item data for testing
+        self.item_data = [
+            "Syringe", "Bandage", "Medicine", "Gloves", 
+            "Alcohol", "Cotton", "Gauze", "Thermometer"
+        ]
+        
+        # Create patient selection row (first row)
+        self.create_patient_row()
+        
+        # Create first item row
+        self.add_item_row()
+
+        # Bottom frame for buttons
+        bottom_frame = ctk.CTkFrame(content_frame, fg_color="transparent")
+        bottom_frame.pack(fill="x", side="bottom")
+
+        # Add more rows button
+        self.add_row_button = ctk.CTkButton(bottom_frame,
+                                           text="+ Add more rows",
+                                           font=("Merriweather Sans", 11),
+                                           fg_color="transparent",
+                                           text_color="#1A374D",
+                                           hover_color="#F0F0F0",
+                                           width=120,
+                                           height=25,
+                                           command=self.add_item_row)
+        self.add_row_button.pack(side="left", pady=(5, 0))
+
+        # Submit button
+        submit_button = ctk.CTkButton(bottom_frame,
+                                     text="Submit",
+                                     font=("Merriweather Bold", 14),
+                                     fg_color="#1A374D",
+                                     hover_color="#16C79A",
+                                     text_color="white",
+                                     width=100,
+                                     height=35,
+                                     corner_radius=8,
+                                     command=self.submit_usage_changes)
+        submit_button.pack(side="right", pady=(5, 0))
+
+    def create_patient_row(self):
+        """Create the patient selection row (Patient ID and Patient Name)"""
+        # Create patient row frame
+        patient_row_frame = ctk.CTkFrame(self.scrollable_frame, 
+                                        fg_color="transparent",
+                                        height=110)
+        patient_row_frame.pack(fill="x", pady=(0, 20), padx=5)
+        patient_row_frame.pack_propagate(False)
+
+        # Configure grid for 2 columns (Patient ID, Patient Name)
+        patient_row_frame.grid_columnconfigure(0, weight=1)
+        patient_row_frame.grid_columnconfigure(1, weight=1)
+
+        # Patient ID section
+        patient_id_frame = ctk.CTkFrame(patient_row_frame, fg_color="transparent")
+        patient_id_frame.grid(row=0, column=0, sticky="ew", padx=(0, 15))
+
+        patient_id_label = ctk.CTkLabel(patient_id_frame, 
+                                       text="Patient ID", 
+                                       font=("Merriweather Sans bold", 14), 
+                                       text_color="#333333")
+        patient_id_label.pack(anchor="w", pady=(0, 8))
+
+        # Patient ID dropdown with dummy data
+        self.patient_id_var = ctk.StringVar(value="Click to choose")
+        patient_ids = ["Click to choose"] + list(self.patient_data.keys())
+        self.patient_id_dropdown = ctk.CTkComboBox(patient_id_frame,
+                                                  variable=self.patient_id_var,
+                                                  values=patient_ids,
+                                                  state="readonly",
+                                                  width=220,
+                                                  height=35,
+                                                  font=("Merriweather Sans", 12),
+                                                  fg_color="#e8e8e8",
+                                                  border_width=1,
+                                                  border_color="black",
+                                                  button_color="#1A374D",
+                                                  button_hover_color="#68EDC6",
+                                                  dropdown_fg_color="white",
+                                                  dropdown_hover_color="#68EDC6",
+                                                  text_color="black",
+                                                  dropdown_text_color="black")
+        self.patient_id_dropdown.pack(fill="x")
+
+        # Patient Name section (auto-populated)
+        patient_name_frame = ctk.CTkFrame(patient_row_frame, fg_color="transparent")
+        patient_name_frame.grid(row=0, column=1, sticky="ew", padx=(15, 0))
+
+        patient_name_label = ctk.CTkLabel(patient_name_frame, 
+                                         text="Patient Name", 
+                                         font=("Merriweather Sans bold", 14), 
+                                         text_color="#333333")
+        patient_name_label.pack(anchor="w", pady=(0, 8))
+
+        # Patient name display (read-only)
+        self.patient_name_display = ctk.CTkEntry(patient_name_frame,
+                                                width=220,
+                                                height=35,
+                                                font=("Merriweather Sans", 12),
+                                                fg_color="#f5f5f5",
+                                                border_width=1,
+                                                border_color="gray",
+                                                text_color="black",
+                                                state="disabled")
+        self.patient_name_display.pack(fill="x")
+
+        # Function to update patient name when patient ID is selected
+        def on_patient_id_change(*args):
+            selected_id = self.patient_id_var.get()
+            if selected_id in self.patient_data:
+                patient_name = self.patient_data[selected_id]
+                self.patient_name_display.configure(state="normal")
+                self.patient_name_display.delete(0, "end")
+                self.patient_name_display.insert(0, patient_name)
+                self.patient_name_display.configure(state="disabled")
+            else:
+                self.patient_name_display.configure(state="normal")
+                self.patient_name_display.delete(0, "end")
+                self.patient_name_display.configure(state="disabled")
+
+        # Bind the patient ID dropdown to update patient name
+        self.patient_id_var.trace("w", on_patient_id_change)
+
+    def add_item_row(self):
+        """Add a new item row (Item Name and Quantity Used)"""
+        row_index = len(self.item_rows)
+
+        # Create item row frame
+        item_row_frame = ctk.CTkFrame(self.scrollable_frame, 
+                                     fg_color="transparent",
+                                     height=110)
+        item_row_frame.pack(fill="x", pady=(0, 20), padx=5)
+        item_row_frame.pack_propagate(False)
+
+        # Configure grid for 2 columns (Item Name, Quantity Used)
+        item_row_frame.grid_columnconfigure(0, weight=1)
+        item_row_frame.grid_columnconfigure(1, weight=1)
+
+        # Item Name section
+        item_frame = ctk.CTkFrame(item_row_frame, fg_color="transparent")
+        item_frame.grid(row=0, column=0, sticky="ew", padx=(0, 15))
+
+        item_label = ctk.CTkLabel(item_frame, 
+                                 text="Item Name", 
+                                 font=("Merriweather Sans bold", 14), 
+                                 text_color="#333333")
+        item_label.pack(anchor="w", pady=(0, 8))
+
+        # Item dropdown with dummy items
+        item_var = ctk.StringVar(value="Click to choose")
+        item_values = ["Click to choose"] + self.item_data
+        item_dropdown = ctk.CTkComboBox(item_frame,
+                                       variable=item_var,
+                                       values=item_values,
+                                       state="readonly",
+                                       width=220,
+                                       height=35,
+                                       font=("Merriweather Sans", 12),
+                                       fg_color="#e8e8e8",
+                                       border_width=1,
+                                       border_color="black",
+                                       button_color="#1A374D",
+                                       button_hover_color="#68EDC6",
+                                       dropdown_fg_color="white",
+                                       dropdown_hover_color="#68EDC6",
+                                       text_color="black",
+                                       dropdown_text_color="black")
+        item_dropdown.pack(fill="x")
+
+        # Quantity Used section
+        qty_frame = ctk.CTkFrame(item_row_frame, fg_color="transparent")
+        qty_frame.grid(row=0, column=1, sticky="ew", padx=(15, 0))
+
+        qty_label = ctk.CTkLabel(qty_frame, 
+                                text="Quantity Used", 
+                                font=("Merriweather Sans bold", 14), 
+                                text_color="#333333")
+        qty_label.pack(anchor="w", pady=(0, 8))
+
+        qty_var = ctk.StringVar()
+        qty_entry = ctk.CTkEntry(qty_frame,
+                                textvariable=qty_var,
+                                width=220,
+                                height=35,
+                                font=("Merriweather Sans", 12),
+                                fg_color="#e8e8e8",
+                                border_width=1,
+                                border_color="black",
+                                text_color="black")
+        qty_entry.pack(fill="x")
+
+        # Add placeholder behavior for quantity
+        qty_entry.insert(0, "Enter Quantity")
+        qty_entry.configure(text_color="gray")
+
+        def on_qty_focus_in(event):
+            if qty_entry.get() == "Enter Quantity":
+                qty_entry.delete(0, "end")
+                qty_entry.configure(text_color="black")
+
+        def on_qty_focus_out(event):
+            if qty_entry.get() == "":
+                qty_entry.insert(0, "Enter Quantity")
+                qty_entry.configure(text_color="gray")
+
+        qty_entry.bind('<FocusIn>', on_qty_focus_in)
+        qty_entry.bind('<FocusOut>', on_qty_focus_out)
+
+        # Store row data
+        row_data = {
+            'frame': item_row_frame,
+            'item_var': item_var,
+            'item_dropdown': item_dropdown,
+            'qty_var': qty_var,
+            'qty_entry': qty_entry
+        }
+        
+        self.item_rows.append(row_data)
+
+    def submit_usage_changes(self):
+        """Process and submit usage changes"""
+        print("Submit usage button clicked!")
+        
+        # Get patient information
+        patient_id = self.patient_id_var.get()
+        patient_name = self.patient_name_display.get() if self.patient_name_display.get() else ""
+        
+        # Validate patient selection
+        if patient_id == "Click to choose":
+            CTkMessageBox.show_error("Input Error", "Please select a patient ID.", parent=self)
+            return
+        
+        # Collect data from all item rows
+        usage_changes = []
+        
+        for i, row in enumerate(self.item_rows):
+            item_name = row['item_var'].get()
+            quantity_str = row['qty_var'].get().strip()
+            
+            # Skip empty rows
+            if (item_name == "Click to choose" and 
+                (not quantity_str or quantity_str == "Enter Quantity")):
+                continue
+            
+            # Basic validation
+            if item_name == "Click to choose":
+                CTkMessageBox.show_error("Input Error", f"Please select an item for row {i+1}.", parent=self)
+                return
+            
+            if not quantity_str or quantity_str == "Enter Quantity":
+                CTkMessageBox.show_error("Input Error", f"Please enter quantity for row {i+1}.", parent=self)
+                return
+            
+            try:
+                quantity = int(quantity_str)
+                if quantity <= 0:
+                    CTkMessageBox.show_error("Input Error", f"Quantity must be greater than 0 for row {i+1}.", parent=self)
+                    return
+            except ValueError:
+                CTkMessageBox.show_error("Input Error", f"Please enter a valid number for quantity in row {i+1}.", parent=self)
+                return
+            
+            usage_changes.append({
+                'item_name': item_name,
+                'quantity_used': quantity
+            })
+        
+        if not usage_changes:
+            CTkMessageBox.show_error("Input Error", "Please fill at least one item row with complete information.", parent=self)
+            return
+        
+        # For now, just show what would be processed
+        message = f"Usage changes to be processed:\n\n"
+        message += f"Patient: {patient_name} ({patient_id})\n\n"
+        message += "Items used:\n"
+        for change in usage_changes:
+            message += f"• {change['item_name']}: {change['quantity_used']} pc(s)\n"
+        
+        CTkMessageBox.show_success("Preview", message, parent=self)
+        print("Usage changes collected:", {
+            'patient_id': patient_id,
+            'patient_name': patient_name,
+            'items': usage_changes
+        })
 
 class QuantityUsedLogsWindow(SupplyBaseWindow):
     def __init__(self, parent, item_id=None):

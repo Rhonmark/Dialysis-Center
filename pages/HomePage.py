@@ -7,7 +7,7 @@ from PIL import Image
 from components.Inputs import PatientInfoWindow
 from backend.connector import db_connection as db
 from components.buttons import CTkButtonSelectable
-from components.input_supply import CTkMessageBox, EditStockWindow, PatientQuantityUsedLogsWindow, QuantityUsedLogsWindow, SupplyWindow
+from components.input_supply import CTkMessageBox, EditStockWindow, EditUsageWindow, PatientQuantityUsedLogsWindow, QuantityUsedLogsWindow, SupplyWindow
 from components.state import login_shared_states
 from backend.crud import retrieve_form_data, db_connection
 import datetime 
@@ -2728,8 +2728,10 @@ class PatientPage(ctk.CTkFrame):
         self.populate_table(self.fetch_patient_data())
 
     def edit_usage_clicked(self):
-        """Handle Edit Usage button click"""
-        print("Edit Usage button clicked!")
+        """Handle Edit usage button click"""
+        print("Edit usage button clicked!")
+        edit_window = EditUsageWindow(self)
+        edit_window.grab_set()  # Make it modal
 
     # SEARCH FUNCTIONALITY METHODS
     def setup_search_functionality(self):
@@ -4571,6 +4573,11 @@ class SupplyPage(ctk.CTkFrame):
     def edit_stock_clicked(self):
         """Handle Edit Stock button click"""
         print("Edit Stock button clicked!")
+        try:
+            edit_window = EditStockWindow(self)
+            edit_window.grab_set()  # Make it modal
+        except Exception as e:
+            print(f"Error opening Edit Stock window: {e}")
 
     # SEARCH FUNCTIONALITY METHODS
     def setup_search_functionality(self):
@@ -5058,9 +5065,18 @@ class SupplyPage(ctk.CTkFrame):
         delivery_time_days = supply_data[10] if len(supply_data) > 10 and supply_data[10] else "N/A" 
         max_supply = supply_data[12] if len(supply_data) > 12 and supply_data[12] else 0
         
-        current_restock_expiry = supply_data[13] if len(supply_data) > 13 and supply_data[13] else "N/A"
-        previous_restock_expiry = supply_data[14] if len(supply_data) > 14 and supply_data[14] else "N/A"
+        # Handle expiry dates properly - check for NULL/None values
+        current_restock_expiry = supply_data[13] if len(supply_data) > 13 and supply_data[13] is not None and supply_data[13] != '' else "N/A"
+        previous_restock_expiry = supply_data[14] if len(supply_data) > 14 and supply_data[14] is not None and supply_data[14] != '' else "N/A"
         supplier_name = supply_data[15] if len(supply_data) > 15 and supply_data[15] else "N/A"
+        
+        # Debug print to see what we're getting
+        print(f"DEBUG - Raw expiry data:")
+        print(f"  current_restock_expiry (index 13): {supply_data[13] if len(supply_data) > 13 else 'Not found'}")
+        print(f"  previous_restock_expiry (index 14): {supply_data[14] if len(supply_data) > 14 else 'Not found'}")
+        print(f"  After processing:")
+        print(f"  current_restock_expiry: {current_restock_expiry}")
+        print(f"  previous_restock_expiry: {previous_restock_expiry}")
         
         # Display all the fields
         self.currentstock_Output.configure(text=str(current_stock))
@@ -5109,44 +5125,58 @@ class SupplyPage(ctk.CTkFrame):
         progress_value = min(progress_value, 1.0)
         self.StorageMeter.set(progress_value)
 
-        #daily usage for standard dev
-        avg_daily_usage = average_weekly_usage / 7 
+        # Handle average_weekly_usage for calculations
+        if average_weekly_usage == "N/A" or average_weekly_usage is None or average_weekly_usage == 0:
+            # Skip stock level calculations if no usage data
+            status_text = "No Usage Data"
+            status_color = "#666666"
+            progress_color = "#666666"
+            remaining_color = "#666666"
+        else:
+            # Daily usage for standard dev
+            avg_daily_usage = average_weekly_usage / 7 
+                
+            # Standard 20% 
+            daily_standard_dev_estimate = avg_daily_usage * 0.2
             
-        #standard 20% 
-        daily_standard_dev_estimate = avg_daily_usage * 0.2
-        safety_stock = 2.33 * daily_standard_dev_estimate * math.sqrt(delivery_time_days)
-        reorder_point = (avg_daily_usage * delivery_time_days) + safety_stock
+            # Handle delivery_time_days
+            if delivery_time_days == "N/A" or delivery_time_days is None:
+                delivery_time_days = 7  # Default to 7 days
+            
+            import math
+            safety_stock = 2.33 * daily_standard_dev_estimate * math.sqrt(delivery_time_days)
+            reorder_point = (avg_daily_usage * delivery_time_days) + safety_stock
 
-        #stock level
-        low_stock_level = reorder_point
-        critical_stock_level = 0.50 * reorder_point
-        good_level = reorder_point * 1.7
+            # Stock level
+            low_stock_level = reorder_point
+            critical_stock_level = 0.50 * reorder_point
+            good_level = reorder_point * 1.7
 
-        if current_stock == 0:
-            status_text = "Out of Stock"
-            status_color = "#8B0000"  
-            progress_color = "#8B0000"
-            remaining_color = "#8B0000"
-        elif current_stock <= critical_stock_level:  
-            status_text = "Critical Stock Level"
-            status_color = "#FF0000"  
-            progress_color = "#FF0000"
-            remaining_color = "#FF0000"
-        elif current_stock <= low_stock_level:  
-            status_text = "Low Stock Level"
-            status_color = "#FF8C00"  
-            progress_color = "#FF8C00"
-            remaining_color = "#FF8C00"
-        elif current_stock <= good_level:  
-            status_text = "Good Stock Level"
-            status_color = "#28A745" 
-            progress_color = "#28A745"
-            remaining_color = "#28A745"
-        else:  
-            status_text = "Excellent Stock Level"
-            status_color = "#27D810"  
-            progress_color = "#27D810"
-            remaining_color = "#27D810"
+            if current_stock == 0:
+                status_text = "Out of Stock"
+                status_color = "#8B0000"  
+                progress_color = "#8B0000"
+                remaining_color = "#8B0000"
+            elif current_stock <= critical_stock_level:  
+                status_text = "Critical Stock Level"
+                status_color = "#FF0000"  
+                progress_color = "#FF0000"
+                remaining_color = "#FF0000"
+            elif current_stock <= low_stock_level:  
+                status_text = "Low Stock Level"
+                status_color = "#FF8C00"  
+                progress_color = "#FF8C00"
+                remaining_color = "#FF8C00"
+            elif current_stock <= good_level:  
+                status_text = "Good Stock Level"
+                status_color = "#28A745" 
+                progress_color = "#28A745"
+                remaining_color = "#28A745"
+            else:  
+                status_text = "Excellent Stock Level"
+                status_color = "#27D810"  
+                progress_color = "#27D810"
+                remaining_color = "#27D810"
 
         # Apply the colors
         self.Status_Output.configure(text=status_text, text_color=status_color)
