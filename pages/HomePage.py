@@ -2730,8 +2730,49 @@ class PatientPage(ctk.CTkFrame):
     def edit_usage_clicked(self):
         """Handle Edit usage button click"""
         print("Edit usage button clicked!")
-        edit_window = EditUsageWindow(self)
-        edit_window.grab_set()  # Make it modal
+        try:
+            edit_window = EditUsageWindow(self)
+            edit_window.grab_set()  # Make it modal
+            edit_window.focus_force()
+            
+            # Wait for window to close, then refresh supply data
+            self.wait_window(edit_window)
+            
+            # Refresh the patient table after usage is recorded
+            self.refresh_table()
+            
+            # IMPORTANT: Also refresh the supply page table
+            self.refresh_supply_page_after_usage()
+            
+            # If we're in detailed view, refresh that too
+            if hasattr(self, 'patient_id_value'):
+                current_patient_id = self.patient_id_value.cget("text")
+                if current_patient_id:
+                    self.refresh_after_update()
+                    
+        except Exception as e:
+            print(f"Error opening Edit Usage window: {e}")
+
+    def refresh_supply_page_after_usage(self):
+        """Refresh the supply page table after usage is recorded"""
+        try:
+            # Access the main application instance and refresh supply page
+            if hasattr(self.master, 'master') and hasattr(self.master.master, 'pages'):
+                supply_page = self.master.master.pages.get('Supply')
+                if supply_page and hasattr(supply_page, 'refresh_table'):
+                    print("🔄 Refreshing supply page after usage recording...")
+                    supply_page.refresh_table()
+                    print("✅ Supply page refreshed successfully!")
+                    
+                    # If supply page is in detailed view, refresh that too
+                    if hasattr(supply_page, 'selected_supply_id') and supply_page.selected_supply_id:
+                        supply_page.refresh_detailed_view()
+                else:
+                    print("❌ Could not find supply page to refresh")
+            else:
+                print("❌ Could not access main application pages")
+        except Exception as e:
+            print(f"❌ Error refreshing supply page: {e}")
 
     # SEARCH FUNCTIONALITY METHODS
     def setup_search_functionality(self):
@@ -3143,7 +3184,7 @@ class PatientPage(ctk.CTkFrame):
         # Refresh the table
         self.refresh_table()
         
-        # FIXED: Trigger automatic refresh of home page pie chart
+        # Trigger automatic refresh of home page pie chart
         # Access the main HomePage instance and refresh patient data
         if hasattr(self.master, 'master') and hasattr(self.master.master, 'pages'):
             home_page = self.master.master.pages.get('Home')
@@ -3163,7 +3204,7 @@ class PatientPage(ctk.CTkFrame):
 
         def on_close():
             input_window.destroy()
-            # FIXED: Automatically refresh after any patient input operation
+            # Automatically refresh after any patient input operation
             self.refresh_after_update()
 
         input_window.protocol("WM_DELETE_WINDOW", on_close)
@@ -3171,18 +3212,23 @@ class PatientPage(ctk.CTkFrame):
         self.refresh_table()
         self.enable_buttons()
         
-        # FIXED: Additional refresh after input window closes
+        # Additional refresh after input window closes
         self.refresh_after_update()
 
+    
     def refresh_table(self):
-        self.detailed_info_frame.place_forget() 
-        self.button_frame.place(x=20, y=50, anchor="nw") 
-        self.navbar.pack(fill="x", side="top")
-        self.table_frame.place(x=20, y=150, relwidth=0.95, relheight=0.8) 
         """Refresh the patient table with latest data"""
         try:
-            # Make sure we're in table view
-            self.show_table_view()
+            print("🔄 Refreshing patient table with latest data...")
+            
+            # Make sure we're in table view first
+            self.detailed_info_frame.place_forget()
+            self.photo_frame.place_forget()
+            
+            # Show the table and navigation elements
+            self.button_frame.place(x=20, y=50, anchor="nw") 
+            self.navbar.pack(fill="x", side="top")
+            self.table_frame.place(x=20, y=150, relwidth=0.95, relheight=0.8)
             
             # Clear existing table data
             for row in self.tree.get_children():
@@ -3195,7 +3241,7 @@ class PatientPage(ctk.CTkFrame):
             print("✅ Patient table refreshed with latest data")
             
         except Exception as e:
-            print(f"❌ Error refreshing table: {e}")                
+            print(f"❌ Error refreshing patient table: {e}")   
 
     def enable_buttons(self):
         self.add_button.configure(state="normal")
@@ -5232,6 +5278,8 @@ class SupplyPage(ctk.CTkFrame):
             return
         
         try:
+            print(f"🔄 Refreshing detailed view for supply ID: {self.selected_supply_id}")
+            
             connect = db()
             cursor = connect.cursor()
             
@@ -5271,13 +5319,18 @@ class SupplyPage(ctk.CTkFrame):
                     'previous_expiry_date': updated_data[14] if updated_data[14] else None,
                     'supplier_name': updated_data[15] if updated_data[15] else "N/A"
                 }
+                
+                # Refresh the detailed info display
                 self.show_detailed_info(updated_data)
+                print("✅ Supply detailed view refreshed successfully!")
+            else:
+                print("❌ No data found for the selected supply item")
                 
             cursor.close()
             connect.close()
             
         except Exception as e:
-            print("Error refreshing detailed view:", e)
+            print(f"❌ Error refreshing detailed view: {e}")
 
 class ReportPage(ctk.CTkFrame):
     def __init__(self, parent):
@@ -5902,7 +5955,7 @@ class ReportPage(ctk.CTkFrame):
                 
                 self.inactive_patient = data_count(
                     column='status', 
-                    value='Inactive',  # FIXED: was 'Active', should be 'Inactive'
+                    value='Inactive',  
                     table_name='patient_info'
                 )
 
@@ -6127,7 +6180,7 @@ class ReportPage(ctk.CTkFrame):
 
                 self.inactive_patient = data_count(
                     column='status', 
-                    value='Inactive',  # FIXED: was 'Active', should be 'Inactive'
+                    value='Inactive',  
                     table_name='patient_info',
                     period='monthly', 
                     date_column='date_registered',
@@ -8309,7 +8362,7 @@ class MaintenancePage(ctk.CTkFrame):
                     maintenance_page = homepage.pages['Maintenance']
                     if hasattr(maintenance_page, 'load_backup_data'):
                         maintenance_page.load_backup_data()
-                    # FIXED: Also refresh the backup logs tables
+                    # Also refresh the backup logs tables
                     if hasattr(maintenance_page, 'load_backup_logs_table'):
                         maintenance_page.load_backup_logs_table()
                     if hasattr(maintenance_page, 'load_employee_backup_table'):

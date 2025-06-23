@@ -1049,20 +1049,9 @@ class EditUsageWindow(SupplyBaseWindow):
         # Store row widgets
         self.item_rows = []
         
-        # Dummy patient data for testing
-        self.patient_data = {
-            "P001": "John Michael Doe",
-            "P002": "Maria Santos Garcia",
-            "P003": "James Robert Smith",
-            "P004": "Ana Marie Cruz",
-            "P005": "David Lee Johnson"
-        }
-        
-        # Dummy item data for testing
-        self.item_data = [
-            "Syringe", "Bandage", "Medicine", "Gloves", 
-            "Alcohol", "Cotton", "Gauze", "Thermometer"
-        ]
+        # Get patient and item data from database
+        self.patient_data = self.get_patient_data()
+        self.item_data = self.get_item_data()
         
         # Create patient selection row (first row)
         self.create_patient_row()
@@ -1099,6 +1088,48 @@ class EditUsageWindow(SupplyBaseWindow):
                                      command=self.submit_usage_changes)
         submit_button.pack(side="right", pady=(5, 0))
 
+    def get_patient_data(self):
+        """Get patient data from database"""
+        try:
+            connect = db()
+            cursor = connect.cursor()
+            
+            cursor.execute("SELECT patient_id, patient_name FROM patient_list ORDER BY patient_name")
+            result = cursor.fetchall()
+            
+            patient_dict = {}
+            for patient_id, patient_name in result:
+                patient_dict[str(patient_id)] = patient_name
+            
+            cursor.close()
+            connect.close()
+            
+            return patient_dict
+            
+        except Exception as e:
+            print(f"Error fetching patient data: {e}")
+            return {"P001": "Sample Patient"}  # Fallback
+    
+    def get_item_data(self):
+        """Get item data from database"""
+        try:
+            connect = db()
+            cursor = connect.cursor()
+            
+            cursor.execute("SELECT item_name FROM supply ORDER BY item_name")
+            result = cursor.fetchall()
+            
+            item_list = [row[0] for row in result]
+            
+            cursor.close()
+            connect.close()
+            
+            return item_list
+            
+        except Exception as e:
+            print(f"Error fetching item data: {e}")
+            return ["Syringe", "Bandage", "Medicine"]  # Fallback
+
     def create_patient_row(self):
         """Create the patient selection row (Patient ID and Patient Name)"""
         # Create patient row frame
@@ -1122,7 +1153,7 @@ class EditUsageWindow(SupplyBaseWindow):
                                        text_color="#333333")
         patient_id_label.pack(anchor="w", pady=(0, 8))
 
-        # Patient ID dropdown with dummy data
+        # Patient ID dropdown with real data
         self.patient_id_var = ctk.StringVar(value="Click to choose")
         patient_ids = ["Click to choose"] + list(self.patient_data.keys())
         self.patient_id_dropdown = ctk.CTkComboBox(patient_id_frame,
@@ -1207,7 +1238,7 @@ class EditUsageWindow(SupplyBaseWindow):
                                  text_color="#333333")
         item_label.pack(anchor="w", pady=(0, 8))
 
-        # Item dropdown with dummy items
+        # Item dropdown with real items from database
         item_var = ctk.StringVar(value="Click to choose")
         item_values = ["Click to choose"] + self.item_data
         item_dropdown = ctk.CTkComboBox(item_frame,
@@ -1279,7 +1310,7 @@ class EditUsageWindow(SupplyBaseWindow):
         self.item_rows.append(row_data)
 
     def submit_usage_changes(self):
-        """Process and submit usage changes"""
+        """Process and submit usage changes to database"""
         print("Submit usage button clicked!")
         
         # Get patient information
@@ -1330,19 +1361,173 @@ class EditUsageWindow(SupplyBaseWindow):
             CTkMessageBox.show_error("Input Error", "Please fill at least one item row with complete information.", parent=self)
             return
         
-        # For now, just show what would be processed
-        message = f"Usage changes to be processed:\n\n"
-        message += f"Patient: {patient_name} ({patient_id})\n\n"
-        message += "Items used:\n"
-        for change in usage_changes:
-            message += f"• {change['item_name']}: {change['quantity_used']} pc(s)\n"
+        # perform the actual database update 
+        try:
+            connect = db()
+            cursor = connect.cursor()
+            
+            # First, verify all items exist and have sufficient stock
+            item_names = [item['item_name'] for item in usage_changes]
+            placeholders = ', '.join(['%s'] * len(item_names))
+            
+            cursor.execute(f"""
+                SELECT item_id, item_name, current_stock FROM supply 
+                WHERE item_name IN ({placeholders})
+            """, item_names)
+            
+            existing_items = cursor.fetchall()
+            existing_item_dict = {item[1]: {'item_id': item[0], 'current_stock': item[2]} for item in existing_items}
+            
+            # Check for non-existent items
+            missing_items = [item for item in item_names if item not in existing_item_dict]
+            if missing_items:
+                CTkMessageBox.show_error("Database Error", 
+                                    f"The following items don't exist in the database: {', '.join(missing_items)}", 
+                                    parent=self)
+                return
+            
+            # Check for insufficient stock
+            insufficient_stock = []
+            for item in usage_changes:
+                item_name = item['item_name']
+                quantity_needed = item['quantity_used']
+                current_stock = existing_item_dict[item_name]['current_stock']
+                
+                if current_stock < quantity_needed:
+                    insufficient_stock.append(f"{item_name} (Available: {current_stock}, Needed: {quantity_needed})")
+            
+            if insufficient_stock:
+                CTkMessageBox.show_error("Insufficient Stock", 
+                                    f"The following items don't have enough stock:\n{chr(10).join(insufficient_stock)}", 
+                                    parent=self)
+                return
+            
+            # Build the dynamic SQL query for stock reduction 
+            stock_cases = []
+            stock_params = []
+            where_params = []
+            
+            for item in usage_changes:
+                stock_cases.append("WHEN %s THEN current_stock - %s")
+                stock_params.extend([item['item_name'], item['quantity_used']])
+                where_params.append('%s')
+            
+            stock = ' '.join(stock_cases)
+            names = ', '.join(where_params)
+            
+            # Build the parameters list
+            store = stock_params + [item['item_name'] for item in usage_changes]
+            
+            # Execute the stock reduction query
+            query = f"""
+                UPDATE supply
+                SET 
+                    current_stock = CASE item_name
+                        {stock}
+                    END
+                WHERE item_name IN ({names});
+            """
+            
+            # Get username first for logging
+            username = login_shared_states.get('logged_username', None)
+            if username:
+                cursor.execute("SELECT full_name FROM users WHERE username = %s", (username,))
+                result = cursor.fetchone()
+                user_fullname = result[0] if result else "Unknown User"
+            else:
+                user_fullname = "Unknown User"
+            
+            print("Executing query:", query)
+            print("Parameters:", store)
+            print("Number of usage changes:", len(usage_changes))
+            print("Stock cases:", stock_cases)
+            print("Patient ID:", patient_id)
+            print("Username:", username)
+            print("User fullname:", user_fullname)
+            
+            cursor.execute(query, store)
+            
+            from datetime import datetime
+            now = datetime.now()
+            
+            for item in usage_changes:
+                item_id = existing_item_dict[item['item_name']]['item_id']
+                
+                print(f"Inserting usage: patient_id={patient_id}, item_id={item_id}, quantity={item['quantity_used']}")
+                
+                # Insert into item_usage table
+                try:
+                    cursor.execute("""
+                        INSERT INTO item_usage (patient_id, item_id, quantity_used, usage_date, usage_time, usage_timestamp)
+                        VALUES (%s, %s, %s, %s, %s, %s)
+                    """, (patient_id, item_id, item['quantity_used'], 
+                          now.strftime('%Y-%m-%d'), now.strftime('%H:%M:%S'), now))
+                except Exception as usage_error:
+                    print(f"Error inserting usage log: {usage_error}")
+                    raise usage_error
+                
+                # Insert notification log
+                try:
+                    cursor.execute("""
+                        INSERT INTO notification_logs (user_fullname, item_name, patient_id, 
+                                                      notification_type, notification_timestamp)
+                        VALUES (%s, %s, %s, %s, %s)
+                    """, (user_fullname, item['item_name'], patient_id, 
+                          'Item Usage Recorded', now))
+                except Exception as notif_error:
+                    print(f"Error inserting notification log: {notif_error}")
+                    # Don't raise here, notification failure shouldn't stop the process
+            
+            connect.commit()
+            
+            # Show success message
+            message = f"Usage successfully recorded for {patient_name} (ID: {patient_id}):\n\n"
+            for change in usage_changes:
+                message += f"• {change['item_name']}: {change['quantity_used']} pc(s) used\n"
+            
+            CTkMessageBox.show_success("Success", message, parent=self)
+            
+            # Clear the form
+            self.clear_all_rows()
+            
+            # Refresh parent table if it exists
+            if hasattr(self.master, 'refresh_table'):
+                self.master.refresh_table()
+            
+            # Trigger supply page refresh through parent
+            if hasattr(self.master, 'refresh_supply_page_after_usage'):
+                self.master.refresh_supply_page_after_usage()
+            
+            print("Usage changes successfully committed to database")
+            
+        except Exception as e:
+            connect.rollback()
+            error_msg = f"Database error occurred: {str(e)}"
+            print(error_msg)
+            CTkMessageBox.show_error("Database Error", error_msg, parent=self)
+            
+        finally:
+            if 'cursor' in locals():
+                cursor.close()
+            if 'connect' in locals():
+                connect.close()
+
+    def clear_all_rows(self):
+        """Clear all rows and reset to single empty row"""
+        # Clear patient selection
+        self.patient_id_var.set("Click to choose")
+        self.patient_name_display.configure(state="normal")
+        self.patient_name_display.delete(0, "end")
+        self.patient_name_display.configure(state="disabled")
         
-        CTkMessageBox.show_success("Preview", message, parent=self)
-        print("Usage changes collected:", {
-            'patient_id': patient_id,
-            'patient_name': patient_name,
-            'items': usage_changes
-        })
+        # Remove all existing item rows
+        for row in self.item_rows:
+            row['frame'].destroy()
+        
+        self.item_rows.clear()
+        
+        # Add one fresh item row
+        self.add_item_row()
 
 class QuantityUsedLogsWindow(SupplyBaseWindow):
     def __init__(self, parent, item_id=None):
