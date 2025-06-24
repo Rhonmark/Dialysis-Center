@@ -934,11 +934,11 @@ class EditStockWindow(SupplyBaseWindow):
             print(f"ERROR: Please select an expiry date for row {i+1}.")
             return
             
-            stock_changes.append({
-                'item_name': item_name,
-                'quantity': quantity,
-                'expiry_date': expiry_date
-            })
+        stock_changes.append({
+            'item_name': item_name,
+            'quantity': quantity,
+            'expiry_date': expiry_date
+        })
         
         if not stock_changes:
             print("ERROR: Please fill at least one row with complete information.")

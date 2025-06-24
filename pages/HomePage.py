@@ -5716,10 +5716,7 @@ class ReportPage(ctk.CTkFrame):
                     today = datetime.now().date()
 
                     if period.lower() == 'today':
-                        cursor.execute(f"""
-                            SELECT COUNT(*) FROM {table_name}
-                            AND {date_column} = {today} 
-                        """)
+                        query += f" WHERE {date_column} = '{today}'"
                     
                     elif period.lower() == 'weekly':
                         days_since_monday = today.weekday()
@@ -6092,7 +6089,233 @@ class ReportPage(ctk.CTkFrame):
             viewing_date = "All Data"  # Default value for Overall
             
             # Update patient counts based on selected interval
-            if choice == "Overall":
+            if choice == "Today":
+                self.active_patient = data_count(
+                    column='status', 
+                    value='Active', 
+                    table_name='patient_info',
+                    period='today', 
+                    date_column='date_registered',
+                    join_table='patient_list',
+                    join_condition='patient_info.patient_id = patient_list.patient_id'
+                )
+
+                viewing_date = self.active_patient['date_range']
+                
+                self.inactive_patient = data_count(
+                    column='status', 
+                    value='Inactive',
+                    table_name='patient_info',
+                    period='today', 
+                    date_column='date_registered',
+                    join_table='patient_list',
+                    join_condition='patient_info.patient_id = patient_list.patient_id' 
+                )
+
+                self.supply_overall_count = overall_data_count(
+                    table_name='supply', 
+                    period='today', 
+                    date_column='date_registered')
+
+                self.lowstock_count = data_count_no_join(
+                    column='stock_level_status', 
+                    value='Low Stock Level', 
+                    table_name='supply', 
+                    period='today', 
+                    date_column='status_update')
+
+                self.criticalstock_count = data_count_no_join(
+                    column='stock_level_status', 
+                    value='Critical Stock Level', 
+                    table_name='supply', 
+                    period='today', 
+                    date_column='status_update')
+                
+                self.backup_overall_count = overall_data_count(
+                    table_name='backup_logs', 
+                    period='today', 
+                    date_column='last_date')
+                
+                self.most_recent_backup = date_desc_order(
+                    column='last_date', 
+                    id='backup_id', 
+                    table_name='backup_logs', 
+                    period='today', 
+                    date_column='last_date')
+
+                self.supplies_notif = notif_count(
+                    value=supply_identifiers, 
+                    table_name='notification_logs', 
+                    period='today', 
+                    date_column='notification_timestamp')
+                
+                self.patient_notif = notif_count(
+                    value=patient_identifier, 
+                    table_name='notification_logs', 
+                    period='today', 
+                    date_column='notification_timestamp')
+                
+                self.backup_notif = notif_count(
+                    value=backup_identifier, 
+                    table_name='notification_logs', 
+                    period='today',  
+                    date_column='notification_timestamp')
+                
+                self.low_stock_graph(period='today', date_column='status_update')
+                self.critical_stock_graph(period='today', date_column='status_update')
+
+            elif choice == "Weekly":
+                self.active_patient = data_count(
+                    column='status', 
+                    value='Active', 
+                    table_name='patient_info',
+                    period='weekly', 
+                    date_column='date_registered',
+                    join_table='patient_list',
+                    join_condition='patient_info.patient_id = patient_list.patient_id'  
+                )
+
+                viewing_date = self.active_patient['date_range']
+
+                self.inactive_patient = data_count(
+                    column='status', 
+                    value='Inactive',
+                    table_name='patient_info',
+                    period='weekly', 
+                    date_column='date_registered',
+                    join_table='patient_list',
+                    join_condition='patient_info.patient_id = patient_list.patient_id'  
+                )
+
+                self.supply_overall_count = overall_data_count(
+                    table_name='supply', 
+                    period='weekly', 
+                    date_column='date_registered')
+
+                self.lowstock_count = data_count_no_join(
+                    column='stock_level_status', 
+                    value='Low Stock Level', 
+                    table_name='supply', 
+                    period='weekly', 
+                    date_column='status_update')
+
+                self.criticalstock_count = data_count_no_join(
+                    column='stock_level_status', 
+                    value='Critical Stock Level', 
+                    table_name='supply', 
+                    period='weekly', 
+                    date_column='status_update')
+                
+                self.backup_overall_count = overall_data_count(
+                    table_name='backup_logs', 
+                    period='weekly', 
+                    date_column='last_date')
+                
+                self.most_recent_backup = date_desc_order(
+                    column='last_date', 
+                    id='backup_id', 
+                    table_name='backup_logs', 
+                    period='weekly', 
+                    date_column='last_date')
+                
+                self.supplies_notif = notif_count(
+                    value=supply_identifiers, 
+                    table_name='notification_logs', 
+                    period='weekly', 
+                    date_column='notification_timestamp')
+                
+                self.patient_notif = notif_count(
+                    value=patient_identifier, 
+                    table_name='notification_logs', 
+                    period='weekly', 
+                    date_column='notification_timestamp')
+                
+                self.backup_notif = notif_count(
+                    value=backup_identifier, 
+                    table_name='notification_logs', 
+                    period='weekly', 
+                    date_column='notification_timestamp')
+
+                self.low_stock_graph(period='weekly', date_column='status_update')
+                self.critical_stock_graph(period='weekly', date_column='status_update')
+
+            elif choice == "Monthly":
+                # Monthly filtering
+                self.active_patient = data_count(
+                    column='status', 
+                    value='Active', 
+                    table_name='patient_info',
+                    period='monthly', 
+                    date_column='date_registered',
+                    join_table='patient_list',
+                    join_condition='patient_info.patient_id = patient_list.patient_id'  
+                )
+
+                viewing_date = self.active_patient['date_range']
+
+                self.inactive_patient = data_count(
+                    column='status', 
+                    value='Inactive',  
+                    table_name='patient_info',
+                    period='monthly', 
+                    date_column='date_registered',
+                    join_table='patient_list',
+                    join_condition='patient_info.patient_id = patient_list.patient_id'  
+                )
+
+                self.supply_overall_count = overall_data_count(
+                    table_name='supply', 
+                    period='monthly', 
+                    date_column='date_registered')
+
+                self.lowstock_count = data_count_no_join(
+                    column='stock_level_status', 
+                    value='Low Stock Level', 
+                    table_name='supply', 
+                    period='monthly', 
+                    date_column='status_update')
+
+                self.criticalstock_count = data_count_no_join(
+                    column='stock_level_status', 
+                    value='Critical Stock Level', 
+                    table_name='supply', 
+                    period='monthly', 
+                    date_column='status_update')
+                
+                self.backup_overall_count = overall_data_count(
+                    table_name='backup_logs', 
+                    period='monthly', 
+                    date_column='last_date')
+                
+                self.most_recent_backup = date_desc_order(
+                    column='last_date', 
+                    id='backup_id', 
+                    table_name='backup_logs', 
+                    period='monthly', 
+                    date_column='last_date')
+                
+                self.supplies_notif = notif_count(
+                    value=supply_identifiers, 
+                    table_name='notification_logs', 
+                    period='monthly', 
+                    date_column='notification_timestamp')
+                
+                self.patient_notif = notif_count(
+                    value=patient_identifier, 
+                    table_name='notification_logs', 
+                    period='monthly', 
+                    date_column='notification_timestamp')
+                
+                self.backup_notif = notif_count(
+                    value=backup_identifier, 
+                    table_name='notification_logs', 
+                    period='monthly', 
+                    date_column='notification_timestamp')
+                
+                self.low_stock_graph(period='monthly', date_column='status_update')
+                self.critical_stock_graph(period='monthly', date_column='status_update')
+
+            elif choice == "Overall":
                 # No period filtering - show all data
                 self.active_patient = data_count(
                     column='status', 
@@ -6160,232 +6383,6 @@ class ReportPage(ctk.CTkFrame):
                 
                 # Set viewing_date for Overall
                 viewing_date = "All Data"
-
-            elif choice == "Today":
-                self.active_patient = data_count(
-                    column='status', 
-                    value='Active', 
-                    table_name='patient_info',
-                    period='today', 
-                    date_column='date_registered',
-                    join_table='patient_list',
-                    join_condition='patient_info.patient_id = patient_list.patient_id'
-                )
-                
-                self.inactive_patient = data_count(
-                    column='status', 
-                    value='Inactive',
-                    table_name='patient_info',
-                    period='today', 
-                    date_column='date_registered',
-                    join_table='patient_list',
-                    join_condition='patient_info.patient_id = patient_list.patient_id' 
-                )
-
-                self.supply_overall_count = overall_data_count(
-                    table_name='supply', 
-                    period='today', 
-                    date_column='date_registered')
-
-                self.lowstock_count = data_count_no_join(
-                    column='stock_level_status', 
-                    value='Low Stock Level', 
-                    table_name='supply', 
-                    period='today', 
-                    date_column='date_registered')
-
-                self.criticalstock_count = data_count_no_join(
-                    column='stock_level_status', 
-                    value='Critical Stock Level', 
-                    table_name='supply', 
-                    period='today', 
-                    date_column='date_registered')
-                
-                self.backup_overall_count = overall_data_count(
-                    table_name='backup_logs', 
-                    period='today', 
-                    date_column='last_date')
-                
-                self.most_recent_backup = date_desc_order(
-                    column='last_date', 
-                    id='backup_id', 
-                    table_name='backup_logs', 
-                    period='today', 
-                    date_column='last_date')
-
-                self.supplies_notif = notif_count(
-                    value=supply_identifiers, 
-                    table_name='notification_logs', 
-                    period='today', 
-                    date_column='notification_timestamp')
-                
-                self.patient_notif = notif_count(
-                    value=patient_identifier, 
-                    table_name='notification_logs', 
-                    period='today', 
-                    date_column='notification_timestamp')
-                
-                self.backup_notif = notif_count(
-                    value=backup_identifier, 
-                    table_name='notification_logs', 
-                    period='today',  
-                    date_column='notification_timestamp')
-                
-                self.low_stock_graph(period='current', date_column='date_registered')
-                self.critical_stock_graph(period='current', date_column='date_registered')
-                
-                viewing_date = self.active_patient['date_range']
-
-            elif choice == "Weekly":
-                self.active_patient = data_count(
-                    column='status', 
-                    value='Active', 
-                    table_name='patient_info',
-                    period='weekly', 
-                    date_column='date_registered',
-                    join_table='patient_list',
-                    join_condition='patient_info.patient_id = patient_list.patient_id'  
-                )
-
-                viewing_date = self.active_patient['date_range']
-
-                self.inactive_patient = data_count(
-                    column='status', 
-                    value='Inactive',
-                    table_name='patient_info',
-                    period='weekly', 
-                    date_column='date_registered',
-                    join_table='patient_list',
-                    join_condition='patient_info.patient_id = patient_list.patient_id'  
-                )
-
-                self.supply_overall_count = overall_data_count(
-                    table_name='supply', 
-                    period='weekly', 
-                    date_column='date_registered')
-
-                self.lowstock_count = data_count_no_join(
-                    column='stock_level_status', 
-                    value='Low Stock Level', 
-                    table_name='supply', 
-                    period='weekly', 
-                    date_column='date_registered')
-
-                self.criticalstock_count = data_count_no_join(
-                    column='stock_level_status', 
-                    value='Critical Stock Level', 
-                    table_name='supply', 
-                    period='weekly', 
-                    date_column='date_registered')
-                
-                self.backup_overall_count = overall_data_count(
-                    table_name='backup_logs', 
-                    period='weekly', 
-                    date_column='last_date')
-                
-                self.most_recent_backup = date_desc_order(
-                    column='last_date', 
-                    id='backup_id', 
-                    table_name='backup_logs', 
-                    period='weekly', 
-                    date_column='last_date')
-                
-                self.supplies_notif = notif_count(
-                    value=supply_identifiers, 
-                    table_name='notification_logs', 
-                    period='weekly', 
-                    date_column='notification_timestamp')
-                
-                self.patient_notif = notif_count(
-                    value=patient_identifier, 
-                    table_name='notification_logs', 
-                    period='weekly', 
-                    date_column='notification_timestamp')
-                
-                self.backup_notif = notif_count(
-                    value=backup_identifier, 
-                    table_name='notification_logs', 
-                    period='weekly', 
-                    date_column='notification_timestamp')
-
-                self.low_stock_graph(period='weekly', date_column='date_registered')
-                self.critical_stock_graph(period='weekly', date_column='date_registered')
-
-            elif choice == "Monthly":
-                # Monthly filtering
-                self.active_patient = data_count(
-                    column='status', 
-                    value='Active', 
-                    table_name='patient_info',
-                    period='monthly', 
-                    date_column='date_registered',
-                    join_table='patient_list',
-                    join_condition='patient_info.patient_id = patient_list.patient_id'  
-                )
-
-                viewing_date = self.active_patient['date_range']
-
-                self.inactive_patient = data_count(
-                    column='status', 
-                    value='Inactive',  
-                    table_name='patient_info',
-                    period='monthly', 
-                    date_column='date_registered',
-                    join_table='patient_list',
-                    join_condition='patient_info.patient_id = patient_list.patient_id'  
-                )
-
-                self.supply_overall_count = overall_data_count(
-                    table_name='supply', 
-                    period='monthly', 
-                    date_column='date_registered')
-
-                self.lowstock_count = data_count_no_join(
-                    column='stock_level_status', 
-                    value='Low Stock Level', 
-                    table_name='supply', 
-                    period='monthly', 
-                    date_column='date_registered')
-
-                self.criticalstock_count = data_count_no_join(
-                    column='stock_level_status', 
-                    value='Critical Stock Level', 
-                    table_name='supply', 
-                    period='monthly', 
-                    date_column='date_registered')
-                
-                self.backup_overall_count = overall_data_count(
-                    table_name='backup_logs', 
-                    period='monthly', 
-                    date_column='last_date')
-                
-                self.most_recent_backup = date_desc_order(
-                    column='last_date', 
-                    id='backup_id', 
-                    table_name='backup_logs', 
-                    period='monthly', 
-                    date_column='last_date')
-                
-                self.supplies_notif = notif_count(
-                    value=supply_identifiers, 
-                    table_name='notification_logs', 
-                    period='monthly', 
-                    date_column='notification_timestamp')
-                
-                self.patient_notif = notif_count(
-                    value=patient_identifier, 
-                    table_name='notification_logs', 
-                    period='monthly', 
-                    date_column='notification_timestamp')
-                
-                self.backup_notif = notif_count(
-                    value=backup_identifier, 
-                    table_name='notification_logs', 
-                    period='monthly', 
-                    date_column='notification_timestamp')
-                
-                self.low_stock_graph(period='monthly', date_column='date_registered')
-                self.critical_stock_graph(period='monthly', date_column='date_registered')
 
             # Update the UI labels with new counts
             # Handle the case where data_count returns a dictionary (with period info)
@@ -6715,7 +6712,9 @@ class ReportPage(ctk.CTkFrame):
         try:
             today = datetime.now().date()
 
-            if period.lower() == 'weekly':
+            if period.lower() == 'today':
+                date_filter = f"AND {date_column} = '{today}'"
+            elif period.lower() == 'weekly':
                 start = today - timedelta(days=today.weekday())
                 end = start + timedelta(days=6)
                 date_filter = f"AND {date_column} >= '{start}' AND {date_column} <= '{end}'"
@@ -6802,7 +6801,9 @@ class ReportPage(ctk.CTkFrame):
         try:
             today = datetime.now().date()
 
-            if period.lower() == 'weekly':
+            if period.lower() == 'today':
+                date_filter = f"AND {date_column} = '{today}'"
+            elif period.lower() == 'weekly':
                 start = today - timedelta(days=today.weekday())
                 end = start + timedelta(days=6)
                 date_filter = f"AND {date_column} >= '{start}' AND {date_column} <= '{end}'"
