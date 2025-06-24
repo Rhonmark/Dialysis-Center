@@ -8,6 +8,7 @@ from components.Inputs import PatientInfoWindow
 from backend.connector import db_connection as db
 from components.buttons import CTkButtonSelectable
 from components.input_supply import CTkMessageBox, EditStockWindow, EditUsageWindow, PatientQuantityUsedLogsWindow, QuantityUsedLogsWindow, SupplyWindow
+from components.role_access_manager import RoleAccessManager
 from components.state import login_shared_states
 from backend.crud import retrieve_form_data, db_connection
 import datetime 
@@ -4011,6 +4012,9 @@ class SupplyPage(ctk.CTkFrame):
         # Initialize search results frame
         self.search_results_frame = SupplySearchResultsFrame(self)
 
+        # RBAC
+        self.role_manager = RoleAccessManager()
+
         self.navbar = ctk.CTkFrame(self, fg_color="white", height=130)
         self.navbar.pack(fill="x", side="top")
         self.navbar.pack_propagate(False)
@@ -4169,9 +4173,16 @@ class SupplyPage(ctk.CTkFrame):
             hover_color="#1A374D",
             text_color="white",
             corner_radius=20,
-            command=self.edit_stock_clicked
         )
         self.edit_stock_button.place(x=1100, y=70, anchor="w")
+
+        # Setup admin-only access for the button
+        self.role_manager.setup_admin_only_button(
+            button=self.edit_stock_button,
+            parent_widget=self,
+            command_callback=self.edit_stock_clicked,
+            tooltip_text="Only Admin can access Edit Stock function"
+        )
 
         # Table Frame
         self.table_frame = ctk.CTkFrame(self, fg_color="#1A374D", border_width=2, border_color="black")
@@ -4664,13 +4675,13 @@ class SupplyPage(ctk.CTkFrame):
         self.table_frame.place(x=20, y=150, relwidth=0.95, relheight=0.8)
 
     def edit_stock_clicked(self):
-        """Handle Edit Stock button click"""
-        print("Edit Stock button clicked!")
+        """Handle Edit Stock button click - now this will only be called if user is Admin"""
+        print("✅ Edit Stock button clicked by Admin!")
         try:
             edit_window = EditStockWindow(self)
-            edit_window.grab_set()  # Make it modal
+            edit_window.grab_set()  
         except Exception as e:
-            print(f"Error opening Edit Stock window: {e}")
+            print(f"❌ Error opening Edit Stock window: {e}")
 
     # SEARCH FUNCTIONALITY METHODS
     def setup_search_functionality(self):
@@ -6796,6 +6807,9 @@ class MaintenancePage(ctk.CTkFrame):
         self.backup_destination = None
         self.schedule_backup_frame = None
 
+        # RBAC
+        self.role_manager = RoleAccessManager()
+
         output_font = ("Merriweather Sans Bold", 15)
         label_font = ("Merriweather", 15)
         time_label_font = ("Merriweather Sans", 10)
@@ -7974,13 +7988,7 @@ class MaintenancePage(ctk.CTkFrame):
 
         def export_pdf_action():
             """Export backup data to PDF"""
-            try:
-                messagebox.showinfo("Export PDF", 
-                                  "PDF Export functionality will generate a report\n"
-                                  "containing backup logs and system information.\n\n"
-                                  "This feature is ready for implementation.")
-            except Exception as e:
-                messagebox.showerror("Export Error", f"Error exporting PDF: {str(e)}")
+            print("📄 PDF export is clicked")
 
         try:
             exportpdf_image = ctk.CTkImage(Image.open("assets/ExportPDF.png"), size=(20,20))
@@ -7999,9 +8007,16 @@ class MaintenancePage(ctk.CTkFrame):
                                        text="Export PDF file",
                                        text_color="white",
                                        cursor="hand2",
-                                       command=export_pdf_action,
                                        font=button_font)
         ExportPDF_Button.place(x=100,y=120)
+
+        # Setup admin-only access for Export PDF button
+        self.role_manager.setup_admin_only_button(
+            button=ExportPDF_Button,
+            parent_widget=self,
+            command_callback=export_pdf_action,
+            tooltip_text="Only Admin can export PDF files"
+        )
 
         # Employee Backups Frame
         Employee_Backups_Frame = ctk.CTkFrame(self,

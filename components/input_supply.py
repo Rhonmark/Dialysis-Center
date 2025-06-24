@@ -595,8 +595,6 @@ def show_detailed_info(self, supply_data):
     current_stock_value = int(current_stock) if current_stock else 0
     max_stock = supply_data[12]  # max stock value
 
-# Updated EditStockWindow class with delete row functionality
-
 class EditStockWindow(SupplyBaseWindow):
     def __init__(self, parent):
         super().__init__(parent, "Edit Stock")
@@ -604,10 +602,8 @@ class EditStockWindow(SupplyBaseWindow):
         # Store parent reference for later use
         self.parent = parent
         
-        # Remove the sidebar
         self.sidebar.destroy()
-        
-        # Blue decorative header bar at the top - smaller and fixed
+
         header_bar = ctk.CTkFrame(self.main_frame, 
                                  height=40, 
                                  fg_color="#1A374D",
@@ -621,7 +617,7 @@ class EditStockWindow(SupplyBaseWindow):
                                    corner_radius=0)
         content_frame.pack(fill="both", expand=True, padx=20, pady=20)
 
-        # Title and subtitle in content area - smaller sizes
+        # Title and subtitle in content area 
         title_label = ctk.CTkLabel(content_frame, 
                                   text="Edit Stock", 
                                   font=("Merriweather Bold", 20), 
@@ -634,7 +630,7 @@ class EditStockWindow(SupplyBaseWindow):
                                      text_color="#666666")
         subtitle_label.pack(anchor="w", pady=(0, 20))
 
-        # Scrollable frame for multiple rows - bigger height
+        # Scrollable frame for multiple rows 
         self.scrollable_frame = ctk.CTkScrollableFrame(content_frame,
                                                       height=320,
                                                       fg_color="transparent")
@@ -715,18 +711,18 @@ class EditStockWindow(SupplyBaseWindow):
         """Add a new stock row"""
         row_index = len(self.stock_rows)
 
-        # Create row frame - bigger height to accommodate delete button
+        # Create row frame
         row_frame = ctk.CTkFrame(self.scrollable_frame, 
                                 fg_color="transparent",
                                 height=130)
         row_frame.pack(fill="x", pady=(0, 20), padx=5)
         row_frame.pack_propagate(False)
 
-        # Configure grid - now 4 columns to include delete button
+        # Configure grid 
         row_frame.grid_columnconfigure(0, weight=1)
         row_frame.grid_columnconfigure(1, weight=1) 
         row_frame.grid_columnconfigure(2, weight=1)
-        row_frame.grid_columnconfigure(3, weight=0)  # Delete button column
+        row_frame.grid_columnconfigure(3, weight=0)  
 
         # Item Name section
         item_frame = ctk.CTkFrame(row_frame, fg_color="transparent")
@@ -833,7 +829,6 @@ class EditStockWindow(SupplyBaseWindow):
         delete_frame = ctk.CTkFrame(row_frame, fg_color="transparent")
         delete_frame.grid(row=0, column=3, sticky="ew", padx=(5, 0))
 
-        # Add some spacing from top to align with other elements
         spacer = ctk.CTkLabel(delete_frame, text="", height=20)
         spacer.pack()
 
@@ -854,7 +849,6 @@ class EditStockWindow(SupplyBaseWindow):
         
         self.stock_rows.append(row_data)
 
-    # Rest of the methods remain the same...
     def set_stock_levels(self, avg_weekly_usage, delivery_time, current_stock_val):
         #daily usage for standard dev
         avg_daily_usage = avg_weekly_usage / 7 
@@ -896,7 +890,7 @@ class EditStockWindow(SupplyBaseWindow):
         except Exception as e:
             print(f'error setting supply data (set_supply_data) in column {column}', e)
 
-    # Submit and other methods remain unchanged...
+    # Submit changes
     def submit_changes(self):
         """Process and submit stock changes to database"""
         print("Submit button clicked!")
@@ -910,7 +904,7 @@ class EditStockWindow(SupplyBaseWindow):
         for i, row in enumerate(self.stock_rows):
             item_name = row['item_var'].get()
             quantity_str = row['qty_var'].get().strip()
-            expiry_date = row['date_entry'].get()  # DateEntry returns date string directly
+            expiry_date = row['date_entry'].get() 
             
             # Skip empty rows
             if (item_name == "Click to choose" and 
@@ -950,7 +944,7 @@ class EditStockWindow(SupplyBaseWindow):
             print("ERROR: Please fill at least one row with complete information.")
             return
         
-        # Database operations remain the same...
+        # Database operations
         try:
             connect = db()
             cursor = connect.cursor()
@@ -1120,23 +1114,18 @@ class EditStockWindow(SupplyBaseWindow):
             
         except Exception as e:
             print(f"Error fetching item names: {e}")
-            return ["Click to choose"]  # Return minimal fallback
+            return ["Click to choose"] 
 
     def refresh_dropdowns(self):
         """Refresh all dropdowns with latest database items"""
         self.populate_item_dropdown()
 
-
-# Updated EditUsageWindow class with delete row functionality
-
 class EditUsageWindow(SupplyBaseWindow):
     def __init__(self, parent):
         super().__init__(parent, "Edit Usage")
-        
-        # Remove the sidebar
+
         self.sidebar.destroy()
         
-        # Blue decorative header bar at the top - smaller and fixed
         header_bar = ctk.CTkFrame(self.main_frame, 
                                  height=40, 
                                  fg_color="#1A374D",
@@ -1150,7 +1139,7 @@ class EditUsageWindow(SupplyBaseWindow):
                                    corner_radius=0)
         content_frame.pack(fill="both", expand=True, padx=20, pady=20)
 
-        # Title and subtitle in content area - smaller sizes
+        # Title and subtitle in content area
         title_label = ctk.CTkLabel(content_frame, 
                                   text="Edit Usage", 
                                   font=("Merriweather Bold", 20), 
@@ -1163,7 +1152,7 @@ class EditUsageWindow(SupplyBaseWindow):
                                      text_color="#666666")
         subtitle_label.pack(anchor="w", pady=(0, 20))
 
-        # Scrollable frame for multiple rows - bigger height
+        # Scrollable frame for multiple rows 
         self.scrollable_frame = ctk.CTkScrollableFrame(content_frame,
                                                       height=320,
                                                       fg_color="transparent")
@@ -1358,7 +1347,7 @@ class EditUsageWindow(SupplyBaseWindow):
         """Add a new item row (Item Name and Quantity Used)"""
         row_index = len(self.item_rows)
 
-        # Create item row frame - bigger height to accommodate delete button
+        # Create item row frame 
         item_row_frame = ctk.CTkFrame(self.scrollable_frame, 
                                      fg_color="transparent",
                                      height=130)
@@ -1368,7 +1357,7 @@ class EditUsageWindow(SupplyBaseWindow):
         # Configure grid for 3 columns (Item Name, Quantity Used, Delete Button)
         item_row_frame.grid_columnconfigure(0, weight=1)
         item_row_frame.grid_columnconfigure(1, weight=1)
-        item_row_frame.grid_columnconfigure(2, weight=0)  # Delete button column
+        item_row_frame.grid_columnconfigure(2, weight=0)  
 
         # Item Name section
         item_frame = ctk.CTkFrame(item_row_frame, fg_color="transparent")
@@ -1453,7 +1442,6 @@ class EditUsageWindow(SupplyBaseWindow):
         delete_frame = ctk.CTkFrame(item_row_frame, fg_color="transparent")
         delete_frame.grid(row=0, column=2, sticky="ew", padx=(5, 0))
 
-        # Add some spacing from top to align with other elements
         spacer = ctk.CTkLabel(delete_frame, text="", height=20)
         spacer.pack()
 
