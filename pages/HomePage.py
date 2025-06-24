@@ -709,6 +709,7 @@ class HomePageContent(ctk.CTkFrame):
         self.most_used_canvas = None
         self.yesterday_canvas = None
         self.pie_chart_canvas = None  
+        self.yesterday_scrollbar = None  
 
         # Initialize patient count variables
         self.total_patients = 0
@@ -1122,7 +1123,7 @@ class HomePageContent(ctk.CTkFrame):
                 connect.close()
 
     def show_yesterday_usage(self):
-        """Show yesterday's usage chart in container"""
+        """Show yesterday's usage chart in container with horizontal scrollbar"""
         try:
             connect = db()
             query = """
@@ -1145,22 +1146,47 @@ class HomePageContent(ctk.CTkFrame):
         
             df_yesterday = df_yesterday.sort_values(by='total_used', ascending=False)
 
+            # Clean up existing canvas and scrollbar
             if self.yesterday_canvas:
                 self.yesterday_canvas.get_tk_widget().destroy()
+            if hasattr(self, 'yesterday_scrollbar') and self.yesterday_scrollbar:
+                self.yesterday_scrollbar.destroy()
+                self.yesterday_scrollbar = None
 
-            fig = Figure(figsize=(5.5, 3.5), dpi=100)
+            # Calculate dynamic figure width based on number of items
+            num_items = len(df_yesterday)
+            if num_items > 0:
+                # Base width calculation: minimum 5.5, then add width per item
+                min_width = 5.5
+                width_per_item = 0.8  # Adjust this to control spacing
+                calculated_width = max(min_width, num_items * width_per_item)
+                fig_width = min(calculated_width, 20)  # Cap at maximum width
+            else:
+                fig_width = 5.5
+
+            fig = Figure(figsize=(fig_width, 3.5), dpi=100)
             ax = fig.add_subplot(111)
             
             tick_font = fm.FontProperties(fname='font/Inter_18pt-Italic.ttf')
 
             # Create bar chart
             if not df_yesterday.empty:
-                    ax.bar(df_yesterday['item_name'], df_yesterday['total_used'], color='#C0DABE')
+                bars = ax.bar(df_yesterday['item_name'], df_yesterday['total_used'], color='#C0DABE')
+                if num_items > 7:  # Only rotate if many items
+                    ax.tick_params(axis='x', pad=10, rotation=45)
+                else:
                     ax.tick_params(axis='x', pad=10)
-                    ax.margins(y=0.15)    
-                    for label in ax.get_xticklabels() + ax.get_yticklabels():
-                        label.set_fontproperties(tick_font)
-                        label.set_fontsize(11)
+                ax.margins(y=0.15)    
+                for label in ax.get_xticklabels() + ax.get_yticklabels():
+                    label.set_fontproperties(tick_font)
+                    label.set_fontsize(11)
+                    
+                # Add value labels on top of bars
+                for i, bar in enumerate(bars):
+                    height = bar.get_height()
+                    ax.text(bar.get_x() + bar.get_width()/2., height + height*0.01,
+                           f'{int(height)}', ha='center', va='bottom', 
+                           fontproperties=tick_font, fontsize=9)
             else:
                 ax.text(0.5, 0.5, 'No data for yesterday', 
                        horizontalalignment='center', verticalalignment='center',
@@ -1175,7 +1201,39 @@ class HomePageContent(ctk.CTkFrame):
             # Create canvas and embed in frame
             self.yesterday_canvas = FigureCanvasTkAgg(fig, self.yesterday_usage_frame)
             self.yesterday_canvas.draw()
-            self.yesterday_canvas.get_tk_widget().place(x=20, y=100, width=560, height=320)
+            
+            # Get canvas widget
+            canvas_widget = self.yesterday_canvas.get_tk_widget()
+            
+            # Store the canvas position for scrolling
+            self.canvas_x_position = 20
+            self.canvas_max_width = int(fig_width * 100)
+            self.canvas_container_width = 560
+            
+            if fig_width > 5.5:  # Only add scrolling if content is wider than container
+                # Place canvas with full width
+                canvas_widget.place(x=self.canvas_x_position, y=100, width=self.canvas_max_width, height=320)
+                
+                # Create horizontal scrollbar
+                self.yesterday_scrollbar = ctk.CTkScrollbar(
+                    self.yesterday_usage_frame,
+                    orientation="horizontal",
+                    width=540,
+                    height=20,
+                    command=self.on_yesterday_scroll
+                )
+                self.yesterday_scrollbar.place(x=30, y=405)
+                
+                # Initialize scrollbar
+                visible_portion = min(1.0, self.canvas_container_width / self.canvas_max_width)
+                self.yesterday_scrollbar.set(0, visible_portion)
+                
+            else:
+                # No scrolling needed, place normally
+                canvas_widget.place(x=20, y=100, width=560, height=320)
+                self.yesterday_scrollbar = None
+
+            print(f"✅ Yesterday usage chart created with {num_items} items (width: {fig_width})")
 
         except Exception as e:
             print('Error retrieving yesterday usage', e)
@@ -1192,6 +1250,45 @@ class HomePageContent(ctk.CTkFrame):
         finally: 
             if 'connect' in locals():
                 connect.close()
+
+    def on_yesterday_scroll(self, *args):
+        """Handle horizontal scrollbar for yesterday usage chart"""
+        if not hasattr(self, 'yesterday_canvas') or not self.yesterday_canvas:
+            return
+            
+        canvas_widget = self.yesterday_canvas.get_tk_widget()
+        
+        if len(args) >= 2:
+            command = args[0]
+            value = args[1]
+            
+            if command == "moveto":
+                # Scrollbar dragged to specific position
+                scroll_position = float(value)
+                # Calculate new x position based on scroll
+                max_scroll = self.canvas_max_width - self.canvas_container_width
+                new_x = 20 - (scroll_position * max_scroll)
+                # Ensure canvas doesn't go beyond boundaries
+                new_x = max(min(new_x, 20), -(max_scroll))
+                
+                canvas_widget.place(x=int(new_x), y=100, width=self.canvas_max_width, height=320)
+                
+            elif command == "scroll":
+                # Scrollbar arrow clicked
+                current_x = canvas_widget.winfo_x()
+                scroll_amount = int(value) * 50  # Scroll step size
+                new_x = current_x - scroll_amount
+                
+                # Ensure canvas doesn't go beyond boundaries
+                max_scroll = self.canvas_max_width - self.canvas_container_width
+                new_x = max(min(new_x, 20), -(max_scroll))
+                
+                canvas_widget.place(x=int(new_x), y=100, width=self.canvas_max_width, height=320)
+                
+                # Update scrollbar position
+                scroll_position = (20 - new_x) / max_scroll
+                visible_portion = self.canvas_container_width / self.canvas_max_width
+                self.yesterday_scrollbar.set(scroll_position, scroll_position + visible_portion)
 
     def setup_ui(self, first_name, full_name):
         """Setup all the UI elements"""
@@ -1343,16 +1440,6 @@ class HomePageContent(ctk.CTkFrame):
         # Most Used Items icon 
         try:
             most_used_icon = ctk.CTkImage(light_image=Image.open("assets/refresh.png"), size=(24, 24))
-            most_used_icon_btn = ctk.CTkButton(
-                self.most_used_frame,
-                image=most_used_icon,
-                text="",
-                width=30,
-                height=30,
-                fg_color="transparent",
-                hover_color="#f0f0f0",
-                command=self.show_overall_usage
-            )
             most_used_icon_btn.place(x=210, y=38)
         except:
             # If icon fails to load, use emoji fallback
@@ -1939,7 +2026,9 @@ class HomePageContent(ctk.CTkFrame):
             self.most_used_canvas.get_tk_widget().destroy()
         if self.yesterday_canvas:
             self.yesterday_canvas.get_tk_widget().destroy()
-        super().destroy()
+        if self.pie_chart_canvas:
+            self.pie_chart_canvas.get_tk_widget().destroy()
+        super().destroy() 
 
 class NotificationFrame(ctk.CTkFrame):
     def __init__(self, parent, **kwargs):
