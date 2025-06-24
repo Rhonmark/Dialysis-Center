@@ -7,8 +7,9 @@ class CTkButtonSelectable(ctk.CTkButton):
             text=text,
             fg_color="#68EDC6",
             text_color="white",
-            font=("Merriweather Bold", 15),
-            command=command,  
+            font=("Merriweather Bold", 18),
+            command=command, 
+            corner_radius=0, 
             bg_color="transparent",  
             **kwargs
         )

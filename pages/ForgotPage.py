@@ -7,10 +7,19 @@ from backend.input_validator import forgot_validator
 from backend.crud import get_login_credentials, set_new_password
 from components.buttons import CTkButtonSelectable, apply_selected_state
 import hashlib
+import customtkinter as ctk
+
 
 class ForgotPage(tk.Frame):
     def __init__(self, parent, shared_state):
         super().__init__(parent)
+
+        Title_font = ("Merriweather", 34)
+        Header_Font =("Merriweather Sans light",13 )
+        SubTitle_font = ("Merriweather Sans Light" ,15)
+        Entry_font = ("Merriweather Sans light" ,12)
+        button_font = ("Merriweather Bold",18)
+        label_font = ("Merriweather Sans", 14)
 
         self.columnconfigure(0, weight=2, uniform="group")  
         self.columnconfigure(1, weight=1, uniform="group") 
@@ -21,7 +30,7 @@ class ForgotPage(tk.Frame):
         selected_role = self.shared_state.get("selected_role", "None")
         
         # Left container 
-        left_container = tk.Frame(self)
+        left_container = ctk.CTkFrame(self)
         left_container.grid(row=0, column=0, sticky="nsew")
 
         self.canvas = tk.Canvas(left_container)
@@ -110,59 +119,69 @@ class ForgotPage(tk.Frame):
         apply_selected_state(self.shared_state, left_container)
 
         # Right container
-        right_container = tk.Frame(self, bg="#1A374D")  
+        right_container = ctk.CTkFrame(self, fg_color="#1A374D")  
         right_container.grid(row=0, column=1, sticky="nsew")
 
         # Title label 
-        title = tk.Label(right_container, text="FORGOT\nPASSWORD", font=("Arial", 30, "bold"), fg="#68EDC6", bg="#1A374D", justify="center")
+        title = ctk.CTkLabel(right_container, text="F O R G O T\nP A S S W O R D", font=Title_font, text_color="#68EDC6", bg_color="#1A374D", justify="center")
         title.place(relx=0.5, rely=0, anchor="n", y=50)
 
         # Step tracking
         self.step = 1
 
         # Username Label & Field
-        self.username_label = tk.Label(right_container, text="Username", font=("Arial", 12), fg="white", bg="#1A374D")
+        self.username_label = ctk.CTkLabel(right_container, text="Username", font=label_font, text_color="white", bg_color="#1A374D")
         self.username_label.place(relx=0.23, rely=0.36, anchor="n")
-        self.username_field = TextField(right_container, placeholder="Username must be at least 8 characters", font=("Arial", 12), width=25)
-        self.username_field.place(relx=0.5, rely=0.40, anchor="n", width=300, height=50)  
+        self.username_field = ctk.CTkEntry(right_container, placeholder_text="Username must be at least 8 characters", font=Entry_font,placeholder_text_color="#104E44",text_color="#000000", width=300,height=40,corner_radius=15,bg_color="#1A374D",fg_color="#FFFFFF",border_width=0)
+        self.username_field.place(relx=0.5, rely=0.41, anchor="n")  
         
         # Secret Question & Answer Fields (Initially Hidden)
-        self.secret_question_label = tk.Label(right_container, text="Secret Question", font=("Arial", 12), fg="white", bg="#1A374D")
-        self.secret_question_field = TextField(right_container, placeholder="Enter secret question answer", font=("Arial", 12), width=25)
+        self.secret_question_label = ctk.CTkLabel(right_container, text="Secret Question", font=label_font, text_color="white", bg_color="#1A374D")
+        self.secret_question_field = ctk.CTkEntry(right_container, placeholder_text="Enter secret question answer",  font=Entry_font,placeholder_text_color="#104E44",text_color="#000000", width=300,height=40,corner_radius=15,bg_color="#1A374D",fg_color="#FFFFFF",border_width=0)
         
         # New Password Fields (Initially Hidden)
-        self.new_password_label = tk.Label(right_container, text="New Password", font=("Arial", 12), fg="white", bg="#1A374D")
-        self.new_password_field = TextField(right_container, placeholder="Enter new password", font=("Arial", 12), width=25)
-        self.confirm_password_label = tk.Label(right_container, text="Confirm Password", font=("Arial", 12), fg="white", bg="#1A374D")
-        self.confirm_password_field = TextField(right_container, placeholder="Confirm new password", font=("Arial", 12), width=25)
+        self.new_password_label = ctk.CTkLabel(right_container, text="New Password", font=label_font, text_color="white", bg_color="#1A374D")
+        self.new_password_field = ctk.CTkEntry(right_container, placeholder_text="Enter new password",  font=Entry_font,placeholder_text_color="#104E44",text_color="#000000", width=300,height=50,corner_radius=15,bg_color="#1A374D",fg_color="#FFFFFF",border_width=0)
+        self.confirm_password_label = ctk.CTkLabel(right_container, text="Confirm Password", font=label_font, text_color="white", bg_color="#1A374D")
+        self.confirm_password_field = ctk.CTkEntry(right_container, placeholder_text="Confirm new password", font=Entry_font,placeholder_text_color="#104E44",text_color="#000000", width=300,height=40,corner_radius=15,bg_color="#1A374D",fg_color="#FFFFFF",border_width=0)
 
         # Error label
-        self.error_label = tk.Label(right_container, text="", font=("Arial", 12), fg="red", bg="#1A374D")
+        self.error_label = ctk.CTkLabel(right_container, text="", font=label_font, text_color="red", bg_color="#1A374D")
         self.error_label.place(relx=0.5, rely=0.64, anchor="n")
         
         # Enter Button
-        self.enter_button = CTkButtonSelectable(
-            right_container, 
-            text="Enter", 
-            command=self.on_enter_click, 
-            width=230, 
-            height=50  
+        self.enter_button = ctk.CTkButton(
+            right_container,
+            text="Enter",
+            font=button_font,
+            text_color="#FfFFFF",
+            command=self.on_enter_click,
+            width=230,  
+            height=50,
+            corner_radius=20,
+            bg_color="#1A374D",
+            fg_color="#68EDC6"
         )
         self.enter_button.place(relx=0.5, rely=0.71, anchor="n")
 
         # Cancel Button
-        self.cancel_button = CTkButtonSelectable(
-            right_container, 
-            text="Cancel", 
-            command=self.on_cancel_click, 
-            width=230, 
-            height=50  
+        self.cancel_button = ctk.CTkButton(
+            right_container,
+            text="Cancel",
+            font=button_font,
+            text_color="#FfFFFF",
+            command=self.on_cancel_click,
+            width=230,  
+            height=50,
+            corner_radius=20,
+            bg_color="#1A374D",
+            fg_color="#68EDC6"
         )
         self.cancel_button.place(relx=0.5, rely=0.8, anchor="n")
-
+        self.on_cancel_click
 
     def display_error(self, message):
-        self.error_label.config(text=message)
+        self.error_label.configure(text=message)
 
     def on_enter_click(self):
         username = self.username_field.get().strip()
@@ -179,40 +198,40 @@ class ForgotPage(tk.Frame):
         try: 
             if self.step == 1:
                 if not retrieved_username or username in ['Username must be at least 8 characters']:
-                    self.error_label.config(text="Invalid username!")
+                    self.error_label.configure(text="Invalid username!")
                     return
-                self.error_label.config(text="")
-                self.secret_question_label.config(text=f"Secret Question: {retrieved_question}")
+                self.error_label.configure(text="")
+                self.secret_question_label.configure(text=f"Secret Question: \n{retrieved_question}")
                 self.username_label.place_forget()
                 self.username_field.place_forget()
-                self.secret_question_label.place(relx=0.28, rely=0.36, anchor="n")
-                self.secret_question_field.place(relx=0.5, rely=0.40, anchor="n", width=300, height=50)
+                self.secret_question_label.place(relx=0.5, rely=0.4, anchor="center")
+                self.secret_question_field.place(relx=0.5, rely=0.475, anchor="center")
                 self.step += 1
                 
             elif self.step == 2:
                 if retrieved_answer != hashed_answer:
-                    self.error_label.config(text="Incorrect answer!")
+                    self.error_label.configure(text="Incorrect answer!")
                     return
-                self.error_label.config(text="")
+                self.error_label.configure(text="")
                 self.secret_question_label.place_forget()
                 self.secret_question_field.place_forget()
                 self.new_password_label.place(relx=0.27, rely=0.33, anchor="n")
-                self.new_password_field.place(relx=0.5, rely=0.37, anchor="n", width=300, height=50)
+                self.new_password_field.place(relx=0.5, rely=0.37, anchor="n")
                 self.confirm_password_label.place(relx=0.30, rely=0.48, anchor="n")
-                self.confirm_password_field.place(relx=0.5, rely=0.52, anchor="n", width=300, height=50)
+                self.confirm_password_field.place(relx=0.5, rely=0.52, anchor="n")
                 self.step += 1
 
             elif self.step == 3:
                 
                 forgot_result = forgot_validator(password, confirm_password)
                 if forgot_result:
-                    self.error_label.config(text=forgot_result)
+                    self.error_label.configure(text=forgot_result)
                     return  
 
                 set_new_password(hashed_password, username)
 
                 self.shared_state["navigate"]("LoginPage") 
-                self.error_label.config(text="")
+                self.error_label.configure(text="")
                 self.step = 1
                 self.pack_forget()
         except Exception as e:
@@ -222,3 +241,4 @@ class ForgotPage(tk.Frame):
     def on_cancel_click(self):
         self.shared_state["navigate"]("LoginPage") 
         self.pack_forget()  
+
