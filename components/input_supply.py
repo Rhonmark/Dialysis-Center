@@ -1,6 +1,6 @@
 import customtkinter as ctk
 from tkinter import Toplevel, ttk
-from tkcalendar import Calendar
+from tkcalendar import Calendar, DateEntry
 from PIL import Image
 from backend.crud import supply_creation_id, get_existing_credentials
 from backend.connector import db_connection as db
@@ -185,26 +185,29 @@ class SupplyWindow(SupplyBaseWindow):
         if not self.is_editing:
             add_placeholder(self.entry_delivery_date, "Type here")
 
-        # Supplier Name 
+        # Supplier Name - NOW REQUIRED
         ctk.CTkLabel(self, text="Supplier Name", font=label_font, fg_color="white", text_color="black").place(x=720, y=300)
         self.entry_supplier_name = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0,
                                  bg_color="white")
         self.entry_supplier_name.place(x=720, y=350)
-        ctk.CTkLabel(self, text="*Not Required", font=required_font, text_color="red", bg_color="white").place(x=880, y=295)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=810, y=295)
         create_underline(720, 380, 180)
         if not self.is_editing:
             add_placeholder(self.entry_supplier_name, "Supplier ABC")
 
-        # THIRD ROW - Expiration Date 
+        # THIRD ROW - Expiration Date - NOW REQUIRED
         if not self.is_editing:
             ctk.CTkLabel(self, text="Expiration Date", font=label_font, fg_color="white", text_color="black").place(x=120, y=450)
-            self.entry_expiration_date = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0,
-                                     bg_color="white")
-            self.entry_expiration_date.place(x=120, y=500)
-            ctk.CTkLabel(self, text="*Not Required", font=required_font, text_color="red", bg_color="white").place(x=300, y=445)
+            self.entry_expiration_date = DateEntry(self, width=18, font=("Merriweather Sans", 12), bg="white", 
+                                                  date_pattern="yyyy-MM-dd", state="normal")
+            self.entry_expiration_date.place(x=120, y=500, height=30)
+            ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=210, y=445)
             ctk.CTkLabel(self, text="(YYYY-MM-DD)", font=("Merriweather Sans", 10), text_color="#666666", bg_color="white").place(x=120, y=535)
-            create_underline(120, 530, 180)
-            add_placeholder(self.entry_expiration_date, "2024-12-31")
+            
+            # Set default expiration date to today's date + 1 year
+            today = date.today()
+            default_expiry = date(today.year + 1, today.month, today.day)
+            self.entry_expiration_date.set_date(default_expiry)
 
         # Populate fields if editing
         if self.is_editing:
@@ -277,9 +280,9 @@ class SupplyWindow(SupplyBaseWindow):
                 print(f'Error inserting ({notif_type}):', e)
 
         def validate_date_format(date_string):
-            """Validate date format YYYY-MM-DD"""
+            """Validate date format YYYY-MM-DD and ensure it's a valid date"""
             try:
-                datetime.strptime(date_string, '%Y-%m-%d')
+                parsed_date = datetime.strptime(date_string, '%Y-%m-%d').date()
                 return True
             except ValueError:
                 return False
@@ -295,14 +298,15 @@ class SupplyWindow(SupplyBaseWindow):
             
             # Only get expiration date in add mode
             if not self.is_editing:
-                expiration_date_str = self.entry_expiration_date.get().strip()
+                expiry_date = self.entry_expiration_date.get_date()
+                expiration_date_str = expiry_date.strftime("%Y-%m-%d")
             else:
                 expiration_date_str = ""
             item_name = ' '.join(item.capitalize() for item in item_name_val.split())
 
             item_id_store = []
 
-            # Validation for required field
+            # Validation for required fields
             if not item_name or item_name == "Type here":
                 CTkMessageBox.show_error("Input Error", "Item Name is required.", parent=self)
                 return
@@ -336,12 +340,20 @@ class SupplyWindow(SupplyBaseWindow):
                 CTkMessageBox.show_error("Input Error", "Delivery time must be a valid number.", parent=self)
                 return
 
-            # Validate Supplier Name
+            # Validate Supplier Name 
+            if not supplier_name_str or supplier_name_str == "Supplier ABC":
+                CTkMessageBox.show_error("Input Error", "Supplier Name is required.", parent=self)
+                return
             
             # Validate Expiration Date 
-            if not self.is_editing and expiration_date_str and expiration_date_str != "2024-12-31":
-                if not validate_date_format(expiration_date_str):
-                    CTkMessageBox.show_error("Input Error", "Expiration Date must be in YYYY-MM-DD format.", parent=self)
+            if not self.is_editing:
+                # Get the date from DateEntry widget
+                expiry_date = self.entry_expiration_date.get_date()
+                expiration_date_str = expiry_date.strftime("%Y-%m-%d")
+                
+                # Check if expiration date is in the future
+                if expiry_date <= today_now:
+                    CTkMessageBox.show_error("Input Error", "Expiration Date must be in the future.", parent=self)
                     return
             
             if self.is_editing:
@@ -470,7 +482,7 @@ class SupplyWindow(SupplyBaseWindow):
                     # Set stock level status with all required values
                     status = set_stock_levels(avg_weekly_usage, delivery_time, current_stock_val)
                     set_supply_data(cursor, 'stock_level_status', status, item_id)
-                    set_supply_data(cursor, 'status_update', today, self.edit_data['item_id'])
+                    set_supply_data(cursor, 'status_update', today, item_id)
 
                     cursor.execute("""
                         INSERT INTO notification_logs(user_fullname, item_name, notification_type, notification_timestamp) 
@@ -547,14 +559,8 @@ class SupplyWindow(SupplyBaseWindow):
         if supplier_name and supplier_name != 'None' and str(supplier_name).strip():
             self.entry_supplier_name.insert(0, str(supplier_name))
         else:
-            self.entry_supplier_name.insert(0, "Default Supplier")  # Fallback only if no data
+            self.entry_supplier_name.insert(0, "Default Supplier")  
         self.entry_supplier_name.configure(text_color="black")
-        
-        # Clear and set expiration date - only in add mode (this condition is never true in edit mode)
-        if not self.is_editing:
-            self.entry_expiration_date.delete(0, "end")
-            self.entry_expiration_date.insert(0, "2025-12-31")
-            self.entry_expiration_date.configure(text_color="black")
 
 def show_detailed_info(self, supply_data):
     self.table_frame.place_forget()
