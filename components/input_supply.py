@@ -252,6 +252,8 @@ class SupplyWindow(SupplyBaseWindow):
             critical_stock_level = 0.50 * reorder_point
             good_level = reorder_point * 1.7
 
+            rop_amount = good_level - current_stock_val
+
             if current_stock_val <= critical_stock_level:
                 status = 'Critical Stock Level'
 
@@ -264,7 +266,7 @@ class SupplyWindow(SupplyBaseWindow):
             elif current_stock_val > good_level:
                 status = 'Excellent Stock Level'         
 
-            return status
+            return status, rop_amount
         
         def update_notif_restock(cursor, user_fn, item_name, res_quan, curr_stock, status, notif_type):
             try:
@@ -448,7 +450,7 @@ class SupplyWindow(SupplyBaseWindow):
                     print(f"Updated supply item with ID: {self.edit_data['item_id']} without changing stock")
 
                     # Update stock level status with required values
-                    status = set_stock_levels(avg_weekly_usage, delivery_time, new_current_stock)
+                    status, rop_amount = set_stock_levels(avg_weekly_usage, delivery_time, new_current_stock)
                     set_supply_data(cursor, 'stock_level_status', status, self.edit_data['item_id']) 
                     set_supply_data(cursor, 'status_update', today, self.edit_data['item_id'])
 
@@ -480,7 +482,7 @@ class SupplyWindow(SupplyBaseWindow):
                     current_stock_val = retrieve_supply_data(cursor, 'current_stock', item_id)
 
                     # Set stock level status with all required values
-                    status = set_stock_levels(avg_weekly_usage, delivery_time, current_stock_val)
+                    status, rop_amount = set_stock_levels(avg_weekly_usage, delivery_time, current_stock_val)
                     set_supply_data(cursor, 'stock_level_status', status, item_id)
                     set_supply_data(cursor, 'status_update', today, item_id)
 
@@ -863,6 +865,8 @@ class EditStockWindow(SupplyBaseWindow):
         critical_stock_level = 0.50 * reorder_point
         good_level = reorder_point * 1.7
 
+        rop_amount = good_level - current_stock_val
+
         if current_stock_val <= critical_stock_level:
             status = 'Critical Stock Level'
 
@@ -875,7 +879,7 @@ class EditStockWindow(SupplyBaseWindow):
         elif current_stock_val > good_level:
             status = 'Excellent Stock Level'         
 
-        return status	
+        return status, rop_amount
 
     def set_supply_data(self, cursor, column, row, unique_id):
         try:
@@ -1036,11 +1040,12 @@ class EditStockWindow(SupplyBaseWindow):
                     item_id, avg_weekly_usage, delivery_time, current_stock_val = result
                     
                     if avg_weekly_usage and delivery_time and current_stock_val is not None:
-                        stock_status = self.set_stock_levels(avg_weekly_usage, delivery_time, current_stock_val)
+                        stock_status, rop_amount = self.set_stock_levels(avg_weekly_usage, delivery_time, current_stock_val)
 
                         self.set_supply_data(cursor, 'stock_level_status', stock_status, item_id)
                         if stock_status == 'Critical Stock Level' or stock_status == 'Low Stock Level':
                             self.set_supply_data(cursor, 'status_update', today_date, item_id)
+                            self.set_supply_data(cursor, 'reorder_quantity', rop_amount, item_id)
                         
                         print(f"Updated stock status for {item['item_name']}: {stock_status}")
                     else:
@@ -1476,6 +1481,8 @@ class EditUsageWindow(SupplyBaseWindow):
         critical_stock_level = 0.50 * reorder_point
         good_level = reorder_point * 1.7
 
+        rop_amount = good_level - current_stock_val
+
         if current_stock_val <= critical_stock_level:
             status = 'Critical Stock Level'
 
@@ -1488,7 +1495,7 @@ class EditUsageWindow(SupplyBaseWindow):
         elif current_stock_val > good_level:
             status = 'Excellent Stock Level'         
 
-        return status	
+        return status, rop_amount
 
     def set_supply_data(self, cursor, column, row, unique_id):
         try:
@@ -1680,7 +1687,7 @@ class EditUsageWindow(SupplyBaseWindow):
                     
                     if avg_weekly_usage and delivery_time and current_stock_val is not None:
                         # Calculate stock status for THIS specific item
-                        stock_status = self.set_stock_levels(avg_weekly_usage, delivery_time, current_stock_val)
+                        stock_status, rop_amount = self.set_stock_levels(avg_weekly_usage, delivery_time, current_stock_val)
                         
                         # Update the stock status in database
                         self.set_supply_data(cursor, 'stock_level_status', stock_status, item_id)
@@ -1696,6 +1703,7 @@ class EditUsageWindow(SupplyBaseWindow):
                         if stock_status in ['Critical Stock Level', 'Low Stock Level']:
                             # Update status_update field
                             self.set_supply_data(cursor, 'status_update', today_date, item_id)
+                            self.set_supply_data(cursor, 'reorder_quantity', rop_amount, item_id)
                             
                             # Print alert message
                             print(f"""
