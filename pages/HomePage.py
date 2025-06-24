@@ -2621,7 +2621,7 @@ class PatientPage(ctk.CTkFrame):
         )
         contact_btn.place(x=80, y=220)
 
-        """quantity_used_btn = ctk.CTkButton(
+        quantity_used_btn = ctk.CTkButton(
             contact_options_panel,
             text="Quantity Used",
             font=("Merriweather", 14),
@@ -2632,7 +2632,7 @@ class PatientPage(ctk.CTkFrame):
             hover_color="#013B50",
             command=self.open_quantity_used_info
         )
-        quantity_used_btn.place(x=80, y=290)"""
+        quantity_used_btn.place(x=80, y=290)
 
         philhealth_info_panel = ctk.CTkFrame(
             self.detailed_info_frame,
@@ -2732,7 +2732,7 @@ class PatientPage(ctk.CTkFrame):
         print("Edit usage button clicked!")
         try:
             edit_window = EditUsageWindow(self)
-            edit_window.grab_set()  # Make it modal
+            edit_window.grab_set()  
             edit_window.focus_force()
             
             # Wait for window to close, then refresh supply data
@@ -2741,7 +2741,7 @@ class PatientPage(ctk.CTkFrame):
             # Refresh the patient table after usage is recorded
             self.refresh_table()
             
-            # IMPORTANT: Also refresh the supply page table
+            # Also refresh the supply page table
             self.refresh_supply_page_after_usage()
             
             # If we're in detailed view, refresh that too
@@ -2750,8 +2750,74 @@ class PatientPage(ctk.CTkFrame):
                 if current_patient_id:
                     self.refresh_after_update()
                     
+                    # Refresh any open quantity used windows
+                    self.refresh_quantity_used_windows(current_patient_id)
+                    
         except Exception as e:
             print(f"Error opening Edit Usage window: {e}")
+
+    def refresh_quantity_used_windows(self, patient_id):
+        """Refresh any open quantity used log windows for the current patient"""
+        try:
+            print(f"🔍 Looking for quantity used windows for patient {patient_id}...")
+            
+            # Check stored references first
+            if hasattr(self, 'open_quantity_windows') and patient_id in self.open_quantity_windows:
+                window = self.open_quantity_windows[patient_id]
+                if window and window.winfo_exists():
+                    print(f"🔄 Refreshing stored quantity used window for patient {patient_id}")
+                    if hasattr(window, 'refresh_table'):
+                        window.refresh_table()
+                    elif hasattr(window, 'load_usage_data'):
+                        window.load_usage_data()
+                    elif hasattr(window, 'reload_data'):
+                        window.reload_data()
+                    print("✅ Stored quantity used window refreshed!")
+                    return
+            
+            # Search through all windows if no stored reference
+            windows_to_check = []
+            
+            # Check direct children
+            windows_to_check.extend(self.winfo_children())
+            
+            # Check master's children (application level)
+            if hasattr(self.master, 'winfo_children'):
+                windows_to_check.extend(self.master.winfo_children())
+                
+            # Check master's master children (top level)
+            if hasattr(self.master, 'master') and hasattr(self.master.master, 'winfo_children'):
+                windows_to_check.extend(self.master.master.winfo_children())
+            
+            for child in windows_to_check:
+                try:
+                    class_name = child.__class__.__name__
+                    if 'PatientQuantityUsedLogsWindow' in class_name or 'QuantityUsed' in class_name:
+                        if hasattr(child, 'patient_id') and str(child.patient_id) == str(patient_id):
+                            print(f"🔄 Found and refreshing quantity used window for patient {patient_id}")
+                            
+                            # Try different refresh method names
+                            if hasattr(child, 'refresh_table'):
+                                child.refresh_table()
+                            elif hasattr(child, 'load_usage_data'):
+                                child.load_usage_data()
+                            elif hasattr(child, 'reload_data'):
+                                child.reload_data()
+                            elif hasattr(child, 'refresh_data'):
+                                child.refresh_data()
+                            else:
+                                print(f"⚠️ Quantity used window found but no refresh method available")
+                                
+                            print("✅ Quantity used window refreshed!")
+                            return
+                except Exception as e:
+                    # Skip this window if there's an error checking it
+                    continue
+                    
+            print(f"ℹ️ No open quantity used windows found for patient {patient_id}")
+                            
+        except Exception as e:
+            print(f"❌ Error refreshing quantity used windows: {e}")
 
     def refresh_supply_page_after_usage(self):
         """Refresh the supply page table after usage is recorded"""
@@ -3014,51 +3080,33 @@ class PatientPage(ctk.CTkFrame):
         self.contact_info_window.place(x=60, y=10)
         self.contact_info_window.contact_relative_info(self.patient_id_value.cget("text"))
 
-    """def open_quantity_used_info(self):
+    def open_quantity_used_info(self):
         # Get the current patient ID from the detailed view
         patient_id = self.patient_id_value.cget("text")
         
         if patient_id:
-            #print(f"Opening quantity used logs for patient ID: {patient_id}")
+            print(f"Opening quantity used logs for patient ID: {patient_id}")
             
             # Create and show the Patient Quantity Used Logs window
             quantity_used_window = PatientQuantityUsedLogsWindow(self, patient_id)
+            
+            # Store reference to the window for potential refreshing
+            if not hasattr(self, 'open_quantity_windows'):
+                self.open_quantity_windows = {}
+            self.open_quantity_windows[patient_id] = quantity_used_window
+            
             quantity_used_window.grab_set()
             quantity_used_window.focus_force()
             
-            # Optional: Debug print the data (same as your commented code)
-            try:
-                connect = db()
-                cursor = connect.cursor()
-                
-                cursor.execute(
-                    SELECT iu.item_id, s.item_name, s.category, iu.quantity_used, 
-                        COALESCE(iu.usage_timestamp, iu.usage_date) as usage_datetime, 
-                        iu.usage_time 
-                    FROM item_usage iu 
-                    JOIN supply s ON iu.item_id = s.item_id
-                    WHERE iu.patient_id = %s
-                    ORDER BY COALESCE(iu.usage_timestamp, iu.usage_date) DESC	
-                , (patient_id,))
-
-                quantity_used_result = cursor.fetchall()
-                
-                #print(f"\n=== Patient {patient_id} Quantity Used Results ===")
-                #for item in quantity_used_result:
-                    #print(f"Item ID: {item[0]}, Name: {item[1]}, Category: {item[2]}, Quantity: {item[3]}, Date: {item[4]}")
-                #print(f"Total items used: {len(quantity_used_result)}")
-
-            except Exception as e:
-                print(f'Error retrieving quantity used data for patient {patient_id}: {e}')
-            finally:
-                if 'cursor' in locals():
-                    cursor.close()
-                if 'connect' in locals():
-                    connect.close()
+            # Clean up reference when window closes
+            def on_window_close():
+                if hasattr(self, 'open_quantity_windows') and patient_id in self.open_quantity_windows:
+                    del self.open_quantity_windows[patient_id]
+            
+            quantity_used_window.protocol("WM_DELETE_WINDOW", lambda: [quantity_used_window.destroy(), on_window_close()])
+            
         else:
             print("No patient selected - cannot open quantity used logs")
-            # You could show a message box here if needed
-            # CTkMessageBox.show_error("Selection Error", "Please select a patient first.", parent=self)"""
 
     def fetch_patient_data(self):
         try:
@@ -3215,7 +3263,6 @@ class PatientPage(ctk.CTkFrame):
         # Additional refresh after input window closes
         self.refresh_after_update()
 
-    
     def refresh_table(self):
         """Refresh the patient table with latest data"""
         try:

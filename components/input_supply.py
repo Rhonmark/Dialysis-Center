@@ -1968,7 +1968,7 @@ class QuantityUsedLogsWindow(SupplyBaseWindow):
 
 class PatientQuantityUsedLogsWindow(SupplyBaseWindow):
     def __init__(self, parent, patient_id=None):
-        super().__init__(parent, "Patient Quantity Used Logs")  # Initial title without patient name
+        super().__init__(parent, "Patient Quantity Used Logs")  
         self.geometry("1300x700")
         self.center_window()
 
@@ -1997,7 +1997,7 @@ class PatientQuantityUsedLogsWindow(SupplyBaseWindow):
                                    width=1160,
                                    height=40,
                                    corner_radius=10,
-                                   fg_color="#1A374D")  # Using your app's primary color
+                                   fg_color="#1A374D")  
         header_frame.place(x=10, y=10)
         
         # Header labels with proper spacing for patient usage logs
@@ -2013,7 +2013,7 @@ class PatientQuantityUsedLogsWindow(SupplyBaseWindow):
         ctk.CTkLabel(header_frame, text="Timestamp", 
                     font=("Merriweather Bold", 12), text_color="white").place(x=885, y=10)
         
-        # Scrollable frame for usage data (matching ReportPage style)
+        # Scrollable frame for usage data
         self.usage_scrollable_frame = ctk.CTkScrollableFrame(self.logs_frame,
                                                            width=1160,
                                                            height=510,
@@ -2045,6 +2045,31 @@ class PatientQuantityUsedLogsWindow(SupplyBaseWindow):
 
         # Load the usage data
         self.load_usage_data()
+
+    def refresh_table(self):
+        """Refresh the quantity used table with latest data"""
+        try:
+            print(f"🔄 Refreshing quantity used data for patient {self.patient_id}")
+            
+            # Clear existing data in the scrollable frame
+            for widget in self.usage_scrollable_frame.winfo_children():
+                widget.destroy()
+            
+            # Reload the data
+            self.load_usage_data()
+            
+            print("✅ Quantity used table refreshed successfully!")
+            
+        except Exception as e:
+            print(f"❌ Error refreshing quantity used table: {e}")
+
+    def reload_data(self):
+        """Alternative method name for refreshing data"""
+        self.refresh_table()
+
+    def refresh_data(self):
+        """Another alternative method name for refreshing data"""
+        self.refresh_table()
 
     def get_patient_name(self):
         """Get the patient name from the database using patient_id"""
@@ -2082,7 +2107,7 @@ class PatientQuantityUsedLogsWindow(SupplyBaseWindow):
             connect = db()
             cursor = connect.cursor()
             
-            # Query to get usage logs for this specific patient (based on your quantity_used_patient function)
+            # Query to get usage logs for this specific patient 
             cursor.execute("""
                 SELECT 
                     iu.item_id, 
