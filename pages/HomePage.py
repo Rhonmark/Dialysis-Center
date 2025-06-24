@@ -2038,16 +2038,36 @@ class NotificationFrame(ctk.CTkFrame):
         self.place_forget()   
         self.lift()
 
-        #Header Frame
+        # Store notification widgets for updates
+        self.notification_widgets = []
+
+        # Header Frame
         header_frame = ctk.CTkFrame(self, width=400, height=60, fg_color="#04B17E", corner_radius=0)
         header_frame.place(y=0)
-        header_title = ctk.CTkLabel(header_frame, font=("Merriweather Bold", 18), text="Notification", text_color="#FFFFFF")
+        
+        header_title = ctk.CTkLabel(
+            header_frame, 
+            font=("Merriweather Bold", 18), 
+            text="Recent Activity", 
+            text_color="#FFFFFF"
+        )
         header_title.place(relx=0.1, rely=0.25)
-        clear_button = ctk.CTkButton(header_frame,width=70,height=30,fg_color="#1A374D",bg_color="#04B17E",text="Clear All",font=("Merriweather Bold",11),corner_radius=20)
-        clear_button.place(relx=.8,rely=.5,anchor="center")
+        
+        clear_button = ctk.CTkButton(
+            header_frame,
+            width=70,
+            height=30,
+            fg_color="#1A374D",
+            bg_color="#04B17E",
+            text="Refresh",
+            font=("Merriweather Bold", 11),
+            corner_radius=20,
+            command=self.refresh_notifications
+        )
+        clear_button.place(relx=.8, rely=.5, anchor="center")
 
-        #Scrollable Notification Frame
-        notification_frame = ctk.CTkScrollableFrame(
+        # Scrollable Notification Frame
+        self.notification_frame = ctk.CTkScrollableFrame(
             self,
             width=400,
             height=340,
@@ -2056,107 +2076,382 @@ class NotificationFrame(ctk.CTkFrame):
             scrollbar_fg_color="#f4f4f4",
             corner_radius=0
         )
-        notification_frame.place(y=60)
+        self.notification_frame.place(y=60)
 
-    #Icons
-        Patient_Icon = ctk.CTkImage(light_image=Image.open("assets/PatientIcon.png"), size=(25, 25))
-        StockLevels_Icon = ctk.CTkImage(light_image=Image.open("assets/StockLevelsIcon.png"), size=(25, 25))
-        Backups_Icon = ctk.CTkImage(light_image=Image.open("assets/BackupNotificationIcon.png"), size=(25, 25))
-        Audit_Icon = ctk.CTkImage(light_image=Image.open("assets/AuditIcon.png"), size=(25, 25))
+        # Load notifications when created
+        self.load_notifications()
 
-#Patient Notifcation 
-        Notification_Patient_Box= ctk.CTkFrame(notification_frame,width=350,height=60,fg_color="#FFFFFF",corner_radius=10,bg_color="#F4f4f4")
-        Notification_Patient_Box.pack(padx=10,pady=(10,6))
-        Patient_Colorcoding = ctk.CTkFrame(Notification_Patient_Box,width=60,height=60,fg_color="#009BB7",corner_radius=10,bg_color="#F4f4f4")
-        Patient_Colorcoding.place(x=0)
+    def load_notifications(self):
+        """Load real notifications from database"""
+        try:
+            connect = db()
+            cursor = connect.cursor()
 
-        #Icon
-        Patient_Icon_Label = ctk.CTkLabel(Patient_Colorcoding,image=Patient_Icon,text="")
-        Patient_Icon_Label.place(relx=.5,rely=.5,anchor="center")
+            # Get recent notifications from the last 7 days with all fields
+            cursor.execute("""
+                SELECT 
+                    notification_type,
+                    user_fullname,
+                    item_name,
+                    restock_quantity,
+                    current_stock,
+                    stock_status,
+                    patient_id,
+                    patient_name,
+                    patient_status,
+                    notification_timestamp,
+                    DATE_FORMAT(notification_timestamp, '%M %d, %Y at %h:%i %p') as formatted_date
+                FROM notification_logs 
+                WHERE notification_timestamp >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                ORDER BY notification_timestamp DESC 
+                LIMIT 15
+            """)
 
-    
-         #Title
-        Patient_title = ctk.CTkLabel(Notification_Patient_Box,text="Patient Notification",font=("Merriweather sans Bold",11),height=1,text_color="#000000")
-        Patient_title.place (relx=.23,rely=.1)
+            notifications = cursor.fetchall()
+            
+            # Clear existing notifications
+            self.clear_notification_widgets()
+            
+            if notifications:
+                for notification in notifications:
+                    notif_type, user_fullname, item_name, restock_qty, current_stock, stock_status, patient_id, patient_name, patient_status, timestamp, formatted_date = notification
+                    
+                    # Build dynamic message based on notification type
+                    message = self.build_notification_message(
+                        notif_type, user_fullname, item_name, restock_qty, 
+                        current_stock, stock_status, patient_id, patient_name, patient_status
+                    )
+                    
+                    self.create_notification_widget(notif_type, message, formatted_date)
+            else:
+                print("DEBUG: No notifications found in database")
+                self.show_no_notifications()
+                
+        except Exception as e:
+            print(f'Error loading notifications: {e}')
+            self.show_error_message()
+        finally:
+            if 'cursor' in locals():
+                cursor.close()
+            if 'connect' in locals():
+                connect.close()
 
-    #Output Text
-        Patient_Output = ctk.CTkLabel(Notification_Patient_Box,
-                                      text="Sample Message ",
-                                      font=("Merriweather sans",10),
-                                      text_color="#104E44")
-        Patient_Output.place(relx=.23,rely=.35 )
+    def build_notification_message(self, notif_type, user_fullname, item_name, restock_qty, current_stock, stock_status, patient_id, patient_name, patient_status):
+        """Build dynamic notification message based on type and available data"""
+        
+        # Handle None values properly
+        user_fullname = user_fullname or "System"
+        item_name = item_name or "Unknown Item"
+        patient_name = patient_name or "Unknown Patient"
 
-#Stock Level Notification
-        Notification_StockLevels_Box = ctk.CTkFrame(notification_frame,width=350,height=60,fg_color="#FFFFFF",corner_radius=10,bg_color="#F4f4f4")
-        Notification_StockLevels_Box.pack(padx=10,pady=6)
-        Stocklevels_Colorcoding = ctk.CTkFrame(Notification_StockLevels_Box,width=60,height=60,fg_color="#FFACAC",corner_radius=10,bg_color="#f4f4f4")
-        Stocklevels_Colorcoding.place(x=0)
+        if notif_type in ['Item Stock Status Alert', 'Item Usage Recorded'] and item_name != "Unknown Item":
+            if current_stock is None or stock_status is None:
+                try:
+                    connect = db()
+                    cursor = connect.cursor()
+                    cursor.execute("""
+                        SELECT current_stock, stock_level_status 
+                        FROM supply 
+                        WHERE item_name = %s
+                    """, (item_name,))
+                    result = cursor.fetchone()
+                    if result:
+                        current_stock = result[0] if current_stock is None else current_stock
+                        stock_status = result[1] if stock_status is None else stock_status
+                    cursor.close()
+                    connect.close()
+                except Exception as e:
+                    print(f"Error fetching supply data: {e}")
+                    import traceback
+                    traceback.print_exc()
+        
+        # Handle final None values
+        stock_status = stock_status or "Unknown Stock Level"
+        current_stock = current_stock if current_stock is not None else "Unknown"
+        restock_qty = restock_qty if restock_qty is not None else "Unknown"
+        patient_id = patient_id or 0
+        
+        if notif_type == 'New Patient Added':
+            return f"{patient_name} was added to the system by {user_fullname}"
+        
+        elif notif_type == 'Patient Status':
+            if patient_status == 'Reactivated':
+                return f"{patient_name} is now an active patient again. Reactivated by: {user_fullname}"
+            elif patient_status == 'Deactivated':
+                return f"{patient_name} is now inactive, go to the patient information to reactivate"
+            else:
+                return f"{patient_name} status updated by {user_fullname}"
+        
+        elif notif_type == 'Item Restocked':
+            return f"{item_name} was restocked with {restock_qty}. Current stock: {current_stock}"
+        
+        elif notif_type == 'Item Stock Status Alert':
+            return f"{item_name} is at {stock_status} and only has {current_stock} quantities left, please inform the admin"
+        
+        elif notif_type == 'New Item Added':
+            return f"{item_name} was added to the system by {user_fullname}"
+        
+        elif notif_type == 'Item Usage Recorded':
+            return f"{item_name} usage was recorded. Current stock: {current_stock}"
+        
+        elif notif_type == 'Manual Backup':
+            return f"Backup was made by {user_fullname}"
+        
+        elif notif_type == 'Scheduled Backup':
+            return f"Scheduled backup completed successfully"
+        
+        else:
+            # Generic message for unknown types
+            return f"{notif_type} by {user_fullname}"
 
-        #Icon
-        StockLevels_Icon_Label = ctk.CTkLabel(Stocklevels_Colorcoding,image=StockLevels_Icon,text="")
-        StockLevels_Icon_Label.place(relx=.5,rely=.5,anchor="center")
+    def clear_notification_widgets(self):
+        """Clear all notification widgets"""
+        for widget in self.notification_widgets:
+            widget.destroy()
+        self.notification_widgets.clear()
 
-         #Title
-        StockLevel_title = ctk.CTkLabel(Notification_StockLevels_Box,text="Stock Level Notification",font=("Merriweather sans Bold",11),height=1,text_color="#000000")
-        StockLevel_title.place (relx=.23,rely=.1)
+    def create_notification_widget(self, notif_type, message, formatted_date):
+        """Create a notification widget based on type"""
+        # Determine colors and icon based on notification type
+        color_config = self.get_notification_config(notif_type)
+        
+        # Create notification container
+        notif_box = ctk.CTkFrame(
+            self.notification_frame,
+            width=350,
+            height=70,
+            fg_color="#FFFFFF",
+            corner_radius=10,
+            bg_color="#F4f4f4"
+        )
+        notif_box.pack(padx=10, pady=(5, 5), fill="x")
+        
+        # Color coding bar
+        color_bar = ctk.CTkFrame(
+            notif_box,
+            width=8,
+            height=70,
+            fg_color=color_config['color'],
+            corner_radius=0
+        )
+        color_bar.place(x=0, y=0)
+        
+        # Icon area
+        icon_frame = ctk.CTkFrame(
+            notif_box,
+            width=50,
+            height=50,
+            fg_color=color_config['bg_color'],
+            corner_radius=25
+        )
+        icon_frame.place(x=15, y=10)
+        
+        icon_label = ctk.CTkLabel(
+            icon_frame,
+            text=color_config['icon'],
+            font=("Arial", 20)
+        )
+        icon_label.place(relx=0.5, rely=0.5, anchor="center")
+        
+        # Notification title
+        title_label = ctk.CTkLabel(
+            notif_box,
+            text=color_config['title'],
+            font=("Merriweather Sans Bold", 11),
+            text_color="#000000",
+            anchor="w"
+        )
+        title_label.place(x=75, y=8)
+        
+        # Notification message
+        message_label = ctk.CTkLabel(
+            notif_box,
+            text=message[:50] + "..." if len(message) > 50 else message,
+            font=("Merriweather Sans", 10),
+            text_color="#104E44",
+            anchor="w"
+        )
+        message_label.place(x=75, y=28)
+        
+        # Timestamp
+        time_label = ctk.CTkLabel(
+            notif_box,
+            text=formatted_date,
+            font=("Arial", 9),
+            text_color="#666666",
+            anchor="w"
+        )
+        time_label.place(x=75, y=48)
+        
+        # Store widget reference
+        self.notification_widgets.append(notif_box)
 
-    #Output Text
-        StockLevel_Output = ctk.CTkLabel(Notification_StockLevels_Box,
-                                         text="Sample Message",
-                                         font=("Merriweather sans",10),
-                                         text_color="#104E44")
-        StockLevel_Output.place(relx=.23,rely=.35)
+    def get_notification_config(self, notif_type):
+        """Get configuration for different notification types"""
+        configs = {
+            # Patient related
+            'New Patient Added': {
+                'color': '#009BB7',
+                'bg_color': '#E3F2FD',
+                'icon': '👤',
+                'title': 'New Patient'
+            },
+            'Patient Status': {
+                'color': '#009BB7',
+                'bg_color': '#E3F2FD',
+                'icon': '👤',
+                'title': 'Patient Update'
+            },
+            
+            # Supply related
+            'Item Restocked': {
+                'color': '#4CAF50',
+                'bg_color': '#E8F5E8',
+                'icon': '📦',
+                'title': 'Item Restocked'
+            },
+            'Item Stock Status Alert': {
+                'color': '#FF9800',
+                'bg_color': '#FFF3E0',
+                'icon': '⚠️',
+                'title': 'Stock Alert'
+            },
+            'New Item Added': {
+                'color': '#4CAF50',
+                'bg_color': '#E8F5E8',
+                'icon': '📦',
+                'title': 'New Supply Item'
+            },
+            'Item Usage Recorded': {
+                'color': '#2196F3',
+                'bg_color': '#E3F2FD',
+                'icon': '📊',
+                'title': 'Usage Recorded'
+            },
+            
+            # Backup related
+            'Manual Backup': {
+                'color': '#81D7B1',
+                'bg_color': '#E8F5E8',
+                'icon': '💾',
+                'title': 'Manual Backup'
+            },
+            'Scheduled Backup': {
+                'color': '#81D7B1',
+                'bg_color': '#E8F5E8',
+                'icon': '🕒',
+                'title': 'Scheduled Backup'
+            },
+            
+            # System/Audit related
+            'User Login': {
+                'color': '#9C27B0',
+                'bg_color': '#F3E5F5',
+                'icon': '🔐',
+                'title': 'User Activity'
+            },
+            'Data Export': {
+                'color': '#FF5722',
+                'bg_color': '#FFF3E0',
+                'icon': '📤',
+                'title': 'Data Export'
+            }
+        }
+        
+        # Return default config if type not found
+        return configs.get(notif_type, {
+            'color': '#666666',
+            'bg_color': '#F5F5F5',
+            'icon': '📋',
+            'title': notif_type  
+        })
 
-#Backup Notification
-        Notification_Backups_Box = ctk.CTkFrame(notification_frame,width=350,height=60,fg_color="#FFFFFF",corner_radius=10,bg_color="#F4f4f4")
-        Notification_Backups_Box.pack(padx=10,pady=6)
-        Backup_Colorcoding = ctk.CTkFrame(Notification_Backups_Box,width=60,height=60,fg_color="#81D7B1",corner_radius=10,bg_color="#f4f4f4")
-        Backup_Colorcoding.place(x=0)
+    def show_no_notifications(self):
+        """Show message when no notifications are available"""
+        no_notif_frame = ctk.CTkFrame(
+            self.notification_frame,
+            width=350,
+            height=100,
+            fg_color="#FFFFFF",
+            corner_radius=10
+        )
+        no_notif_frame.pack(padx=10, pady=20)
+        
+        icon_label = ctk.CTkLabel(
+            no_notif_frame,
+            text="🔔",
+            font=("Arial", 30),
+            text_color="#CCCCCC"
+        )
+        icon_label.place(relx=0.5, rely=0.3, anchor="center")
+        
+        message_label = ctk.CTkLabel(
+            no_notif_frame,
+            text="No recent activity",
+            font=("Merriweather Bold", 14),
+            text_color="#999999"
+        )
+        message_label.place(relx=0.5, rely=0.7, anchor="center")
+        
+        self.notification_widgets.append(no_notif_frame)
 
-        #Icon
-        Backup_Icon_Label = ctk.CTkLabel(Backup_Colorcoding,image=Backups_Icon,text="")
-        Backup_Icon_Label.place(relx=.5,rely=.5,anchor="center")
+    def show_error_message(self):
+        """Show error message when loading fails"""
+        error_frame = ctk.CTkFrame(
+            self.notification_frame,
+            width=350,
+            height=100,
+            fg_color="#FFEBEE",
+            corner_radius=10
+        )
+        error_frame.pack(padx=10, pady=20)
+        
+        icon_label = ctk.CTkLabel(
+            error_frame,
+            text="⚠️",
+            font=("Arial", 30),
+            text_color="#F44336"
+        )
+        icon_label.place(relx=0.5, rely=0.3, anchor="center")
+        
+        message_label = ctk.CTkLabel(
+            error_frame,
+            text="Error loading notifications",
+            font=("Merriweather Bold", 14),
+            text_color="#F44336"
+        )
+        message_label.place(relx=0.5, rely=0.7, anchor="center")
+        
+        self.notification_widgets.append(error_frame)
 
-        #Title
-        Backup_title = ctk.CTkLabel(Notification_Backups_Box,text="Backup Notification",font=("Merriweather sans Bold",11),height=11)
-        Backup_title.place (relx=.23,rely=.1)
-
-    #Output Text
-        Backup_Output = ctk.CTkLabel(Notification_Backups_Box,
-                                     text="Sample Message",
-                                     font=("Merriweather sans",10),
-                                     text_color="#104E44")
-        Backup_Output.place(relx=.23,rely=.35 )
-
-#Audit Notification
-        Notification_Audit_Box = ctk.CTkFrame(notification_frame,width=350,height=60,fg_color="#FFFFFF",corner_radius=10,bg_color="#F4f4f4")
-        Notification_Audit_Box.pack(padx=10,pady=6)
-        Audit_Colorcoding = ctk.CTkFrame(Notification_Audit_Box,width=60,height=60,fg_color="#FFDA94",corner_radius=10,bg_color="#f4f4f4")
-        Audit_Colorcoding.place(x=0)
-
-        #Icon
-        Audit_Icon_Label = ctk.CTkLabel(Audit_Colorcoding,image=Audit_Icon,text="")
-        Audit_Icon_Label.place(relx=.5,rely=.5,anchor="center")
-
-        #Title
-        Audit_title = ctk.CTkLabel(Notification_Audit_Box,text="Audit Notification",font=("Merriweather sans Bold",11),height=11)
-        Audit_title.place (relx=.23,rely=.1)
-
-    #Output Text
-        Audit_Output = ctk.CTkLabel(Notification_Audit_Box,
-                                    text="Sample Message",
-                                    font=("Merriweather sans",10),
-                                    text_color="#104E44")
-        Audit_Output.place(relx=.23,rely=.35)
+    def refresh_notifications(self):
+        """Refresh notifications manually"""
+        print("🔄 Refreshing notifications...")
+        self.load_notifications()
 
     def toggle(self):
+        """Toggle notification frame visibility"""
         if self.visible:
             self.place_forget()
             self.visible = False
         else:
+            # Refresh notifications when opening
+            self.load_notifications()
             self.place(relx=0.7, rely=0.08)
             self.lift()
             self.visible = True
+
+    def auto_refresh(self):
+        """Auto-refresh notifications every 30 seconds"""
+        if self.visible:
+            self.load_notifications()
+        # Schedule next refresh
+        self.after(30000, self.auto_refresh)  # 30 seconds
+
+    def destroy(self):
+        """Clean up when destroyed"""
+        self.clear_notification_widgets()
+        super().destroy()
 
 class PatientSearchResultsFrame(ctk.CTkFrame):
     def __init__(self, parent, **kwargs):
