@@ -1683,15 +1683,12 @@ class EditUsageWindow(SupplyBaseWindow):
                             self.set_supply_data(cursor, 'stock_level_status', stock_status, item_id)
                             if stock_status == 'Critical Stock Level' or stock_status == 'Low Stock Level':
                                 self.set_supply_data(cursor, 'status_update', today_date, item_id)
-                            
-                            print(f"Updated stock status for {item['item_name']}: {stock_status}")
-
-                            print(f"""
-                            {item['item_name']} is at {stock_status} and 
-                            only has {current_stock_val} quantities left, please
-                            inform the admin.
-                            {now}
-                            """)
+                                print(f"""
+                                {item['item_name']} is at {stock_status} and 
+                                only has {current_stock_val} quantities left, please
+                                inform the admin.
+                                {now}
+                                """)
 
                         else:
                             print(f"Skipping stock level calculation for {item['item_name']} - missing required data")
