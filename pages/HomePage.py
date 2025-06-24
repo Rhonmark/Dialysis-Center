@@ -8472,6 +8472,40 @@ class SettingsPage(ctk.CTkFrame):
         DeveloperName_font = ("Merriweather Sans Bold",10)
         DeveloperContact_font = ("Merriweather Sans light",10)
 
+        username = login_shared_states.get('logged_username', None)
+
+        def retrieve_login_logs(access_type):
+            try:
+                connect = db()
+                cursor = connect.cursor()
+
+                if access_type.lower() == 'admin':
+                    cursor.execute("""
+                        SELECT u.full_name, sl.login_time, sl.logout_time FROM sessions_log sl
+                        JOIN users u ON sl.employee_Id = u.employee_id
+                    """)
+                    admin_logs_result = cursor.fetchall()
+                    print(admin_logs_result)
+
+                elif access_type.lower() == 'staff':
+                    cursor.execute("""
+                        SELECT sl.login_time, sl.logout_time FROM sessions_log sl
+                        JOIN users u ON sl.employee_Id = u.employee_id
+                        WHERE username = %s
+                    """, (username,))
+                    staff_logs_result = cursor.fetchall()
+                    print(staff_logs_result)
+
+            except Exception as e:
+                print('Error fetching retrieve login logs', e)
+
+            finally:
+                cursor.close()
+                connect.close()
+
+        retrieve_login_logs(access_type='admin')
+        retrieve_login_logs(access_type='staff')
+
     #About Company Frame
         About_Frame = ctk.CTkFrame(self,height=340,width=870,fg_color="#FFFFFF",corner_radius=20,)
         About_Frame.place(x=130,y=100)
