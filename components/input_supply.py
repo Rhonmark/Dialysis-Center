@@ -1008,7 +1008,7 @@ class EditStockWindow(SupplyBaseWindow):
                         print(f"Skipping stock level calculation for {item['item_name']} - missing required data")
             
             connect.commit()
-            
+
             # Show success message
             message = "Stock successfully updated:\n\n"
             for change in stock_changes:
@@ -1613,6 +1613,25 @@ class EditUsageWindow(SupplyBaseWindow):
                 except Exception as notif_error:
                     print(f"Error inserting notification log: {notif_error}")
             
+                try:
+                    if stock_status == 'Critical Stock Level' or stock_status == 'Low Stock Level':
+                        cursor.execute("""
+                        INSERT INTO notification_logs (user_fullname, item_name,
+                                                      notification_type, notification_timestamp)
+                        VALUES (%s, %s, %s, %s)
+                        """, (user_fullname, item['item_name'], 'Item Stock Status Alert', now))
+
+                        print(f"""
+                            {item['item_name']} is at {stock_status} and 
+                            only has {current_stock - item['quantity_used']} quantities left, please
+                            inform the admin.
+
+                            {now}
+                        """)
+
+                except Exception as e:
+                    print('Error throwing item stock status alert notification', e)
+
             connect.commit()
             
             # Show success message
