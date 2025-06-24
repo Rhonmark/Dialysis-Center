@@ -595,6 +595,8 @@ def show_detailed_info(self, supply_data):
     current_stock_value = int(current_stock) if current_stock else 0
     max_stock = supply_data[12]  # max stock value
 
+# Updated EditStockWindow class with delete row functionality
+
 class EditStockWindow(SupplyBaseWindow):
     def __init__(self, parent):
         super().__init__(parent, "Edit Stock")
@@ -691,25 +693,44 @@ class EditStockWindow(SupplyBaseWindow):
             print(f"Error fetching item names from database: {e}")
             return ["Click to choose"]
 
+    def delete_stock_row(self, row_data):
+        """Delete a specific stock row"""
+        print(f"Delete button clicked. Current rows: {len(self.stock_rows)}")
+        
+        # Don't allow deletion if this is the last row
+        if len(self.stock_rows) <= 1:
+            print("Cannot delete - at least one row must remain.")
+            return
+        
+        # Remove the row from the list
+        if row_data in self.stock_rows:
+            self.stock_rows.remove(row_data)
+            # Destroy the frame widget
+            row_data['frame'].destroy()
+            print(f"Successfully deleted row. Remaining rows: {len(self.stock_rows)}")
+        else:
+            print("Error: Row data not found in stock_rows list")
+
     def add_stock_row(self):
         """Add a new stock row"""
         row_index = len(self.stock_rows)
 
-        # Create row frame - bigger height
+        # Create row frame - bigger height to accommodate delete button
         row_frame = ctk.CTkFrame(self.scrollable_frame, 
                                 fg_color="transparent",
-                                height=110)
+                                height=130)
         row_frame.pack(fill="x", pady=(0, 20), padx=5)
         row_frame.pack_propagate(False)
 
-        # Configure grid
+        # Configure grid - now 4 columns to include delete button
         row_frame.grid_columnconfigure(0, weight=1)
         row_frame.grid_columnconfigure(1, weight=1) 
         row_frame.grid_columnconfigure(2, weight=1)
+        row_frame.grid_columnconfigure(3, weight=0)  # Delete button column
 
         # Item Name section
         item_frame = ctk.CTkFrame(row_frame, fg_color="transparent")
-        item_frame.grid(row=0, column=0, sticky="ew", padx=(0, 15))
+        item_frame.grid(row=0, column=0, sticky="ew", padx=(0, 10))
 
         item_label = ctk.CTkLabel(item_frame, 
                                  text="Item Name", 
@@ -723,9 +744,9 @@ class EditStockWindow(SupplyBaseWindow):
         item_var = ctk.StringVar(value="Click to choose")
         item_dropdown = ctk.CTkComboBox(item_frame,
                                        variable=item_var,
-                                       values=database_items,  # Use database items here
+                                       values=database_items,
                                        state="readonly",
-                                       width=220,
+                                       width=200,
                                        height=35,
                                        font=("Merriweather Sans", 12),
                                        fg_color="#e8e8e8",
@@ -741,7 +762,7 @@ class EditStockWindow(SupplyBaseWindow):
 
         # Quantity Used section
         qty_frame = ctk.CTkFrame(row_frame, fg_color="transparent")
-        qty_frame.grid(row=0, column=1, sticky="ew", padx=7)
+        qty_frame.grid(row=0, column=1, sticky="ew", padx=5)
 
         qty_label = ctk.CTkLabel(qty_frame, 
                                 text="Quantity to Add", 
@@ -752,7 +773,7 @@ class EditStockWindow(SupplyBaseWindow):
         qty_var = ctk.StringVar()
         qty_entry = ctk.CTkEntry(qty_frame,
                                 textvariable=qty_var,
-                                width=220,
+                                width=200,
                                 height=35,
                                 font=("Merriweather Sans", 12),
                                 fg_color="#e8e8e8",
@@ -780,7 +801,7 @@ class EditStockWindow(SupplyBaseWindow):
 
         # Expiry Date section  
         date_frame = ctk.CTkFrame(row_frame, fg_color="transparent")
-        date_frame.grid(row=0, column=2, sticky="ew", padx=(15, 0))
+        date_frame.grid(row=0, column=2, sticky="ew", padx=(5, 10))
 
         date_label = ctk.CTkLabel(date_frame, 
                                  text="Expiry Date", 
@@ -791,25 +812,49 @@ class EditStockWindow(SupplyBaseWindow):
         # Use DateEntry instead of regular entry
         from tkcalendar import DateEntry
         date_entry = DateEntry(date_frame, 
-                              width=18, 
+                              width=16, 
                               font=("Merriweather Sans", 12), 
                               bg="#e8e8e8", 
                               date_pattern="yyyy-MM-dd", 
                               state="normal")
         date_entry.pack(fill="x", pady=(0, 0))
 
-        # Store row data
+        # Store row data first (needed for delete function)
         row_data = {
             'frame': row_frame,
             'item_var': item_var,
             'item_dropdown': item_dropdown,
             'qty_var': qty_var,
             'qty_entry': qty_entry,
-            'date_entry': date_entry  # DateEntry doesn't need a StringVar
+            'date_entry': date_entry
         }
+        
+        # Delete button section
+        delete_frame = ctk.CTkFrame(row_frame, fg_color="transparent")
+        delete_frame.grid(row=0, column=3, sticky="ew", padx=(5, 0))
+
+        # Add some spacing from top to align with other elements
+        spacer = ctk.CTkLabel(delete_frame, text="", height=20)
+        spacer.pack()
+
+        delete_button = ctk.CTkButton(delete_frame,
+                                     text="🗑",
+                                     font=("Arial", 14),
+                                     fg_color="#dc3545",
+                                     hover_color="#c82333",
+                                     text_color="white",
+                                     width=35,
+                                     height=35,
+                                     corner_radius=5,
+                                     command=lambda: self.delete_stock_row(row_data))
+        delete_button.pack()
+        
+        # Add delete button to row data
+        row_data['delete_button'] = delete_button
         
         self.stock_rows.append(row_data)
 
+    # Rest of the methods remain the same...
     def set_stock_levels(self, avg_weekly_usage, delivery_time, current_stock_val):
         #daily usage for standard dev
         avg_daily_usage = avg_weekly_usage / 7 
@@ -851,6 +896,7 @@ class EditStockWindow(SupplyBaseWindow):
         except Exception as e:
             print(f'error setting supply data (set_supply_data) in column {column}', e)
 
+    # Submit and other methods remain unchanged...
     def submit_changes(self):
         """Process and submit stock changes to database"""
         print("Submit button clicked!")
@@ -872,27 +918,27 @@ class EditStockWindow(SupplyBaseWindow):
                 not expiry_date):
                 continue
             
-            # Basic validation
-            if item_name == "Click to choose":
-                CTkMessageBox.show_error("Input Error", f"Please select an item for row {i+1}.", parent=self)
+        # Basic validation
+        if item_name == "Click to choose":
+            print(f"ERROR: Please select an item for row {i+1}.")
+            return
+        
+        if not quantity_str or quantity_str == "Enter Quantity":
+            print(f"ERROR: Please enter quantity for row {i+1}.")
+            return
+        
+        try:
+            quantity = int(quantity_str)
+            if quantity <= 0:
+                print(f"ERROR: Quantity must be greater than 0 for row {i+1}.")
                 return
-            
-            if not quantity_str or quantity_str == "Enter Quantity":
-                CTkMessageBox.show_error("Input Error", f"Please enter quantity for row {i+1}.", parent=self)
-                return
-            
-            try:
-                quantity = int(quantity_str)
-                if quantity <= 0:
-                    CTkMessageBox.show_error("Input Error", f"Quantity must be greater than 0 for row {i+1}.", parent=self)
-                    return
-            except ValueError:
-                CTkMessageBox.show_error("Input Error", f"Please enter a valid number for quantity in row {i+1}.", parent=self)
-                return
-            
-            if not expiry_date:
-                CTkMessageBox.show_error("Input Error", f"Please select an expiry date for row {i+1}.", parent=self)
-                return
+        except ValueError:
+            print(f"ERROR: Please enter a valid number for quantity in row {i+1}.")
+            return
+        
+        if not expiry_date:
+            print(f"ERROR: Please select an expiry date for row {i+1}.")
+            return
             
             stock_changes.append({
                 'item_name': item_name,
@@ -901,9 +947,10 @@ class EditStockWindow(SupplyBaseWindow):
             })
         
         if not stock_changes:
-            CTkMessageBox.show_error("Input Error", "Please fill at least one row with complete information.", parent=self)
+            print("ERROR: Please fill at least one row with complete information.")
             return
         
+        # Database operations remain the same...
         try:
             connect = db()
             cursor = connect.cursor()
@@ -922,9 +969,7 @@ class EditStockWindow(SupplyBaseWindow):
             # Check for non-existent items
             missing_items = [item for item in item_names if item not in existing_items]
             if missing_items:
-                CTkMessageBox.show_error("Database Error", 
-                                       f"The following items don't exist in the database: {', '.join(missing_items)}", 
-                                       parent=self)
+                print(f"ERROR: The following items don't exist in the database: {', '.join(missing_items)}")
                 return
             
             # Use a simpler two-step approach for expiry dates
@@ -1014,7 +1059,7 @@ class EditStockWindow(SupplyBaseWindow):
             for change in stock_changes:
                 message += f"• {change['item_name']}: +{change['quantity']} (Expiry: {change['expiry_date']})\n"
             
-            CTkMessageBox.show_success("Success", message, parent=self)
+            print("SUCCESS:", message)
             
             # Clear the form
             self.clear_all_rows()
@@ -1034,8 +1079,7 @@ class EditStockWindow(SupplyBaseWindow):
         except Exception as e:
             connect.rollback()
             error_msg = f"Database error occurred: {str(e)}"
-            print(error_msg)
-            CTkMessageBox.show_error("Database Error", error_msg, parent=self)
+            print("ERROR:", error_msg)
             
         finally:
             if 'cursor' in locals():
@@ -1081,6 +1125,9 @@ class EditStockWindow(SupplyBaseWindow):
     def refresh_dropdowns(self):
         """Refresh all dropdowns with latest database items"""
         self.populate_item_dropdown()
+
+
+# Updated EditUsageWindow class with delete row functionality
 
 class EditUsageWindow(SupplyBaseWindow):
     def __init__(self, parent):
@@ -1289,24 +1336,43 @@ class EditUsageWindow(SupplyBaseWindow):
         # Bind the patient ID dropdown to update patient name
         self.patient_id_var.trace("w", on_patient_id_change)
 
+    def delete_item_row(self, row_data):
+        """Delete a specific item row"""
+        print(f"Delete item button clicked. Current rows: {len(self.item_rows)}")
+        
+        # Don't allow deletion if this is the last row
+        if len(self.item_rows) <= 1:
+            print("Cannot delete - at least one item row must remain.")
+            return
+        
+        # Remove the row from the list
+        if row_data in self.item_rows:
+            self.item_rows.remove(row_data)
+            # Destroy the frame widget
+            row_data['frame'].destroy()
+            print(f"Successfully deleted item row. Remaining rows: {len(self.item_rows)}")
+        else:
+            print("Error: Row data not found in item_rows list")
+
     def add_item_row(self):
         """Add a new item row (Item Name and Quantity Used)"""
         row_index = len(self.item_rows)
 
-        # Create item row frame
+        # Create item row frame - bigger height to accommodate delete button
         item_row_frame = ctk.CTkFrame(self.scrollable_frame, 
                                      fg_color="transparent",
-                                     height=110)
+                                     height=130)
         item_row_frame.pack(fill="x", pady=(0, 20), padx=5)
         item_row_frame.pack_propagate(False)
 
-        # Configure grid for 2 columns (Item Name, Quantity Used)
+        # Configure grid for 3 columns (Item Name, Quantity Used, Delete Button)
         item_row_frame.grid_columnconfigure(0, weight=1)
         item_row_frame.grid_columnconfigure(1, weight=1)
+        item_row_frame.grid_columnconfigure(2, weight=0)  # Delete button column
 
         # Item Name section
         item_frame = ctk.CTkFrame(item_row_frame, fg_color="transparent")
-        item_frame.grid(row=0, column=0, sticky="ew", padx=(0, 15))
+        item_frame.grid(row=0, column=0, sticky="ew", padx=(0, 10))
 
         item_label = ctk.CTkLabel(item_frame, 
                                  text="Item Name", 
@@ -1321,7 +1387,7 @@ class EditUsageWindow(SupplyBaseWindow):
                                        variable=item_var,
                                        values=item_values,
                                        state="readonly",
-                                       width=220,
+                                       width=200,
                                        height=35,
                                        font=("Merriweather Sans", 12),
                                        fg_color="#e8e8e8",
@@ -1337,7 +1403,7 @@ class EditUsageWindow(SupplyBaseWindow):
 
         # Quantity Used section
         qty_frame = ctk.CTkFrame(item_row_frame, fg_color="transparent")
-        qty_frame.grid(row=0, column=1, sticky="ew", padx=(15, 0))
+        qty_frame.grid(row=0, column=1, sticky="ew", padx=(5, 10))
 
         qty_label = ctk.CTkLabel(qty_frame, 
                                 text="Quantity Used", 
@@ -1348,7 +1414,7 @@ class EditUsageWindow(SupplyBaseWindow):
         qty_var = ctk.StringVar()
         qty_entry = ctk.CTkEntry(qty_frame,
                                 textvariable=qty_var,
-                                width=220,
+                                width=200,
                                 height=35,
                                 font=("Merriweather Sans", 12),
                                 fg_color="#e8e8e8",
@@ -1374,7 +1440,7 @@ class EditUsageWindow(SupplyBaseWindow):
         qty_entry.bind('<FocusIn>', on_qty_focus_in)
         qty_entry.bind('<FocusOut>', on_qty_focus_out)
 
-        # Store row data
+        # Store row data first (needed for delete function)
         row_data = {
             'frame': item_row_frame,
             'item_var': item_var,
@@ -1382,6 +1448,29 @@ class EditUsageWindow(SupplyBaseWindow):
             'qty_var': qty_var,
             'qty_entry': qty_entry
         }
+
+        # Delete button section
+        delete_frame = ctk.CTkFrame(item_row_frame, fg_color="transparent")
+        delete_frame.grid(row=0, column=2, sticky="ew", padx=(5, 0))
+
+        # Add some spacing from top to align with other elements
+        spacer = ctk.CTkLabel(delete_frame, text="", height=20)
+        spacer.pack()
+
+        delete_button = ctk.CTkButton(delete_frame,
+                                     text="🗑",
+                                     font=("Arial", 14),
+                                     fg_color="#dc3545",
+                                     hover_color="#c82333",
+                                     text_color="white",
+                                     width=35,
+                                     height=35,
+                                     corner_radius=5,
+                                     command=lambda: self.delete_item_row(row_data))
+        delete_button.pack()
+        
+        # Add delete button to row data
+        row_data['delete_button'] = delete_button
         
         self.item_rows.append(row_data)
 
@@ -1436,7 +1525,7 @@ class EditUsageWindow(SupplyBaseWindow):
         
         # Validate patient selection
         if patient_id == "Click to choose":
-            CTkMessageBox.show_error("Input Error", "Please select a patient ID.", parent=self)
+            print("ERROR: Please select a patient ID.")
             return
         
         # Collect data from all item rows
@@ -1453,20 +1542,20 @@ class EditUsageWindow(SupplyBaseWindow):
             
             # Basic validation
             if item_name == "Click to choose":
-                CTkMessageBox.show_error("Input Error", f"Please select an item for row {i+1}.", parent=self)
+                print(f"ERROR: Please select an item for row {i+1}.")
                 return
             
             if not quantity_str or quantity_str == "Enter Quantity":
-                CTkMessageBox.show_error("Input Error", f"Please enter quantity for row {i+1}.", parent=self)
+                print(f"ERROR: Please enter quantity for row {i+1}.")
                 return
             
             try:
                 quantity = int(quantity_str)
                 if quantity <= 0:
-                    CTkMessageBox.show_error("Input Error", f"Quantity must be greater than 0 for row {i+1}.", parent=self)
+                    print(f"ERROR: Quantity must be greater than 0 for row {i+1}.")
                     return
             except ValueError:
-                CTkMessageBox.show_error("Input Error", f"Please enter a valid number for quantity in row {i+1}.", parent=self)
+                print(f"ERROR: Please enter a valid number for quantity in row {i+1}.")
                 return
             
             usage_changes.append({
@@ -1475,7 +1564,7 @@ class EditUsageWindow(SupplyBaseWindow):
             })
         
         if not usage_changes:
-            CTkMessageBox.show_error("Input Error", "Please fill at least one item row with complete information.", parent=self)
+            print("ERROR: Please fill at least one item row with complete information.")
             return
         
         try:
@@ -1496,9 +1585,7 @@ class EditUsageWindow(SupplyBaseWindow):
             # Check for non-existent items
             missing_items = [item for item in item_names if item not in existing_item_dict]
             if missing_items:
-                CTkMessageBox.show_error("Database Error", 
-                                    f"The following items don't exist in the database: {', '.join(missing_items)}", 
-                                    parent=self)
+                print(f"ERROR: The following items don't exist in the database: {', '.join(missing_items)}")
                 return
             
             # Check for insufficient stock
@@ -1512,9 +1599,7 @@ class EditUsageWindow(SupplyBaseWindow):
                     insufficient_stock.append(f"{item_name} (Available: {current_stock}, Needed: {quantity_needed})")
             
             if insufficient_stock:
-                CTkMessageBox.show_error("Insufficient Stock", 
-                                    f"The following items don't have enough stock:\n{chr(10).join(insufficient_stock)}", 
-                                    parent=self)
+                print(f"ERROR: The following items don't have enough stock:\n{chr(10).join(insufficient_stock)}")
                 return
             
             # Build the dynamic SQL query for stock reduction 
@@ -1639,7 +1724,7 @@ class EditUsageWindow(SupplyBaseWindow):
             for change in usage_changes:
                 message += f"• {change['item_name']}: {change['quantity_used']} pc(s) used\n"
             
-            CTkMessageBox.show_success("Success", message, parent=self)
+            print("SUCCESS:", message)
             
             # Clear the form
             self.clear_all_rows()
@@ -1657,8 +1742,7 @@ class EditUsageWindow(SupplyBaseWindow):
         except Exception as e:
             connect.rollback()
             error_msg = f"Database error occurred: {str(e)}"
-            print(error_msg)
-            CTkMessageBox.show_error("Database Error", error_msg, parent=self)
+            print("ERROR:", error_msg)
             
         finally:
             if 'cursor' in locals():
