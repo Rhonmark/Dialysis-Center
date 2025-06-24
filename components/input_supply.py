@@ -1685,8 +1685,23 @@ class EditUsageWindow(SupplyBaseWindow):
                                 self.set_supply_data(cursor, 'status_update', today_date, item_id)
                             
                             print(f"Updated stock status for {item['item_name']}: {stock_status}")
+
+                            print(f"""
+                            {item['item_name']} is at {stock_status} and 
+                            only has {current_stock_val} quantities left, please
+                            inform the admin.
+                            {now}
+                            """)
+
                         else:
                             print(f"Skipping stock level calculation for {item['item_name']} - missing required data")
+
+                    if stock_status == 'Critical Stock Level' or stock_status == 'Low Stock Level':
+                        cursor.execute("""
+                        INSERT INTO notification_logs (user_fullname, item_name,
+                                                      notification_type, notification_timestamp)
+                        VALUES (%s, %s, %s, %s)
+                        """, (user_fullname, item['item_name'], 'Item Stock Status Alert', now))
                 
                 try:
                     cursor.execute("""
@@ -1698,24 +1713,24 @@ class EditUsageWindow(SupplyBaseWindow):
                 except Exception as notif_error:
                     print(f"Error inserting notification log: {notif_error}")
             
-                try:
-                    if stock_status == 'Critical Stock Level' or stock_status == 'Low Stock Level':
-                        cursor.execute("""
-                        INSERT INTO notification_logs (user_fullname, item_name,
-                                                      notification_type, notification_timestamp)
-                        VALUES (%s, %s, %s, %s)
-                        """, (user_fullname, item['item_name'], 'Item Stock Status Alert', now))
+                # try:
+                #     if stock_status == 'Critical Stock Level' or stock_status == 'Low Stock Level':
+                #         cursor.execute("""
+                #         INSERT INTO notification_logs (user_fullname, item_name,
+                #                                       notification_type, notification_timestamp)
+                #         VALUES (%s, %s, %s, %s)
+                #         """, (user_fullname, item['item_name'], 'Item Stock Status Alert', now))
 
-                        print(f"""
-                            {item['item_name']} is at {stock_status} and 
-                            only has {current_stock - item['quantity_used']} quantities left, please
-                            inform the admin.
+                #         print(f"""
+                #             {item['item_name']} is at {stock_status} and 
+                #             only has {current_stock - item['quantity_used']} quantities left, please
+                #             inform the admin.
 
-                            {now}
-                        """)
+                #             {now}
+                #         """)
 
-                except Exception as e:
-                    print('Error throwing item stock status alert notification', e)
+                # except Exception as e:
+                #     print('Error throwing item stock status alert notification', e)
 
             connect.commit()
             
