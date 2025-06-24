@@ -22,7 +22,6 @@ class RegisterPage(tk.Frame):
         button_font = ("Merriweather Bold",18)
         label_font = ("Merriweather Sans", 14)
 
-
         self.columnconfigure(0, weight=2, uniform="group")  
         self.columnconfigure(1, weight=1, uniform="group") 
         self.rowconfigure(0, weight=1)
@@ -149,28 +148,69 @@ class RegisterPage(tk.Frame):
         password_label = ctk.CTkLabel(right_container, text="Password", font=label_font,text_color="#FFFFFF", bg_color="#1A374D")
         password_label.place(relx=0.25, rely=0.44, anchor="n") 
 
-        # Password Field
+        # Password Field - Initialize with show="*" for hidden password
         self.password_visible = False 
-        self.password_field = ctk.CTkEntry(right_container, placeholder_text="Password must be at least 6 characters",placeholder_text_color="#104E44",text_color="#000000",font=Entry_font, width=300,height=40,corner_radius=15,bg_color="#1A374D",fg_color="#FFFFFF",border_width=0)
+        self.password_field = ctk.CTkEntry(
+            right_container, 
+            placeholder_text="Password must be at least 6 characters",
+            placeholder_text_color="#104E44",
+            text_color="#000000",
+            font=Entry_font, 
+            width=300,
+            height=40,
+            corner_radius=15,
+            bg_color="#1A374D",
+            fg_color="#FFFFFF",
+            border_width=0,
+            show="*"  # Start with password hidden
+        )
         self.password_field.place(relx=0.5, rely=0.49, anchor="n") 
 
-        # Load eye icons
-        self.eye_open_icon = ctk.CTkImage(Image.open("assets/eye_open.png").resize((20, 20)))
-        self.eye_closed_icon = ctk.CTkImage(Image.open("assets/eye_closed.png").resize((20, 20)))
+        # Load eye icons with error handling
+        try:
+            self.eye_open_icon = ctk.CTkImage(Image.open("assets/eye_open.png").resize((20, 20)))
+            self.eye_closed_icon = ctk.CTkImage(Image.open("assets/eye_closed.png").resize((20, 20)))
+        except Exception as e:
+            print(f"Error loading eye icons: {e}")
+            # Create simple text-based fallback icons
+            self.eye_open_icon = None
+            self.eye_closed_icon = None
 
-        # Eye icon label (Initially Hidden)
-        self.eye_label = ctk.CTkLabel(
-            master=right_container,
-            image=self.eye_closed_icon,
-            text="",  # Hide default label text
-            cursor="hand2",
-            bg_color="#FFFFFF"
-        )
-        self.eye_label.place_forget()
+        # Eye icon button 
+        if self.eye_open_icon and self.eye_closed_icon:
+            self.eye_button = ctk.CTkButton(
+                master=right_container,
+                image=self.eye_closed_icon,
+                text="",
+                width=30,
+                height=30,
+                corner_radius=0,          
+                fg_color="white",
+                hover_color="#F5F5F5",
+                border_width=0,            
+                command=self.toggle_password_visibility
+            )
+        else:
+            # Fallback text button
+            self.eye_button = ctk.CTkButton(
+                master=right_container,
+                text="👁",
+                width=30,
+                height=30,
+                corner_radius=0,       
+                fg_color="white",
+                hover_color="#F5F5F5",
+                border_width=0,           
+                command=self.toggle_password_visibility
+            )
+        
+        # Initially hide the eye button
+        self.eye_button.place_forget()
 
-        # Bind events for toggling
-        self.eye_label.bind("<Button-1>", self.toggle_password_visibility)
+        # Bind events
         self.password_field.bind("<KeyRelease>", self.check_password_input)
+        self.password_field.bind("<FocusIn>", self.check_password_input)
+        self.password_field.bind("<FocusOut>", self.check_password_input)
 
         # SecretQuestion Label
         secret_question_label = ctk.CTkLabel(right_container, text="Secret Question", font=label_font, text_color="#FFFFFF", bg_color="#1A374D")
@@ -247,31 +287,57 @@ class RegisterPage(tk.Frame):
         signup_button.place(relx=0.5, rely=0.865, anchor="n")  
 
     def check_password_input(self, event=None):
-        """Shows or hides the eye icon based on user input, ensuring it starts closed."""
+        """Shows or hides the eye icon based on user input."""
         current_text = self.password_field.get().strip()
-
-        if current_text: 
-            self.eye_label.place(relx=0.8, rely=0.50, anchor="n") 
-            self.password_visible = False 
-            self.password_field.configure(show="*")  
-            self.eye_label.configure(image=self.eye_closed_icon)  
+        
+        if current_text:  
+            # Position the eye button inside the password field
+            self.eye_button.place(relx=0.79, rely=0.52, anchor="center")
+            # Ensure password starts hidden when text is entered
+            if not hasattr(self, '_password_initialized'):
+                self.password_visible = False
+                self.password_field.configure(show="*")
+                self._update_eye_icon()
+                self._password_initialized = True
         else:
-            self.eye_label.place_forget()  
+            # Hide the eye button when no text
+            self.eye_button.place_forget()
+            self._password_initialized = False
 
-
-    def toggle_password_visibility(self, event=None):
-        """Toggles password visibility while maintaining correct icon states."""
-        if not self.password_field.get().strip(): 
+    def toggle_password_visibility(self):
+        """Toggles password visibility and updates the eye icon."""
+        current_text = self.password_field.get().strip()
+        if not current_text:  
             return  
 
-        self.password_visible = not self.password_visible  
-
+        # Toggle visibility state
+        self.password_visible = not self.password_visible
+        
+        # Update password field
         if self.password_visible:
-            self.password_field.configure(show="")  
-            self.eye_label.configure(image=self.eye_open_icon)  
+            self.password_field.configure(show="")  # Show password
         else:
-            self.password_field.configure(show="*")  
-            self.eye_label.configure(image=self.eye_closed_icon)  
+            self.password_field.configure(show="*")  # Hide password
+        
+        # Update eye icon
+        self._update_eye_icon()
+        
+        # Keep focus on password field
+        self.password_field.focus_set()
+
+    def _update_eye_icon(self):
+        """Updates the eye icon based on password visibility state."""
+        if self.eye_open_icon and self.eye_closed_icon:
+            if self.password_visible:
+                self.eye_button.configure(image=self.eye_open_icon)
+            else:
+                self.eye_button.configure(image=self.eye_closed_icon)
+        else:
+            # Fallback text icons
+            if self.password_visible:
+                self.eye_button.configure(text="👁")  # Open eye
+            else:
+                self.eye_button.configure(text="🙈")  # Closed eye
 
     def display_error(self, message):
         self.error_secret_question_label.configure(text=message)
