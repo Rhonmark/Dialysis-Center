@@ -162,7 +162,7 @@ class LoginPage(ctk.CTkFrame):
                 corner_radius=0,         
                 fg_color="white",
                 hover_color="#F5F5F5",
-                border_width=0,         
+                border_width=0,
                 command=self.toggle_password_visibility
             )
         else:
@@ -328,10 +328,18 @@ class LoginPage(ctk.CTkFrame):
             hash_password = hashlib.sha256(password.encode()).hexdigest()
             if hash_password == stored_user_password:
                 
+                # FIXED: Insert login session with current timestamp
                 cursor.execute("""
-                    INSERT INTO sessions(employee_id)
-                    VALUES ((SELECT employee_id FROM users WHERE username = %s))
+                    INSERT INTO sessions(employee_id, login_time)
+                    VALUES ((SELECT employee_id FROM users WHERE username = %s), NOW())
                 """, (username,)) 
+                connect.commit()
+
+                # OPTIONAL: Also log the successful login immediately to sessions_log
+                cursor.execute("""
+                    INSERT INTO sessions_log(employee_id, login_time, logout_time, login_duration)
+                    VALUES ((SELECT employee_id FROM users WHERE username = %s), NOW(), NULL, NULL)
+                """, (username,))
                 connect.commit()
 
                 self.display_error("You have successfully logged in")

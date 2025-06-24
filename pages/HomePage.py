@@ -8848,6 +8848,9 @@ class SettingsPage(ctk.CTkFrame):
         super().__init__(parent, fg_color="#E8FBFC")
         self.shared_state = shared_state
 
+        # RBAC
+        self.role_manager = RoleAccessManager()
+
         Title_font = ("Merriweather Bold", 18)
         SubTitle_font = ("Merriweather Bold", 12)
         Ouput_font = ("Poppins Regular" ,18)
@@ -8871,6 +8874,7 @@ class SettingsPage(ctk.CTkFrame):
                     """)
                     admin_logs_result = cursor.fetchall()
                     print(admin_logs_result)
+                    return admin_logs_result
 
                 elif access_type.lower() == 'staff':
                     cursor.execute("""
@@ -8880,16 +8884,15 @@ class SettingsPage(ctk.CTkFrame):
                     """, (username,))
                     staff_logs_result = cursor.fetchall()
                     print(staff_logs_result)
+                    return staff_logs_result
 
             except Exception as e:
                 print('Error fetching retrieve login logs', e)
+                return []
 
             finally:
                 cursor.close()
                 connect.close()
-
-        retrieve_login_logs(access_type='admin')
-        retrieve_login_logs(access_type='staff')
 
     #About Company Frame
         About_Frame = ctk.CTkFrame(self,height=340,width=870,fg_color="#FFFFFF",corner_radius=20,)
@@ -9065,6 +9068,52 @@ class SettingsPage(ctk.CTkFrame):
         LoginLogs_Sublabel = ctk.CTkLabel(LoginLogs_Frame,text="View your recent login activity.",text_color="#104E44",font=SubLabel_font,bg_color="#FFFFFF",height=10)
         LoginLogs_Sublabel.place(x=30,y=60)
 
+        # Header frame for login logs table
+        if self.role_manager.is_admin():
+            # Admin view: User Full Name, Session, Date & Time
+            login_logs_header_frame = ctk.CTkFrame(LoginLogs_Frame,
+                                                  width=350,
+                                                  height=25,
+                                                  corner_radius=5,
+                                                  fg_color="#1A374D")
+            login_logs_header_frame.place(x=25, y=90)
+            
+            # Header labels for admin
+            ctk.CTkLabel(login_logs_header_frame, text="User", 
+                        font=("Merriweather Bold", 9), text_color="white").place(x=10, y=5)
+            
+            ctk.CTkLabel(login_logs_header_frame, text="Session", 
+                        font=("Merriweather Bold", 9), text_color="white").place(x=120, y=5)
+            
+            ctk.CTkLabel(login_logs_header_frame, text="Date & Time", 
+                        font=("Merriweather Bold", 9), text_color="white").place(x=220, y=5)
+        else:
+            # Staff view: Session, Date & Time only
+            login_logs_header_frame = ctk.CTkFrame(LoginLogs_Frame,
+                                                  width=350,
+                                                  height=25,
+                                                  corner_radius=5,
+                                                  fg_color="#1A374D")
+            login_logs_header_frame.place(x=25, y=90)
+            
+            # Header labels for staff
+            ctk.CTkLabel(login_logs_header_frame, text="Session", 
+                        font=("Merriweather Bold", 9), text_color="white").place(x=50, y=5)
+            
+            ctk.CTkLabel(login_logs_header_frame, text="Date & Time", 
+                        font=("Merriweather Bold", 9), text_color="white").place(x=220, y=5)
+        
+        # Scrollable frame for login logs
+        self.login_logs_scrollable_frame = ctk.CTkScrollableFrame(LoginLogs_Frame,
+                                                                 width=350,
+                                                                 height=200,
+                                                                 corner_radius=0,
+                                                                 fg_color="transparent")
+        self.login_logs_scrollable_frame.place(x=25, y=120)
+
+        # Load login logs table
+        self.load_login_logs_table()
+
     #Developers Frame
         Developers_Frame=ctk.CTkFrame(self,height=200,width=400,fg_color="#FFFFFF",corner_radius=15)
         Developers_Frame.place(x=1070,y=775)
@@ -9113,8 +9162,179 @@ class SettingsPage(ctk.CTkFrame):
         developer_name.place(relx=.15,rely=.17)
         developer_name = ctk.CTkLabel(developer3,text="09270542040 | qrvbmanzon@tip.edu.ph",text_color="#000000",font=DeveloperContact_font,bg_color="#FFFFFF",height=10)
         developer_name.place(relx=.15,rely=.5)
-        
 
+    def load_login_logs_table(self):
+        """Load login logs and display in table based on user role"""
+        try:
+            # Clear existing data
+            for widget in self.login_logs_scrollable_frame.winfo_children():
+                widget.destroy()
+            
+            # Get login logs based on role
+            if self.role_manager.is_admin():
+                login_logs = self.retrieve_login_logs('admin')
+            else:
+                login_logs = self.retrieve_login_logs('staff')
+            
+            if not login_logs:
+                # Show "No data" message if no logs found
+                no_data_frame = ctk.CTkFrame(self.login_logs_scrollable_frame,
+                                           width=330,
+                                           height=60,
+                                           corner_radius=5,
+                                           fg_color="#F8F9FA")
+                no_data_frame.pack(fill="x", pady=20, padx=5)
+                no_data_frame.pack_propagate(False)
+                
+                ctk.CTkLabel(no_data_frame, 
+                           text="No login logs found",
+                           font=("Poppins Regular", 10),
+                           text_color="#666666").place(relx=0.5, rely=0.5, anchor="center")
+                return
+            
+            # Display logs based on role
+            for i, log_data in enumerate(login_logs[:10]):  # Show latest 10 logs
+                # Create row frame with alternating colors
+                row_frame = ctk.CTkFrame(self.login_logs_scrollable_frame,
+                                       width=330,
+                                       height=35,
+                                       corner_radius=3,
+                                       fg_color="#F8F9FA" if i % 2 == 0 else "#FFFFFF")
+                row_frame.pack(fill="x", pady=1, padx=5)
+                row_frame.pack_propagate(False)
+                
+                if self.role_manager.is_admin():
+                    # Admin view: User Full Name, Session, Date & Time
+                    full_name, login_time, logout_time = log_data
+                    
+                    # User name (shortened if too long)
+                    user_name = str(full_name)[:12] + "..." if len(str(full_name)) > 12 else str(full_name)
+                    name_label = ctk.CTkLabel(row_frame, text=user_name,
+                                            font=("Poppins Regular", 8),
+                                            text_color="#333333",
+                                            width=100)
+                    name_label.place(x=5, y=8)
+                    
+                    # Session status
+                    if logout_time:
+                        session_status = "Logged Out"
+                        session_color = "#DC3545"  # Red
+                    else:
+                        session_status = "Logged In"
+                        session_color = "#28A745"  # Green
+                        
+                    session_label = ctk.CTkLabel(row_frame, text=session_status,
+                                                font=("Poppins Regular", 8),
+                                                text_color=session_color,
+                                                width=80)
+                    session_label.place(x=110, y=8)
+                    
+                    # Date & Time (use login_time)
+                    if login_time:
+                        if hasattr(login_time, 'strftime'):
+                            datetime_str = login_time.strftime("%m/%d %H:%M")
+                        else:
+                            datetime_str = str(login_time)[:11]  # Truncate if string
+                    else:
+                        datetime_str = "N/A"
+                        
+                    datetime_label = ctk.CTkLabel(row_frame, text=datetime_str,
+                                                font=("Poppins Regular", 8),
+                                                text_color="#333333",
+                                                width=100)
+                    datetime_label.place(x=200, y=8)
+                    
+                else:
+                    # Staff view: Session, Date & Time only
+                    login_time, logout_time = log_data
+                    
+                    # Session status
+                    if logout_time:
+                        session_status = "Logged Out"
+                        session_color = "#DC3545"  # Red
+                    else:
+                        session_status = "Logged In"
+                        session_color = "#28A745"  # Green
+                        
+                    session_label = ctk.CTkLabel(row_frame, text=session_status,
+                                                font=("Poppins Regular", 9),
+                                                text_color=session_color,
+                                                width=120)
+                    session_label.place(x=30, y=8)
+                    
+                    # Date & Time (use login_time)
+                    if login_time:
+                        if hasattr(login_time, 'strftime'):
+                            datetime_str = login_time.strftime("%m/%d %H:%M")
+                        else:
+                            datetime_str = str(login_time)[:11]  # Truncate if string
+                    else:
+                        datetime_str = "N/A"
+                        
+                    datetime_label = ctk.CTkLabel(row_frame, text=datetime_str,
+                                                font=("Poppins Regular", 9),
+                                                text_color="#333333",
+                                                width=120)
+                    datetime_label.place(x=180, y=8)
+                
+        except Exception as e:
+            print(f'Error loading login logs: {e}')
+            # Show error message
+            error_frame = ctk.CTkFrame(self.login_logs_scrollable_frame,
+                                     width=330,
+                                     height=60,
+                                     corner_radius=5,
+                                     fg_color="#FFE6E6")
+            error_frame.pack(fill="x", pady=20, padx=5)
+            error_frame.pack_propagate(False)
+            
+            error_label = ctk.CTkLabel(error_frame,
+                                     text=f"Error loading login logs: {str(e)}",
+                                     font=("Poppins Regular", 9),
+                                     text_color="red")
+            error_label.place(relx=0.5, rely=0.5, anchor="center")
+
+    def retrieve_login_logs(self, access_type):
+        """Modified version to return data instead of just printing"""
+        try:
+            connect = db()
+            cursor = connect.cursor()
+            username = login_shared_states.get('logged_username', None)
+
+            if access_type.lower() == 'admin':
+                cursor.execute("""
+                    SELECT u.full_name, sl.login_time, sl.logout_time 
+                    FROM sessions_log sl
+                    JOIN users u ON sl.employee_Id = u.employee_id
+                    ORDER BY sl.login_time DESC
+                    LIMIT 15
+                """)
+                result = cursor.fetchall()
+                print(f"Admin logs: {result}")
+                return result
+
+            elif access_type.lower() == 'staff':
+                cursor.execute("""
+                    SELECT sl.login_time, sl.logout_time 
+                    FROM sessions_log sl
+                    JOIN users u ON sl.employee_Id = u.employee_id
+                    WHERE u.username = %s
+                    ORDER BY sl.login_time DESC
+                    LIMIT 15
+                """, (username,))
+                result = cursor.fetchall()
+                print(f"Staff logs: {result}")
+                return result
+
+        except Exception as e:
+            print('Error fetching retrieve login logs', e)
+            return []
+
+        finally:
+            if 'cursor' in locals():
+                cursor.close()
+            if 'connect' in locals():
+                connect.close()
 
     def db_connection(self):
         connect = db()
