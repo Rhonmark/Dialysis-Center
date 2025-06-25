@@ -554,6 +554,7 @@ def wawenta():
 #     cursor.execute("""
 #         SELECT pl.patient_name, pi.status FROM patient_list pl
 #         JOIN patient_info pi ON pl.patient_id = pi.patient_id
+#           ORDER BY pi.status
 #     """)
 
 #     result = cursor.fetchall()
