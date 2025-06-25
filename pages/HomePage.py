@@ -6160,87 +6160,185 @@ class ReportPage(ctk.CTkFrame):
         InactiveLabel.place(relx=.5,rely=.4,anchor="center")
 
 #------------------------------------------------------------------------------------------------------------------------------------------
-    #Active Patient Table
-        self.Activepatient_frame = ctk.CTkFrame(self,
-                                           width=580,
+    #Patient Table (Smaller - 2 columns only)
+        self.patient_frame = ctk.CTkFrame(self,
+                                           width=420,
                                            height=335,
                                            corner_radius=20,
                                            fg_color="#FFFFFF",
                                            bg_color="transparent")
-        self.Activepatient_frame.place(x=355,y=60)
+        self.patient_frame.place(x=355,y=60)
         
         # Patient Table Header
-        patient_header_frame = ctk.CTkFrame(self.Activepatient_frame,
-                                          width=560,
+        patient_header_frame = ctk.CTkFrame(self.patient_frame,
+                                          width=400,
                                           height=40,
                                           corner_radius=10,
                                           fg_color="#88BD8E")
         patient_header_frame.place(x=10, y=10)
         
-        # Header labels
-        patient_id_header = ctk.CTkLabel(patient_header_frame, text="Patient ID", 
-                                       font=("Merriweather Bold", 12), text_color="white")
-        patient_id_header.place(x=20, y=10)
-        
+        # Header labels - Name and Status only
         patient_name_header = ctk.CTkLabel(patient_header_frame, text="Name", 
                                          font=("Merriweather Bold", 12), text_color="white")
-        patient_name_header.place(x=240, y=10)
+        patient_name_header.place(x=30, y=10)
         
         patient_status_header = ctk.CTkLabel(patient_header_frame, text="Status", 
                                            font=("Merriweather Bold", 12), text_color="white")
-        patient_status_header.place(x=430, y=10)
+        patient_status_header.place(x=280, y=10)
         
         # Scrollable frame for patient data
-        self.patient_scrollable_frame = ctk.CTkScrollableFrame(self.Activepatient_frame,
-                                                             width=560,
+        self.patient_scrollable_frame = ctk.CTkScrollableFrame(self.patient_frame,
+                                                             width=400,
                                                              height=270,
                                                              corner_radius=0,
                                                              fg_color="transparent")
         self.patient_scrollable_frame.place(x=10, y=55)
         
-        # Load patient data
-        self.load_patient_data()
-       
-    #Backup Table
-        self.backup_frame = ctk.CTkFrame(self,
-                                             width=580,
+        # Sample patient data for demonstration
+        sample_patients = [
+            ("John Doe", "Active"),
+            ("Jane Smith", "Inactive"),
+            ("Michael Johnson", "Active"),
+            ("Sarah Williams", "Active"),
+            ("David Brown", "Inactive"),
+            ("Lisa Davis", "Active"),
+            ("Robert Wilson", "Active"),
+            ("Emily Taylor", "Inactive"),
+            ("Anna Rodriguez", "Active"),
+            ("Mark Thompson", "Inactive"),
+        ]
+        
+        # Add patient rows
+        for i, (name, status) in enumerate(sample_patients):
+            # Create row frame
+            row_frame = ctk.CTkFrame(self.patient_scrollable_frame,
+                                   width=380,
+                                   height=35,
+                                   corner_radius=5,
+                                   fg_color="#F8F9FA" if i % 2 == 0 else "#FFFFFF")
+            row_frame.pack(fill="x", pady=2, padx=5)
+            row_frame.pack_propagate(False)
+            
+            # Patient Name
+            name_label = ctk.CTkLabel(row_frame, text=name,
+                                    font=("Poppins Regular", 10),
+                                    text_color="#333333",
+                                    width=220,
+                                    anchor="w")
+            name_label.place(x=15, y=7)
+            
+            # Status with color coding
+            status_color = "#88BD8E" if status == "Active" else "#F25B5B"
+            status_label = ctk.CTkLabel(row_frame, text=status,
+                                      font=("Poppins Regular", 10),
+                                      text_color=status_color,
+                                      width=80)
+            status_label.place(x=260, y=7)
+
+#------------------------------------------------------------------------------------------------------------------------------------------
+    #Supply Table 
+        self.supply_frame = ctk.CTkFrame(self,
+                                             width=740,
                                              height=335,
                                              corner_radius=20,
                                              fg_color="#FFFFFF",
                                              bg_color="transparent")
-        self.backup_frame.place(x=970,y=60)
+        self.supply_frame.place(x=815,y=60)
         
-        # Backup Table Header
-        backup_header_frame = ctk.CTkFrame(self.backup_frame,
-                                         width=560,
+        # Supply Table Header
+        supply_header_frame = ctk.CTkFrame(self.supply_frame,
+                                         width=720,
                                          height=40,
                                          corner_radius=10,
-                                         fg_color="#F25B5B")
-        backup_header_frame.place(x=10, y=10)
+                                         fg_color="#1A374D")
+        supply_header_frame.place(x=10, y=10)
         
-        # Header labels
-        backup_id_header = ctk.CTkLabel(backup_header_frame, text="Backup ID", 
-                                      font=("Merriweather Bold", 12), text_color="white")
-        backup_id_header.place(x=20, y=10)
-        
-        backup_name_header = ctk.CTkLabel(backup_header_frame, text="Name", 
+        # Header labels - Item, Reorder Qty, Status, Supplier
+        supply_item_header = ctk.CTkLabel(supply_header_frame, text="Item", 
                                         font=("Merriweather Bold", 12), text_color="white")
-        backup_name_header.place(x=200, y=10)
+        supply_item_header.place(x=30, y=10)
         
-        backup_date_header = ctk.CTkLabel(backup_header_frame, text="Date", 
-                                        font=("Merriweather Bold", 12), text_color="white")
-        backup_date_header.place(x=450, y=10)
+        supply_reorder_header = ctk.CTkLabel(supply_header_frame, text="Reorder Qty", 
+                                           font=("Merriweather Bold", 12), text_color="white")
+        supply_reorder_header.place(x=180, y=10)
         
-        # Scrollable frame for backup data
-        self.backup_scrollable_frame = ctk.CTkScrollableFrame(self.backup_frame,
-                                                            width=560,
+        supply_status_header = ctk.CTkLabel(supply_header_frame, text="Status", 
+                                          font=("Merriweather Bold", 12), text_color="white")
+        supply_status_header.place(x=320, y=10)
+        
+        supply_supplier_header = ctk.CTkLabel(supply_header_frame, text="Supplier", 
+                                            font=("Merriweather Bold", 12), text_color="white")
+        supply_supplier_header.place(x=480, y=10)
+        
+        # Scrollable frame for supply data
+        self.supply_scrollable_frame = ctk.CTkScrollableFrame(self.supply_frame,
+                                                            width=720,
                                                             height=270,
                                                             corner_radius=0,
                                                             fg_color="transparent")
-        self.backup_scrollable_frame.place(x=10, y=55)
+        self.supply_scrollable_frame.place(x=10, y=55)
         
-        # Load static backup data
-        self.load_backup_data()
+        # Sample supply data for demonstration
+        sample_supplies = [
+            ("Paracetamol 500mg", "50", "Low Stock", "MedSupply Co."),
+            ("Medical Bandages", "100", "In Stock", "HealthCare Ltd."),
+            ("Disposable Syringes", "25", "Critical", "MedEquip Inc."),
+            ("Sterile Gauze Pads", "75", "In Stock", "FirstAid Supply"),
+            ("Digital Thermometers", "10", "Low Stock", "MedTech Corp."),
+            ("Antiseptic Solution", "30", "In Stock", "PharmaCare"),
+            ("IV Fluid Bags", "15", "Critical", "MedSupply Co."),
+            ("Latex Gloves", "200", "In Stock", "SafetyFirst Ltd."),
+            ("Blood Pressure Cuffs", "8", "Low Stock", "MedEquip Inc."),
+            ("Surgical Masks", "150", "In Stock", "HealthCare Ltd."),
+        ]
+        
+        # Add supply rows
+        for i, (item, reorder_qty, status, supplier) in enumerate(sample_supplies):
+            # Create row frame
+            row_frame = ctk.CTkFrame(self.supply_scrollable_frame,
+                                   width=700,
+                                   height=35,
+                                   corner_radius=5,
+                                   fg_color="#F8F9FA" if i % 2 == 0 else "#FFFFFF")
+            row_frame.pack(fill="x", pady=2, padx=5)
+            row_frame.pack_propagate(False)
+            
+            # Item Name
+            item_label = ctk.CTkLabel(row_frame, text=item,
+                                    font=("Poppins Regular", 10),
+                                    text_color="#333333",
+                                    width=140,
+                                    anchor="w")
+            item_label.place(x=15, y=7)
+            
+            # Reorder Quantity
+            reorder_label = ctk.CTkLabel(row_frame, text=reorder_qty,
+                                       font=("Poppins Regular", 10),
+                                       text_color="#333333",
+                                       width=70)
+            reorder_label.place(x=170, y=7)
+            
+            # Status with color coding
+            if status == "Critical":
+                status_color = "#AC1616"
+            elif status == "Low Stock":
+                status_color = "#D08B40"
+            else:
+                status_color = "#88BD8E"
+                
+            status_label = ctk.CTkLabel(row_frame, text=status,
+                                      font=("Poppins Regular", 10),
+                                      text_color=status_color,
+                                      width=100)
+            status_label.place(x=280, y=7)
+            
+            # Supplier
+            supplier_label = ctk.CTkLabel(row_frame, text=supplier,
+                                        font=("Poppins Regular", 10),
+                                        text_color="#333333",
+                                        width=160,
+                                        anchor="w")
+            supplier_label.place(x=480, y=7)
 
 #------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -6735,8 +6833,8 @@ class ReportPage(ctk.CTkFrame):
             self.view_label.configure(text=str(viewing_date))
             
             # Optionally refresh the patient table to show filtered data
-            #period, date_column
-            self.load_patient_data()
+            # period, date_column
+            # self.load_patient_data()
             
             print(f"Updated counts - Active: {active_count}, Inactive: {inactive_count}")
 
@@ -6872,24 +6970,23 @@ class ReportPage(ctk.CTkFrame):
 
         # Load initial graphs
 
-    def load_patient_data(self):
-        """Load patient data from database and display in table"""
+    """def load_patient_data(self):
+        Load patient data with only Name and Status columns
         try:    
             connect = db()
             cursor = connect.cursor()
             
-            # Query to get all patients with concatenated full name
-            cursor.execute("""
-                SELECT patient_id, 
-                       CONCAT(first_name, 
-                              CASE WHEN middle_name IS NOT NULL AND middle_name != '' 
-                                   THEN CONCAT(' ', middle_name, ' ') 
-                                   ELSE ' ' END, 
-                              last_name) as full_name, 
-                       status 
+            # Query to get all patients with concatenated full name 
+            cursor.execute(
+                SELECT CONCAT(first_name, 
+                            CASE WHEN middle_name IS NOT NULL AND middle_name != '' 
+                                THEN CONCAT(' ', middle_name, ' ') 
+                                ELSE ' ' END, 
+                            last_name) as full_name, 
+                    status 
                 FROM patient_info 
-                ORDER BY patient_id
-            """)
+                ORDER BY first_name
+            )
             patients = cursor.fetchall()
             
             # Clear existing data
@@ -6897,51 +6994,45 @@ class ReportPage(ctk.CTkFrame):
                 widget.destroy()
             
             # Add patient rows
-            for i, (patient_id, name, status) in enumerate(patients):
-                # Create row frame
+            for i, (name, status) in enumerate(patients):
+                # Create row frame 
                 row_frame = ctk.CTkFrame(self.patient_scrollable_frame,
-                                       width=540,
-                                       height=35,
-                                       corner_radius=5,
-                                       fg_color="#F8F9FA" if i % 2 == 0 else "#FFFFFF")
+                                    width=380, 
+                                    height=35,
+                                    corner_radius=5,
+                                    fg_color="#F8F9FA" if i % 2 == 0 else "#FFFFFF")
                 row_frame.pack(fill="x", pady=2, padx=5)
                 row_frame.pack_propagate(False)
                 
-                # Patient ID
-                id_label = ctk.CTkLabel(row_frame, text=str(patient_id),
-                                      font=("Poppins Regular", 10),
-                                      text_color="#333333",
-                                      width=80)
-                id_label.place(x=10, y=7)
-                
-                # Patient Name
+                # Patient Name 
                 name_label = ctk.CTkLabel(row_frame, text=name,
                                         font=("Poppins Regular", 10),
                                         text_color="#333333",
-                                        width=200)
-                name_label.place(x=150, y=7)
+                                        width=200,  
+                                        anchor="w")
+                name_label.place(x=15, y=7) 
                 
-                # Status with color coding
+                # Status with color coding 
                 status_color = "#88BD8E" if status == "Active" else "#F25B5B"
                 status_label = ctk.CTkLabel(row_frame, text=status,
-                                          font=("Poppins Regular", 10),
-                                          text_color=status_color,
-                                          width=80)
-                status_label.place(x=400, y=7)
+                                        font=("Poppins Regular", 10),
+                                        text_color=status_color,
+                                        width=80)
+                status_label.place(x=280, y=7) 
                 
         except Exception as e:
             print(f'Error loading patient data: {e}')
             # Show error message
             error_label = ctk.CTkLabel(self.patient_scrollable_frame,
-                                     text=f"Error loading data: {str(e)}",
-                                     font=("Arial", 12),
-                                     text_color="red")
+                                    text=f"Error loading data: {str(e)}",
+                                    font=("Arial", 12),
+                                    text_color="red")
             error_label.pack(pady=20)
         finally:
             if 'cursor' in locals():
                 cursor.close()
             if 'connect' in locals():
-                connect.close()
+                connect.close()"""
 
     def load_backup_data(self):
         """Load static backup data for demonstration"""
@@ -6996,7 +7087,7 @@ class ReportPage(ctk.CTkFrame):
         """Refresh all data counts and update the labels"""
 
         # Refresh patient table
-        self.load_patient_data()
+        # self.load_patient_data()
 
         print('Data refreshed successfully')
 
@@ -7176,7 +7267,7 @@ class ReportPage(ctk.CTkFrame):
 
     def destroy(self):
         """Clean up when the widget is destroyed"""
-        # Clean up matplotlib canvases
+        # Clean up matplotlib canvases  
         if self.low_stock_canvas:
             self.low_stock_canvas.get_tk_widget().destroy()
         if self.critical_stock_canvas:
