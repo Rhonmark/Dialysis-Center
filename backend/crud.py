@@ -439,294 +439,177 @@ def update_patient_list(patient_id, data_dict):
         print(f"Error updating patient list: {e}")
         return False
     
+def wawenta():
+    ###############################EDIT STOCK SUPPLY#########################3
+    ###############################EDIT STOCK SUPPLY#########################3
+    ###############################EDIT STOCK SUPPLY#########################3
 
-################################EDIT STOCK SUPPLY#########################3
-################################EDIT STOCK SUPPLY#########################3
-################################EDIT STOCK SUPPLY#########################3
+    connect = db()
+    cursor = connect.cursor()
 
-# connect = db()
-# cursor = connect.cursor()
+    user_input = [
+        {"item_name": "Ivremectin", "quantity": 2, "expiry_date": "2025-08-01"},
+        {"item_name": "Oppo", "quantity": 5, "expiry_date": "2025-08-01"},
+        {"item_name": "Bioflu", "quantity": 3, "expiry_date": "2025-08-01"},  
+    ]
 
-# user_input = [
-#     {"item_name": "Ivremectin", "quantity": 2, "expiry_date": "2025-08-01"},
-#     {"item_name": "Oppo", "quantity": 5, "expiry_date": "2025-08-01"},
-#     {"item_name": "Bioflu", "quantity": 3, "expiry_date": "2025-08-01"},  
-# ]
+    stock = ' '.join(f"WHEN %s THEN current_stock + %s" for _ in user_input)
+    expiry = ' '.join(f"WHEN %s THEN %s" for _ in user_input)
+    names = ', '.join(['%s'] * len(user_input))  
 
-# stock = ' '.join(f"WHEN %s THEN current_stock + %s" for _ in user_input)
-# expiry = ' '.join(f"WHEN %s THEN %s" for _ in user_input)
-# names = ', '.join(['%s'] * len(user_input))  
+    store = []
+    for item in user_input:
+        store.extend([item['item_name'], item['quantity']]) 
+        print('iq:', store)
+    for item in user_input:
+        store.extend([item['item_name'], item['expiry_date']]) 
+        print('ie', store)
 
-# store = []
-# for item in user_input:
-#     store.extend([item['item_name'], item['quantity']]) 
-#     print('iq:', store)
-# for item in user_input:
-#     store.extend([item['item_name'], item['expiry_date']]) 
-#     print('ie', store)
+    store.extend([item['item_name'] for item in user_input])
 
-# store.extend([item['item_name'] for item in user_input])
+    query = f"""
+        UPDATE supply
+        SET 
+            current_stock = CASE item_name
+                {stock}
+            END,
+            new_expiry_date = CASE item_name
+                {expiry}
+            END
+        WHERE item_name IN ({names});
+    """
 
-# query = f"""
-#     UPDATE supply
-#     SET 
-#         current_stock = CASE item_name
-#             {stock}
-#         END,
-#         new_expiry_date = CASE item_name
-#             {expiry}
-#         END
-#     WHERE item_name IN ({names});
-# """
-
-# print(store)
-
-
-# cursor.execute(query, store)
-# connect.commit()
-
-################################EDIT USAGE PATIENT#########################3
-################################EDIT USAGE PATIENT#########################3
-################################EDIT USAGE PATIENT#########################3
-
-# connect = db()
-# cursor = connect.cursor()
-
-# user_input = [
-#     {"item_name": "Ivremectin", "quantity": 2},
-#     {"item_name": "Oppo", "quantity": 5},
-#     {"item_name": "Bioflu", "quantity": 3},  
-# ]
-
-# stock = ' '.join(f"WHEN %s THEN current_stock - %s" for _ in user_input)
-# names = ', '.join(['%s'] * len(user_input))  
-
-# store = []
-# for item in user_input:
-#     store.extend([item['item_name'], item['quantity']]) 
-
-# store.extend([item['item_name'] for item in user_input])
-
-# query = f"""
-#     UPDATE supply
-#     SET 
-#         current_stock = CASE item_name
-#             {stock}
-#         END
-#     WHERE item_name IN ({names});
-# """
-
-# print(store)
+    print(store)
 
 
-# cursor.execute(query, store)
-# connect.commit()
+    cursor.execute(query, store)
+    connect.commit()
+
+    ###############################EDIT USAGE PATIENT#########################3
+    ###############################EDIT USAGE PATIENT#########################3
+    ###############################EDIT USAGE PATIENT#########################3
+
+    connect = db()
+    cursor = connect.cursor()
+
+    user_input = [
+        {"item_name": "Ivremectin", "quantity": 2},
+        {"item_name": "Oppo", "quantity": 5},
+        {"item_name": "Bioflu", "quantity": 3},  
+    ]
+
+    stock = ' '.join(f"WHEN %s THEN current_stock - %s" for _ in user_input)
+    names = ', '.join(['%s'] * len(user_input))  
+
+    store = []
+    for item in user_input:
+        store.extend([item['item_name'], item['quantity']]) 
+
+    store.extend([item['item_name'] for item in user_input])
+
+    query = f"""
+        UPDATE supply
+        SET 
+            current_stock = CASE item_name
+                {stock}
+            END
+        WHERE item_name IN ({names});
+    """
+
+    print(store)
 
 
-# connect = db()
-# cursor = connect.cursor()
+    cursor.execute(query, store)
+    connect.commit()
 
-# cursor.execute("SELECT item_name FROM supply")
 
-# result = cursor.fetchall()
+    connect = db()
+    cursor = connect.cursor()
 
-# usable_result = [i[0] for i in result]
-# string_dropdown = ', '.join(usable_result)
+    cursor.execute("SELECT item_name FROM supply")
 
-# print(string_dropdown)
+    result = cursor.fetchall()
 
-# connect = db()
-# cursor = connect.cursor()
+    usable_result = [i[0] for i in result]
+    string_dropdown = ', '.join(usable_result)
 
-#cursor.execute("SELECT patient_name FROM patient_list WHERE patient_id = %s") #pasa mo nalang yung id after makapamili ni user
+    print(string_dropdown)
 
-#result = cursor.fetchone()[0]
+    connect = db()
+    cursor = connect.cursor()
 
-#print(result)
+    cursor.execute("SELECT patient_name FROM patient_list WHERE patient_id = %s") #pasa mo nalang yung id after makapamili ni user
 
-#########################################@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    result = cursor.fetchone()[0]
 
-# def data_count(column, value, table_name, period=None, date_column=None, join_table=None, join_condition=None):
-#     from datetime import datetime, timedelta
-#     import calendar
-#     try:
-#         connect = db()
-#         cursor = connect.cursor()
-        
-#         if period and date_column:
-#             today = datetime.now().date()
-            
-#             if period.lower() == 'weekly':
-#                 # Get current week (Monday to Sunday)
-#                 days_since_monday = today.weekday()
-#                 start_of_week = today - timedelta(days=days_since_monday)
-#                 end_of_week = start_of_week + timedelta(days=6)
-                
-#                 if join_table and join_condition:
-#                     cursor.execute(f"""
-#                         SELECT COUNT(*) FROM {table_name}
-#                         JOIN {join_table} ON {join_condition}
-#                         WHERE {table_name}.{column} = '{value}' 
-#                         AND {join_table}.{date_column} >= '{start_of_week}' 
-#                         AND {join_table}.{date_column} <= '{end_of_week}'
-#                     """)
-#                 else:
-#                     cursor.execute(f"""
-#                         SELECT COUNT(*) FROM {table_name}
-#                         WHERE {column} = '{value}' 
-#                         AND {date_column} >= '{start_of_week}' 
-#                         AND {date_column} <= '{end_of_week}'
-#                     """)
-                
-#             elif period.lower() == 'monthly':
-#                 # Get current month
-#                 start_of_month = today.replace(day=1)
-#                 last_day = calendar.monthrange(today.year, today.month)[1]
-#                 end_of_month = today.replace(day=last_day)
-                
-#                 if join_table and join_condition:
-#                     cursor.execute(f"""
-#                         SELECT COUNT(*) FROM {table_name}
-#                         JOIN {join_table} ON {join_condition}
-#                         WHERE {table_name}.{column} = '{value}' 
-#                         AND {join_table}.{date_column} >= '{start_of_month}' 
-#                         AND {join_table}.{date_column} <= '{end_of_month}'
-#                     """)
-#                 else:
-#                     cursor.execute(f"""
-#                         SELECT COUNT(*) FROM {table_name}
-#                         WHERE {column} = '{value}' 
-#                         AND {date_column} >= '{start_of_month}' 
-#                         AND {date_column} <= '{end_of_month}'
-#                     """)
-#         else:
-#             # Original query without date filtering
-#             cursor.execute(f"""
-#                 SELECT COUNT(*) FROM {table_name}
-#                 WHERE {column} = '{value}'
-#             """)
-        
-#         count_result = cursor.fetchone()
-#         count = count_result[0] if count_result else 0
+    print(result)
+
+    ########################################@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+########################PATIENT STATUS TABLE##############################
+# try:
+#     connect = db()
+#     cursor = connect.cursor()
+
+#     cursor.execute("""
+#         SELECT pl.patient_name, pi.status FROM patient_list pl
+#         JOIN patient_info pi ON pl.patient_id = pi.patient_id
+#     """)
+
+#     result = cursor.fetchall()
     
-#         if period and date_column:
-#             if period.lower() == 'weekly':
-#                 date_range = f"{start_of_week.strftime('%B %d')} - {end_of_week.strftime('%B %d, %Y')}"
-#             elif period.lower() == 'monthly':
-#                 date_range = f"{start_of_month.strftime('%B %Y')}"
-            
-#             return {
-#                 'count': count,
-#                 'date_range': date_range,
-#                 'period': period.lower()
-#             }
-#         else:
-#             return count
-        
-#     except Exception as e:
-#         print(f'Error finding column ({column}), value ({value}) in table: {table_name}', e)
-#         return 0
-#     finally:
-#         cursor.close()
-#         connect.close()
+#     name_store = []
+#     status_store = []
 
-# # Usage examples with JOIN:
+#     for name, status in result:
+#         name_store.append(name)
+#         status_store.append(status)
 
-# # Regular counts (no date filtering) - still works the same
-# active_patient = data_count('status', 'Active', table_name='patient_info')
-# inactive_patient = data_count('status', 'Inactive', table_name='patient_info')
+#     print(name_store)
+#     print(status_store)
 
-# # Weekly/Monthly counts with JOIN (assuming patient_info and patient_list share a common ID)
-# weekly_active = data_count(
-#     column='status', 
-#     value='Active', 
-#     table_name='patient_info',
-#     period='weekly', 
-#     date_column='date_registered',
-#     join_table='patient_list',
-#     join_condition='patient_info.patient_id = patient_list.patient_id'  # Adjust based on your actual column names
-# )
+# except Exception as e:
 
-# monthly_active = data_count(
-#     column='status', 
-#     value='Active', 
-#     table_name='patient_info',
-#     period='monthly', 
-#     date_column='date_registered',
-#     join_table='patient_list',
-#     join_condition='patient_info.patient_id = patient_list.patient_id'  # Adjust based on your actual column names
-# )
+#     print('Error fetching active and inactive patient', e)
 
-# print('active patients: ', active_patient)
-# print('inactive patients: ', inactive_patient)
-
-# print(monthly_active)
-# print(weekly_active)
-
-# weekly_act_keys = [f'{items}' for items in weekly_active.keys()]
-# weekly_act_usable_keys = ', '.join(weekly_act_keys)
+# finally: 
+#     cursor.close()
+#     connect.close()
 
 
-# weekly_act_values = [f'{items}' for items in weekly_active.values()]
-# weekly_act_usable_values = ', '.join(weekly_act_values)
+########################REORDER TABLE##############################
+# try:
+#     connect = db()
+#     cursor = connect.cursor()
 
-# for key, value in zip(weekly_act_keys, weekly_act_values):
-#     print(key, value)
+#     cursor.execute("""
+#         SELECT item_name, reorder_quantity, stock_level_status, supplier_name FROM supply
+#         WHERE stock_level_status = 'Critical Stock Level' OR stock_level_status = 'Low Stock Level'
+#         ORDER BY stock_level_status, supplier_name
+#     """)
 
-# def data_count_no_join(column, value, table_name, period=None, date_column=None):
+#     result = cursor.fetchall()
+    
+#     name_store = []
+#     reorderqty_store = []
+#     status_store = []
+#     supplier_store = []
 
-#     from datetime import datetime, timedelta
-#     import calendar
+#     for name, reorderqty, status, supplier in result:
+#         name_store.append(name)
+#         reorderqty_store.append(reorderqty)
+#         status_store.append(status)
+#         supplier_store.append(supplier)
 
-#     try:
-#         connect = db()
-#         cursor = connect.cursor()
-        
-#         if period and date_column:
-#             today = datetime.now().date()
-            
-#             if period.lower() == 'weekly':
-#                 days_since_monday = today.weekday()
-#                 start_of_week = today - timedelta(days=days_since_monday)
-#                 end_of_week = start_of_week + timedelta(days=6)
-                
-#                 cursor.execute(f"""
-#                     SELECT COUNT(*) FROM {table_name}
-#                     WHERE {column} = '{value}' 
-#                     AND {date_column} >= '{start_of_week}' 
-#                     AND {date_column} <= '{end_of_week}'
-#                 """)
-                
-#             elif period.lower() == 'monthly':
-#                 start_of_month = today.replace(day=1)
-#                 last_day = calendar.monthrange(today.year, today.month)[1]
-#                 end_of_month = today.replace(day=last_day)
-                
-#                 cursor.execute(f"""
-#                     SELECT COUNT(*) FROM {table_name}
-#                     WHERE {column} = '{value}' 
-#                     AND {date_column} >= '{start_of_month}' 
-#                     AND {date_column} <= '{end_of_month}'
-#                 """)
+#     print(name_store)
+#     print(reorderqty_store)
+#     print(status_store)
+#     print(supplier_store)
 
-#             else:
-#                 cursor.execute(f"""
-#                     SELECT COUNT(*) FROM {table_name}
-#                     WHERE {column} = '{value}'
-#                 """)
-        
-#         count_result = cursor.fetchone()
-#         return count_result[0] if count_result else 0
-        
-#     except Exception as e:
-#         print(f'Error finding column ({column}), value ({value}) in table: {table_name}', e)
-#         return 0
-#     finally:
-#         cursor.close()
-#         connect.close()
+# except Exception as e:
 
-# lowstock_count = data_count_no_join('stock_level_status', 'Low Stock Level', 'supply', 'current', 'date_registered')
-# criticalstock_count = data_count_no_join('stock_level_status', 'Critical Stock Level', 'supply', 'current', 'date_registered')
+#     print('Error fetching reorder quantity', e)
 
-# print(lowstock_count)
-# print(criticalstock_count)
+# finally: 
+#     cursor.close()
+#     connect.close()
