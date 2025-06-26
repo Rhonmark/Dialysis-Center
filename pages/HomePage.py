@@ -7022,7 +7022,7 @@ class ReportPage(ctk.CTkFrame):
         print('Data refreshed successfully')
 
     def low_stock_graph(self, period=None, date_column=None):
-        """Show low stock items chart in LowOnStock_frame"""
+        """Show low stock items chart in LowOnStock_frame with horizontal scrolling (using yesterday usage logic)"""
         from datetime import datetime, timedelta
         import calendar
         try:
@@ -7047,17 +7047,32 @@ class ReportPage(ctk.CTkFrame):
                 SELECT item_name, current_stock FROM supply
                 WHERE stock_level_status = 'Low Stock Level'
                 {date_filter}
-                ORDER BY current_stock ASC
+                ORDER BY current_stock DESC
             """
 
             df = pd.read_sql(query, connect)
+            df = df.sort_values(by='current_stock', ascending=True) 
 
-            # Clear existing canvas if it exists
+            # Clean up existing canvas and scrollbar
             if self.low_stock_canvas:
                 self.low_stock_canvas.get_tk_widget().destroy()
+            if hasattr(self, 'low_stock_scrollbar') and self.low_stock_scrollbar:
+                self.low_stock_scrollbar.destroy()
+                self.low_stock_scrollbar = None
+
+            # Calculate dynamic figure width based on number of items 
+            num_items = len(df)
+            if num_items > 0:
+                # Base width calculation: minimum 5.5, then add width per item
+                min_width = 5.5
+                width_per_item = 0.8  # Same as yesterday usage
+                calculated_width = max(min_width, num_items * width_per_item)
+                fig_width = min(calculated_width, 20)  # Cap at maximum width
+            else:
+                fig_width = 5.5
 
             # Create new figure
-            fig = Figure(figsize=(5.2, 3.0), dpi=100)
+            fig = Figure(figsize=(fig_width, 3.0), dpi=100)
             ax = fig.add_subplot(111)
             
             tick_font = fm.FontProperties(fname='font/Inter_18pt-Italic.ttf')
@@ -7065,24 +7080,30 @@ class ReportPage(ctk.CTkFrame):
             if not df.empty:
                 # Create bar chart
                 bars = ax.bar(df['item_name'], df['current_stock'], color='#D08B40')
-                ax.tick_params(axis='x', pad=10)
+                if num_items > 7:  # Only rotate if many items 
+                    ax.tick_params(axis='x', pad=10, rotation=45)
+                else:
+                    ax.tick_params(axis='x', pad=10)
                 ax.margins(y=0.15)
                 
                 # Set font for labels
                 for label in ax.get_xticklabels() + ax.get_yticklabels():
                     label.set_fontproperties(tick_font)
-                    label.set_fontsize(9)
-                
-                # Rotate x-axis labels if too many items
-                if len(df) > 5:
-                    ax.tick_params(axis='x', rotation=45)
+                    label.set_fontsize(11)
                     
+                # Add value labels on top of bars
+                for i, bar in enumerate(bars):
+                    height = bar.get_height()
+                    ax.text(bar.get_x() + bar.get_width()/2., height + height*0.01,
+                        f'{int(height)}', ha='center', va='bottom', 
+                        fontproperties=tick_font, fontsize=9)
+                        
             else:
                 # No low stock items
                 ax.text(0.5, 0.5, 'No Low Stock Items', 
-                       horizontalalignment='center', verticalalignment='center',
-                       transform=ax.transAxes, fontsize=14, color='gray',
-                       weight='bold')
+                    horizontalalignment='center', verticalalignment='center',
+                    transform=ax.transAxes, fontsize=14, color='gray',
+                    weight='bold')
 
             # Remove spines for cleaner look
             for spine in ax.spines.values():
@@ -7093,7 +7114,39 @@ class ReportPage(ctk.CTkFrame):
             # Create canvas and embed in LowOnStock_frame
             self.low_stock_canvas = FigureCanvasTkAgg(fig, self.LowOnStock_frame)
             self.low_stock_canvas.draw()
-            self.low_stock_canvas.get_tk_widget().place(x=20, y=95, width=485, height=280)
+            
+            # Get canvas widget
+            canvas_widget = self.low_stock_canvas.get_tk_widget()
+            
+            # Store the canvas position for scrolling 
+            self.low_stock_canvas_x_position = 20
+            self.low_stock_canvas_max_width = int(fig_width * 100)
+            self.low_stock_canvas_container_width = 485  # Container width for low stock frame
+            
+            if fig_width > 5.5:  # Only add scrolling if content is wider than container
+                # Place canvas with full width
+                canvas_widget.place(x=self.low_stock_canvas_x_position, y=95, width=self.low_stock_canvas_max_width, height=280)
+                
+                # Create horizontal scrollbar
+                self.low_stock_scrollbar = ctk.CTkScrollbar(
+                    self.LowOnStock_frame,
+                    orientation="horizontal",
+                    width=465,
+                    height=20,
+                    command=self.on_low_stock_scroll
+                )
+                self.low_stock_scrollbar.place(x=30, y=360)
+                
+                # Initialize scrollbar
+                visible_portion = min(1.0, self.low_stock_canvas_container_width / self.low_stock_canvas_max_width)
+                self.low_stock_scrollbar.set(0, visible_portion)
+                
+            else:
+                # No scrolling needed, place normally
+                canvas_widget.place(x=20, y=95, width=485, height=280)
+                self.low_stock_scrollbar = None
+
+            print(f"✅ Low stock chart created with {num_items} items (width: {fig_width})")
 
         except Exception as e:
             print('Error retrieving low stock levels graph:', e)
@@ -7110,8 +7163,47 @@ class ReportPage(ctk.CTkFrame):
             if 'connect' in locals():
                 connect.close()
 
+    def on_low_stock_scroll(self, *args):
+        """Handle horizontal scrollbar for low stock chart (EXACT COPY OF YESTERDAY USAGE LOGIC)"""
+        if not hasattr(self, 'low_stock_canvas') or not self.low_stock_canvas:
+            return
+            
+        canvas_widget = self.low_stock_canvas.get_tk_widget()
+        
+        if len(args) >= 2:
+            command = args[0]
+            value = args[1]
+            
+            if command == "moveto":
+                # Scrollbar dragged to specific position
+                scroll_position = float(value)
+                # Calculate new x position based on scroll
+                max_scroll = self.low_stock_canvas_max_width - self.low_stock_canvas_container_width
+                new_x = 20 - (scroll_position * max_scroll)
+                # Ensure canvas doesn't go beyond boundaries
+                new_x = max(min(new_x, 20), -(max_scroll))
+                
+                canvas_widget.place(x=int(new_x), y=95, width=self.low_stock_canvas_max_width, height=280)
+                
+            elif command == "scroll":
+                # Scrollbar arrow clicked
+                current_x = canvas_widget.winfo_x()
+                scroll_amount = int(value) * 50  # Scroll step size
+                new_x = current_x - scroll_amount
+                
+                # Ensure canvas doesn't go beyond boundaries
+                max_scroll = self.low_stock_canvas_max_width - self.low_stock_canvas_container_width
+                new_x = max(min(new_x, 20), -(max_scroll))
+                
+                canvas_widget.place(x=int(new_x), y=95, width=self.low_stock_canvas_max_width, height=280)
+                
+                # Update scrollbar position
+                scroll_position = (20 - new_x) / max_scroll
+                visible_portion = self.low_stock_canvas_container_width / self.low_stock_canvas_max_width
+                self.low_stock_scrollbar.set(scroll_position, scroll_position + visible_portion)
+
     def critical_stock_graph(self, period=None, date_column=None):
-        """Show critical stock items chart in CriticalStock_frame"""
+        """Show critical stock items chart in CriticalStock_frame with horizontal scrolling (using yesterday usage logic)"""
         from datetime import datetime, timedelta
         import calendar
         try:
@@ -7136,17 +7228,32 @@ class ReportPage(ctk.CTkFrame):
                 SELECT item_name, current_stock FROM supply
                 WHERE stock_level_status = 'Critical Stock Level'
                 {date_filter}
-                ORDER BY current_stock ASC
+                ORDER BY current_stock DESC
             """
 
             df = pd.read_sql(query, connect)
+            df = df.sort_values(by='current_stock', ascending=True)  # Sort like yesterday usage
 
-            # Clear existing canvas if it exists
+            # Clean up existing canvas and scrollbar
             if self.critical_stock_canvas:
                 self.critical_stock_canvas.get_tk_widget().destroy()
+            if hasattr(self, 'critical_stock_scrollbar') and self.critical_stock_scrollbar:
+                self.critical_stock_scrollbar.destroy()
+                self.critical_stock_scrollbar = None
+
+            # Calculate dynamic figure width based on number of items (SAME AS YESTERDAY USAGE)
+            num_items = len(df)
+            if num_items > 0:
+                # Base width calculation: minimum 5.5, then add width per item
+                min_width = 5.5
+                width_per_item = 0.8  # Same as yesterday usage
+                calculated_width = max(min_width, num_items * width_per_item)
+                fig_width = min(calculated_width, 20)  # Cap at maximum width
+            else:
+                fig_width = 5.5
 
             # Create new figure
-            fig = Figure(figsize=(5.2, 3.0), dpi=100)
+            fig = Figure(figsize=(fig_width, 3.0), dpi=100)
             ax = fig.add_subplot(111)
 
             tick_font = fm.FontProperties(fname='font/Inter_18pt-Italic.ttf')
@@ -7154,20 +7261,30 @@ class ReportPage(ctk.CTkFrame):
             if not df.empty:
                 # Create bar chart with red color for critical items
                 bars = ax.bar(df['item_name'], df['current_stock'], color='#AC1616')
-                ax.tick_params(axis='x', pad=10)
+                if num_items > 7:  # Only rotate if many items (SAME AS YESTERDAY USAGE)
+                    ax.tick_params(axis='x', pad=10, rotation=45)
+                else:
+                    ax.tick_params(axis='x', pad=10)
                 ax.margins(y=0.15)
                 
                 # Set font for labels
                 for label in ax.get_xticklabels() + ax.get_yticklabels():
                     label.set_fontproperties(tick_font)
-                    label.set_fontsize(9)
+                    label.set_fontsize(11)
                     
+                # Add value labels on top of bars
+                for i, bar in enumerate(bars):
+                    height = bar.get_height()
+                    ax.text(bar.get_x() + bar.get_width()/2., height + height*0.01,
+                        f'{int(height)}', ha='center', va='bottom', 
+                        fontproperties=tick_font, fontsize=9)
+                        
             else:
                 # No critical stock items
                 ax.text(0.5, 0.5, 'No Critical Stock Items', 
-                       horizontalalignment='center', verticalalignment='center',
-                       transform=ax.transAxes, fontsize=14, color='gray',
-                       weight='bold')
+                    horizontalalignment='center', verticalalignment='center',
+                    transform=ax.transAxes, fontsize=14, color='gray',
+                    weight='bold')
 
             # Remove spines for cleaner look
             for spine in ax.spines.values():
@@ -7178,7 +7295,39 @@ class ReportPage(ctk.CTkFrame):
             # Create canvas and embed in CriticalStock_frame
             self.critical_stock_canvas = FigureCanvasTkAgg(fig, self.CriticalStock_frame)
             self.critical_stock_canvas.draw()
-            self.critical_stock_canvas.get_tk_widget().place(x=20, y=95, width=485, height=280)
+            
+            # Get canvas widget
+            canvas_widget = self.critical_stock_canvas.get_tk_widget()
+            
+            # Store the canvas position for scrolling (SAME AS YESTERDAY USAGE)
+            self.critical_stock_canvas_x_position = 20
+            self.critical_stock_canvas_max_width = int(fig_width * 100)
+            self.critical_stock_canvas_container_width = 485  # Container width for critical stock frame
+            
+            if fig_width > 5.5:  # Only add scrolling if content is wider than container (SAME AS YESTERDAY USAGE)
+                # Place canvas with full width
+                canvas_widget.place(x=self.critical_stock_canvas_x_position, y=95, width=self.critical_stock_canvas_max_width, height=280)
+                
+                # Create horizontal scrollbar
+                self.critical_stock_scrollbar = ctk.CTkScrollbar(
+                    self.CriticalStock_frame,
+                    orientation="horizontal",
+                    width=465,
+                    height=20,
+                    command=self.on_critical_stock_scroll
+                )
+                self.critical_stock_scrollbar.place(x=30, y=360)
+                
+                # Initialize scrollbar (SAME AS YESTERDAY USAGE)
+                visible_portion = min(1.0, self.critical_stock_canvas_container_width / self.critical_stock_canvas_max_width)
+                self.critical_stock_scrollbar.set(0, visible_portion)
+                
+            else:
+                # No scrolling needed, place normally
+                canvas_widget.place(x=20, y=95, width=485, height=280)
+                self.critical_stock_scrollbar = None
+
+            print(f"✅ Critical stock chart created with {num_items} items (width: {fig_width})")
 
         except Exception as e:
             print('Error retrieving critical stock levels graph:', e)
@@ -7194,6 +7343,45 @@ class ReportPage(ctk.CTkFrame):
         finally:
             if 'connect' in locals():
                 connect.close()
+
+    def on_critical_stock_scroll(self, *args):
+        """Handle horizontal scrollbar for critical stock chart (EXACT COPY OF YESTERDAY USAGE LOGIC)"""
+        if not hasattr(self, 'critical_stock_canvas') or not self.critical_stock_canvas:
+            return
+            
+        canvas_widget = self.critical_stock_canvas.get_tk_widget()
+        
+        if len(args) >= 2:
+            command = args[0]
+            value = args[1]
+            
+            if command == "moveto":
+                # Scrollbar dragged to specific position
+                scroll_position = float(value)
+                # Calculate new x position based on scroll
+                max_scroll = self.critical_stock_canvas_max_width - self.critical_stock_canvas_container_width
+                new_x = 20 - (scroll_position * max_scroll)
+                # Ensure canvas doesn't go beyond boundaries
+                new_x = max(min(new_x, 20), -(max_scroll))
+                
+                canvas_widget.place(x=int(new_x), y=95, width=self.critical_stock_canvas_max_width, height=280)
+                
+            elif command == "scroll":
+                # Scrollbar arrow clicked
+                current_x = canvas_widget.winfo_x()
+                scroll_amount = int(value) * 50  # Scroll step size
+                new_x = current_x - scroll_amount
+                
+                # Ensure canvas doesn't go beyond boundaries
+                max_scroll = self.critical_stock_canvas_max_width - self.critical_stock_canvas_container_width
+                new_x = max(min(new_x, 20), -(max_scroll))
+                
+                canvas_widget.place(x=int(new_x), y=95, width=self.critical_stock_canvas_max_width, height=280)
+                
+                # Update scrollbar position
+                scroll_position = (20 - new_x) / max_scroll
+                visible_portion = self.critical_stock_canvas_container_width / self.critical_stock_canvas_max_width
+                self.critical_stock_scrollbar.set(scroll_position, scroll_position + visible_portion)
 
     def destroy(self):
         """Clean up when the widget is destroyed"""
