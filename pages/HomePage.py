@@ -2652,7 +2652,8 @@ class PatientPage(ctk.CTkFrame):
         self.dropdown_frame = ctk.CTkFrame(self.navbar, fg_color="#f0f0f0", corner_radius=8, width=150, height=100)
         self.dropdown_frame.configure(border_width=1, border_color="gray")
         self.dropdown_frame.place_forget()
-
+        
+        self.notif_frame = NotificationFrame(self)
         notif_img = ctk.CTkImage(light_image=Image.open("assets/notif.png"), size=(42, 42))
         settings_img = ctk.CTkImage(light_image=Image.open("assets/settingsv2.png"), size=(42, 42))
 
@@ -4410,6 +4411,7 @@ class SupplyPage(ctk.CTkFrame):
         self.dropdown_frame.configure(border_width=1, border_color="gray")
         self.dropdown_frame.place_forget()
 
+        self.notif_frame = NotificationFrame(self)
         notif_img = ctk.CTkImage(light_image=Image.open("assets/notif.png"), size=(42, 42))
         settings_img = ctk.CTkImage(light_image=Image.open("assets/settingsv2.png"), size=(42, 42))
 
@@ -6194,46 +6196,8 @@ class ReportPage(ctk.CTkFrame):
                                                              fg_color="transparent")
         self.patient_scrollable_frame.place(x=10, y=55)
         
-        # Sample patient data for demonstration
-        sample_patients = [
-            ("John Doe", "Active"),
-            ("Jane Smith", "Inactive"),
-            ("Michael Johnson", "Active"),
-            ("Sarah Williams", "Active"),
-            ("David Brown", "Inactive"),
-            ("Lisa Davis", "Active"),
-            ("Robert Wilson", "Active"),
-            ("Emily Taylor", "Inactive"),
-            ("Anna Rodriguez", "Active"),
-            ("Mark Thompson", "Inactive"),
-        ]
-        
-        # Add patient rows
-        for i, (name, status) in enumerate(sample_patients):
-            # Create row frame
-            row_frame = ctk.CTkFrame(self.patient_scrollable_frame,
-                                   width=380,
-                                   height=35,
-                                   corner_radius=5,
-                                   fg_color="#F8F9FA" if i % 2 == 0 else "#FFFFFF")
-            row_frame.pack(fill="x", pady=2, padx=5)
-            row_frame.pack_propagate(False)
-            
-            # Patient Name
-            name_label = ctk.CTkLabel(row_frame, text=name,
-                                    font=("Poppins Regular", 10),
-                                    text_color="#333333",
-                                    width=220,
-                                    anchor="w")
-            name_label.place(x=15, y=7)
-            
-            # Status with color coding
-            status_color = "#88BD8E" if status == "Active" else "#F25B5B"
-            status_label = ctk.CTkLabel(row_frame, text=status,
-                                      font=("Poppins Regular", 10),
-                                      text_color=status_color,
-                                      width=80)
-            status_label.place(x=260, y=7)
+        # Load initial patient data
+        self.load_patient_data()
 
 #------------------------------------------------------------------------------------------------------------------------------------------
     #Supply Table 
@@ -6278,67 +6242,8 @@ class ReportPage(ctk.CTkFrame):
                                                             fg_color="transparent")
         self.supply_scrollable_frame.place(x=10, y=55)
         
-        # Sample supply data for demonstration
-        sample_supplies = [
-            ("Paracetamol 500mg", "50", "Low Stock", "MedSupply Co."),
-            ("Medical Bandages", "100", "In Stock", "HealthCare Ltd."),
-            ("Disposable Syringes", "25", "Critical", "MedEquip Inc."),
-            ("Sterile Gauze Pads", "75", "In Stock", "FirstAid Supply"),
-            ("Digital Thermometers", "10", "Low Stock", "MedTech Corp."),
-            ("Antiseptic Solution", "30", "In Stock", "PharmaCare"),
-            ("IV Fluid Bags", "15", "Critical", "MedSupply Co."),
-            ("Latex Gloves", "200", "In Stock", "SafetyFirst Ltd."),
-            ("Blood Pressure Cuffs", "8", "Low Stock", "MedEquip Inc."),
-            ("Surgical Masks", "150", "In Stock", "HealthCare Ltd."),
-        ]
-        
-        # Add supply rows
-        for i, (item, reorder_qty, status, supplier) in enumerate(sample_supplies):
-            # Create row frame
-            row_frame = ctk.CTkFrame(self.supply_scrollable_frame,
-                                   width=700,
-                                   height=35,
-                                   corner_radius=5,
-                                   fg_color="#F8F9FA" if i % 2 == 0 else "#FFFFFF")
-            row_frame.pack(fill="x", pady=2, padx=5)
-            row_frame.pack_propagate(False)
-            
-            # Item Name
-            item_label = ctk.CTkLabel(row_frame, text=item,
-                                    font=("Poppins Regular", 10),
-                                    text_color="#333333",
-                                    width=140,
-                                    anchor="w")
-            item_label.place(x=15, y=7)
-            
-            # Reorder Quantity
-            reorder_label = ctk.CTkLabel(row_frame, text=reorder_qty,
-                                       font=("Poppins Regular", 10),
-                                       text_color="#333333",
-                                       width=70)
-            reorder_label.place(x=170, y=7)
-            
-            # Status with color coding
-            if status == "Critical":
-                status_color = "#AC1616"
-            elif status == "Low Stock":
-                status_color = "#D08B40"
-            else:
-                status_color = "#88BD8E"
-                
-            status_label = ctk.CTkLabel(row_frame, text=status,
-                                      font=("Poppins Regular", 10),
-                                      text_color=status_color,
-                                      width=100)
-            status_label.place(x=280, y=7)
-            
-            # Supplier
-            supplier_label = ctk.CTkLabel(row_frame, text=supplier,
-                                        font=("Poppins Regular", 10),
-                                        text_color="#333333",
-                                        width=160,
-                                        anchor="w")
-            supplier_label.place(x=480, y=7)
+        # Load initial supply data
+        self.load_supply_data()
 
 #------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -6832,9 +6737,9 @@ class ReportPage(ctk.CTkFrame):
 
             self.view_label.configure(text=str(viewing_date))
             
-            # Optionally refresh the patient table to show filtered data
-            # period, date_column
-            # self.load_patient_data()
+            # Refresh tables with new data based on selection
+            self.load_patient_data()
+            self.load_supply_data()
             
             print(f"Updated counts - Active: {active_count}, Inactive: {inactive_count}")
 
@@ -6970,23 +6875,18 @@ class ReportPage(ctk.CTkFrame):
 
         # Load initial graphs
 
-    """def load_patient_data(self):
-        Load patient data with only Name and Status columns
+    def load_patient_data(self):
+        """Load patient data from database with Name and Status columns"""
         try:    
             connect = db()
             cursor = connect.cursor()
             
-            # Query to get all patients with concatenated full name 
-            cursor.execute(
-                SELECT CONCAT(first_name, 
-                            CASE WHEN middle_name IS NOT NULL AND middle_name != '' 
-                                THEN CONCAT(' ', middle_name, ' ') 
-                                ELSE ' ' END, 
-                            last_name) as full_name, 
-                    status 
-                FROM patient_info 
-                ORDER BY first_name
-            )
+            # Query to get all patients with patient name and status
+            cursor.execute("""
+                SELECT pl.patient_name, pi.status FROM patient_list pl
+                JOIN patient_info pi ON pl.patient_id = pi.patient_id
+                ORDER BY pi.status
+            """)
             patients = cursor.fetchall()
             
             # Clear existing data
@@ -7008,7 +6908,7 @@ class ReportPage(ctk.CTkFrame):
                 name_label = ctk.CTkLabel(row_frame, text=name,
                                         font=("Poppins Regular", 10),
                                         text_color="#333333",
-                                        width=200,  
+                                        width=220,  
                                         anchor="w")
                 name_label.place(x=15, y=7) 
                 
@@ -7032,63 +6932,96 @@ class ReportPage(ctk.CTkFrame):
             if 'cursor' in locals():
                 cursor.close()
             if 'connect' in locals():
-                connect.close()"""
+                connect.close()
 
-    def load_backup_data(self):
-        """Load static backup data for demonstration"""
-        # Static sample data
-        backup_data = [
-            (12, "SE.sql", "2025-06-13"),
-            (13, "Patient_Backup.sql", "2025-06-12"),
-            (14, "Supply_Backup.sql", "2025-06-11"),
-            (15, "Full_Backup.sql", "2025-06-10"),
-            (16, "Daily_Backup.sql", "2025-06-09"),
-            (17, "Weekly_Backup.sql", "2025-06-08"),
-            (18, "Monthly_Backup.sql", "2025-06-07"),
-        ]
-        
-        # Clear existing data
-        for widget in self.backup_scrollable_frame.winfo_children():
-            widget.destroy()
-        
-        # Add backup rows
-        for i, (backup_id, name, date) in enumerate(backup_data):
-            # Create row frame
-            row_frame = ctk.CTkFrame(self.backup_scrollable_frame,
-                                   width=540,
-                                   height=35,
-                                   corner_radius=5,
-                                   fg_color="#F8F9FA" if i % 2 == 0 else "#FFFFFF")
-            row_frame.pack(fill="x", pady=2, padx=5)
-            row_frame.pack_propagate(False)
+    def load_supply_data(self):
+        """Load supply data from database showing items that need reordering"""
+        try:
+            connect = db()
+            cursor = connect.cursor()
             
-            # Backup ID
-            id_label = ctk.CTkLabel(row_frame, text=str(backup_id),
-                                  font=("Poppins Regular", 10),
-                                  text_color="#333333",
-                                  width=80)
-            id_label.place(x=10, y=7)
+            # Query to get supplies that are low stock or critical stock
+            cursor.execute("""
+                SELECT item_name, reorder_quantity, stock_level_status, supplier_name FROM supply
+                WHERE stock_level_status = 'Critical Stock Level' OR stock_level_status = 'Low Stock Level'
+                ORDER BY stock_level_status, supplier_name
+            """)
+            supplies = cursor.fetchall()
             
-            # Backup Name
-            name_label = ctk.CTkLabel(row_frame, text=name,
-                                    font=("Poppins Regular", 10),
-                                    text_color="#333333",
-                                    width=200)
-            name_label.place(x=150, y=7)
+            # Clear existing data
+            for widget in self.supply_scrollable_frame.winfo_children():
+                widget.destroy()
             
-            # Date
-            date_label = ctk.CTkLabel(row_frame, text=date,
-                                    font=("Poppins Regular", 10),
-                                    text_color="#333333",
-                                    width=100)
-            date_label.place(x=400, y=7)
-
+            # Add supply rows
+            for i, (item_name, reorder_qty, status, supplier_name) in enumerate(supplies):
+                # Create row frame
+                row_frame = ctk.CTkFrame(self.supply_scrollable_frame,
+                                       width=700,
+                                       height=35,
+                                       corner_radius=5,
+                                       fg_color="#F8F9FA" if i % 2 == 0 else "#FFFFFF")
+                row_frame.pack(fill="x", pady=2, padx=5)
+                row_frame.pack_propagate(False)
+                
+                # Item Name
+                item_label = ctk.CTkLabel(row_frame, text=item_name,
+                                        font=("Poppins Regular", 10),
+                                        text_color="#333333",
+                                        width=140,
+                                        anchor="w")
+                item_label.place(x=15, y=7)
+                
+                # Reorder Quantity
+                reorder_label = ctk.CTkLabel(row_frame, text=str(reorder_qty),
+                                           font=("Poppins Regular", 10),
+                                           text_color="#333333",
+                                           width=70)
+                reorder_label.place(x=170, y=7)
+                
+                # Status with color coding
+                if status == "Critical Stock Level":
+                    status_color = "#AC1616"
+                elif status == "Low Stock Level":
+                    status_color = "#D08B40"
+                else:
+                    status_color = "#88BD8E"
+                    
+                status_label = ctk.CTkLabel(row_frame, text=status,
+                                          font=("Poppins Regular", 10),
+                                          text_color=status_color,
+                                          width=100)
+                status_label.place(x=280, y=7)
+                
+                # Supplier - Handle blank/empty supplier names
+                display_supplier = supplier_name if supplier_name and supplier_name.strip() else "None"
+                supplier_label = ctk.CTkLabel(row_frame, text=display_supplier,
+                                            font=("Poppins Regular", 10),
+                                            text_color="#333333",
+                                            width=160,
+                                            anchor="w")
+                supplier_label.place(x=480, y=7)
+                
+        except Exception as e:
+            print(f'Error loading supply data: {e}')
+            # Show error message
+            error_label = ctk.CTkLabel(self.supply_scrollable_frame,
+                                    text=f"Error loading data: {str(e)}",
+                                    font=("Arial", 12),
+                                    text_color="red")
+            error_label.pack(pady=20)
+        finally:
+            if 'cursor' in locals():
+                cursor.close()
+            if 'connect' in locals():
+                connect.close()
+                
     def refresh_data(self):
         """Refresh all data counts and update the labels"""
 
         # Refresh patient table
-        # self.load_patient_data()
-
+        self.load_patient_data()
+        # Refresh supply table
+        self.load_supply_data()
         print('Data refreshed successfully')
 
     def low_stock_graph(self, period=None, date_column=None):
