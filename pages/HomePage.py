@@ -2684,16 +2684,22 @@ class PatientPage(ctk.CTkFrame):
 
         self.hovered_row = None
 
+        #Button Frame
         self.button_frame = ctk.CTkFrame(self, fg_color="#FFFFFF")
 
+        button_font = ("Merriweather Bold", 15)
         # Add Button
         self.add_button = ctk.CTkButton(
             self.button_frame,
             text="Add",
-            font=ctk.CTkFont("Arial", 16, "bold"),
+            text_color="#FFFFFF",
+            fg_color="#1A374D",
+            bg_color="#FFFFFF",
+            font=button_font,
+            corner_radius=20,
             command=self.open_add_window,
             width=180,  
-            height=50    
+            height=40    
         )
         self.add_button.pack(side="left", padx=10)
 
@@ -2701,13 +2707,17 @@ class PatientPage(ctk.CTkFrame):
         self.sort_dropdown = ctk.CTkOptionMenu(
             self.button_frame,
             values=["Patient ID", "Patient Name", "Age", "Gender", "Type of Access", "Date Registered"],
-            font=ctk.CTkFont("Arial", 16, "bold"),
+            font=button_font,
             width=180,
-            height=50,
+            button_color="#1A374D",
+            height=40,
+            fg_color="#1A374D",
+            bg_color="#FFFFFF",
+            corner_radius=20,
             command=self.sort_by_option_simple
         )
         self.sort_dropdown.pack(side="left", padx=10)
-        self.sort_dropdown.set("Sort By")
+        self.sort_dropdown.set("        Sort By")
  
          # Search container
         self.search_container = ctk.CTkFrame(
@@ -2787,16 +2797,17 @@ class PatientPage(ctk.CTkFrame):
         )
         date_label.place(x=60, rely=0.5, anchor="w")
 
+        button_font = ("Merriweather Bold", 15)
         # Edit Usage Button
         self.edit_usage_button = ctk.CTkButton(
             self.navbar,
             text="Edit Usage",
-            font=("Arial", 16, "bold"),
-            width=150,
+            font=button_font,
+            text_color="#FFFFFF",
+            width=180,
             height=40,
             fg_color="#1A374D",
             hover_color="#1A374D",
-            text_color="white",
             corner_radius=20,
             command=self.edit_usage_clicked
         )
@@ -2836,23 +2847,29 @@ class PatientPage(ctk.CTkFrame):
         # Setup search functionality
         self.setup_search_functionality()
 
-        # Detailed info frame
+    # Detailed info frame
         self.detailed_info_frame = ctk.CTkFrame(self, fg_color="#E8FBFC")
 
+        title_font=("Merriweather Bold",25)
+        label_font=("Merriweather Light",15)
+        output_font=("Merriweather Sans Bold",18)
+
+        #Photo Frame
         self.photo_frame = ctk.CTkFrame(
             self.detailed_info_frame,
             width=400,
-            height=200,
+            height=400,
             fg_color="white",
             corner_radius=20
         )
-        self.photo_frame.place(x=50, y=80)
-        self.photo_frame.place_forget()
+        
+        self.photo_frame.place(x=200,y=200)
+        
 
         self.top_frame = ctk.CTkFrame(
             self.photo_frame,
             width=400,
-            height=100,
+            height=250,
             fg_color="#68EDC6",
             corner_radius=0
         )
@@ -2864,109 +2881,115 @@ class PatientPage(ctk.CTkFrame):
             font=("Merriweather", 14),
             text_color="black"
         )
-        self.patient_id_label.place(relx=0.5, rely=0.65, anchor="center")
+        self.patient_id_label.place(relx=0.5, rely=0.70, anchor="center")
 
-        self.patient_id_value = ctk.CTkLabel(
-            self.photo_frame,
+        self.patient_id_value = ctk.CTkLabel(self.photo_frame,
             text="",
             font=("Merriweather", 14),
             text_color="black"
         )
         self.patient_id_value.place(relx=0.5, rely=0.80, anchor="center")
 
+        #PATIENT INFROMATION
         info_frame = ctk.CTkFrame(
             self.detailed_info_frame,
             width=950,
             height=500,
-            fg_color="white",
-            corner_radius=20
+            fg_color="#FFFFFF",
+            corner_radius=25,
+            bg_color="#E8FBFC"
         )
-        info_frame.place(x=600, y=80) 
+        info_frame.place(x=550, y=150) 
 
         left_bar = ctk.CTkFrame(
             info_frame,
-            width=20,
+            width=15,
             height=500,
             fg_color="#68EDC6",
-            corner_radius=0
+            corner_radius=20
         )
-        left_bar.place(x=0, y=0)
+        left_bar.place(x=0)
 
-        title_label = ctk.CTkLabel(info_frame, text="Patient Info", font=("Merriweather", 20, "bold"))
+        
+
+        title_label = ctk.CTkLabel(info_frame, text="Patient Info", font=title_font)
         title_label.place(x=50, y=20)
 
-        self.lastname_label = ctk.CTkLabel(info_frame, text="Last Name", font=("Merriweather", 14))
-        self.lastname_label.place(x=50, y=70)
-        self.lastname_labelv = ctk.CTkLabel(info_frame, text="Lopez", font=("Merriweather", 14, "bold"))
-        self.lastname_labelv.place(x=50, y=90)
+        self.lastname_label = ctk.CTkLabel(info_frame, text="Last Name", font=label_font,height=15)
+        self.lastname_label.place(relx=0.125, rely=0.2)
+        self.lastname_labelv = ctk.CTkLabel(info_frame, text="Lopez", font=output_font,height=18)
+        self.lastname_labelv.place(relx=0.125, rely=0.26)
 
-        self.firstname_label = ctk.CTkLabel(info_frame, text="First Name", font=("Merriweather", 14))
-        self.firstname_label.place(x=250, y=70)
-        self.firstname_labelv = ctk.CTkLabel(info_frame, text="Juan", font=("Merriweather", 14, "bold"))
-        self.firstname_labelv.place(x=250, y=90)
+        self.firstname_label = ctk.CTkLabel(info_frame, text="First Name", font=label_font,height=15)
+        self.firstname_label.place(relx=0.35, rely=0.2)
+        self.firstname_labelv = ctk.CTkLabel(info_frame, text="Juan", font=output_font,height=18)
+        self.firstname_labelv.place(relx=0.35, rely=0.26)
 
-        self.middlename_label = ctk.CTkLabel(info_frame, text="Middle Name", font=("Merriweather", 14))
-        self.middlename_label.place(x=500, y=70)
-        self.middlename_labelv = ctk.CTkLabel(info_frame, text="Carlos", font=("Merriweather", 14, "bold"))
-        self.middlename_labelv.place(x=500, y=90)
+        self.middlename_label = ctk.CTkLabel(info_frame, text="Middle Name", font=label_font,height=15)
+        self.middlename_label.place(relx=0.575, rely=0.2)
+        self.middlename_labelv = ctk.CTkLabel(info_frame, text="Carlos", font=output_font,height=18)
+        self.middlename_labelv.place(relx=0.575, rely=0.26)
 
-        self.status_label = ctk.CTkLabel(info_frame, text="Status", font=("Merriweather", 14))
-        self.status_label.place(x=50, y=120)
-        self.status_labelv = ctk.CTkLabel(info_frame, text="Active", font=("Merriweather", 14, "bold"))
-        self.status_labelv.place(x=50, y=140)
+        self.status_label = ctk.CTkLabel(info_frame, text="Status", font=label_font,height=15)
+        self.status_label.place(relx=0.125, rely=0.4)
+        self.status_labelv = ctk.CTkLabel(info_frame, text="Active", font=output_font,height=18)
+        self.status_labelv.place(relx=0.125, rely=0.46)
 
-        self.access_type_label = ctk.CTkLabel(info_frame, text="Type of Access", font=("Merriweather", 14))
-        self.access_type_label.place(x=250, y=120)
-        self.access_type_labelv = ctk.CTkLabel(info_frame, text="Admin", font=("Merriweather", 14, "bold"))
-        self.access_type_labelv.place(x=250, y=140)
+        self.access_type_label = ctk.CTkLabel(info_frame, text="Type of Access", font=label_font,height=15)
+        self.access_type_label.place(relx=0.35, rely=0.4)
+        self.access_type_labelv = ctk.CTkLabel(info_frame, text="Admin", font=output_font,height=18)
+        self.access_type_labelv.place(relx=0.35, rely=0.46)
 
-        self.birthdate_label = ctk.CTkLabel(info_frame, text="Birthdate", font=("Merriweather", 14))
-        self.birthdate_label.place(x=500, y=120)
-        self.birthdate_labelv = ctk.CTkLabel(info_frame, text="01/01/1980", font=("Merriweather", 14, "bold"))
-        self.birthdate_labelv.place(x=500, y=140)
+        self.birthdate_label = ctk.CTkLabel(info_frame, text="Birthdate", font=label_font,height=15)
+        self.birthdate_label.place(relx=0.575, rely=0.4)
+        self.birthdate_labelv = ctk.CTkLabel(info_frame, text="01/01/1980", font=output_font,height=18)
+        self.birthdate_labelv.place(relx=0.575, rely=0.46)
 
-        self.age_label = ctk.CTkLabel(info_frame, text="Age", font=("Merriweather", 14))
-        self.age_label.place(x=750, y=120)
-        self.age_labelv = ctk.CTkLabel(info_frame, text="45", font=("Merriweather", 14, "bold"))
-        self.age_labelv.place(x=750, y=140)
+        self.age_label = ctk.CTkLabel(info_frame, text="Age", font=label_font,height=15)
+        self.age_label.place(relx=0.8, rely=0.4)
+        self.age_labelv = ctk.CTkLabel(info_frame, text="45", font=output_font,height=18)
+        self.age_labelv.place(relx=0.8, rely=0.46)
 
-        self.gender_label = ctk.CTkLabel(info_frame, text="Gender", font=("Merriweather", 14))
-        self.gender_label.place(x=50, y=170)
-        self.gender_labelv = ctk.CTkLabel(info_frame, text="Male", font=("Merriweather", 14, "bold"))
-        self.gender_labelv.place(x=50, y=190)
+        self.gender_label = ctk.CTkLabel(info_frame, text="Gender", font=label_font,height=15)
+        self.gender_label.place(relx=0.125, rely=0.6)
+        self.gender_labelv = ctk.CTkLabel(info_frame, text="Male", font=output_font,height=18)
+        self.gender_labelv.place(relx=0.125, rely=0.66)
 
-        self.height_label = ctk.CTkLabel(info_frame, text="Height", font=("Merriweather", 14))
-        self.height_label.place(x=250, y=170)
-        self.height_labelv = ctk.CTkLabel(info_frame, text="5'8\"", font=("Merriweather", 14, "bold"))
-        self.height_labelv.place(x=250, y=190)
+        self.height_label = ctk.CTkLabel(info_frame, text="Height", font=label_font,height=15)
+        self.height_label.place(relx=0.35, rely=0.6)
+        self.height_labelv = ctk.CTkLabel(info_frame, text="5'8\"", font=output_font,height=18)
+        self.height_labelv.place(relx=0.35, rely=0.66)
 
-        self.civil_status_label = ctk.CTkLabel(info_frame, text="Civil Status", font=("Merriweather", 14))
-        self.civil_status_label.place(x=500, y=170)
-        self.civil_status_labelv = ctk.CTkLabel(info_frame, text="Married", font=("Merriweather", 14, "bold"))
-        self.civil_status_labelv.place(x=500, y=190)
+        self.civil_status_label = ctk.CTkLabel(info_frame, text="Civil Status", font=label_font,height=15)
+        self.civil_status_label.place(relx=0.575, rely=0.6)
+        self.civil_status_labelv = ctk.CTkLabel(info_frame, text="Married", font=output_font,height=18)
+        self.civil_status_labelv.place(relx=0.575, rely=0.66)
 
-        self.religion_label = ctk.CTkLabel(info_frame, text="Religion", font=("Merriweather", 14))
-        self.religion_label.place(x=750, y=170)
-        self.religion_labelv = ctk.CTkLabel(info_frame, text="Christian", font=("Merriweather", 14, "bold"))
-        self.religion_labelv.place(x=750, y=190)
+        self.religion_label = ctk.CTkLabel(info_frame, text="Religion", font=label_font,height=15)
+        self.religion_label.place(relx=0.8, rely=0.6)
+        self.religion_labelv = ctk.CTkLabel(info_frame, text="Christian", font=output_font,height=18)
+        self.religion_labelv.place(relx=0.8, rely=0.66)
 
-        self.address_label = ctk.CTkLabel(info_frame, text="Complete Address", font=("Merriweather", 14))
-        self.address_label.place(x=50, y=230)
-        self.address_labelv = ctk.CTkLabel(info_frame, text="1234 Elm St, Quezon City", font=("Merriweather", 14, "bold"))
-        self.address_labelv.place(x=50, y=250)
+        self.address_label = ctk.CTkLabel(info_frame, text="Complete Address", font=label_font,height=15)
+        self.address_label.place(relx=0.125, rely=0.8)
+        self.address_labelv = ctk.CTkLabel(info_frame, text="1234 Elm St, Quezon City", font=output_font,height=18)
+        self.address_labelv.place(relx=0.125, rely=0.86)
 
         contact_options_panel = ctk.CTkFrame(
             self.detailed_info_frame,
             width=400,
             height=400,
-            fg_color="white",
-            corner_radius=20
+            fg_color="#FFFFFF",
+            corner_radius=25,
+            bg_color="#E8FBFC"
         )
-        contact_options_panel.place(x=50, y=350)  
+        contact_options_panel.place(x=80, y=600)  
+
+        button_font = ("Merriweather Bold", 15)
 
         left_bar = ctk.CTkFrame(
             contact_options_panel,
-            width=20,
+            width=15,
             height=400,
             fg_color="#1A374D",
             corner_radius=0
@@ -2976,7 +2999,8 @@ class PatientPage(ctk.CTkFrame):
         patient_history_btn = ctk.CTkButton(
             contact_options_panel,
             text="Patient History",
-            font=("Merriweather", 14),
+            text_color="#FFFFFF",
+            font=button_font,
             corner_radius=20,
             width=250,
             height=40,
@@ -2989,7 +3013,8 @@ class PatientPage(ctk.CTkFrame):
         medication_btn = ctk.CTkButton(
             contact_options_panel,
             text="Medication",
-            font=("Merriweather", 14),
+            text_color="#FFFFFF",
+            font=button_font,
             corner_radius=20,
             width=250,
             height=40,
@@ -3002,7 +3027,8 @@ class PatientPage(ctk.CTkFrame):
         contact_btn = ctk.CTkButton(
             contact_options_panel,
             text="Contact",
-            font=("Merriweather", 14),
+            text_color="#FFFFFF",
+            font=button_font,
             corner_radius=20,
             width=250,
             height=40,
@@ -3015,7 +3041,8 @@ class PatientPage(ctk.CTkFrame):
         quantity_used_btn = ctk.CTkButton(
             contact_options_panel,
             text="Quantity Used",
-            font=("Merriweather", 14),
+            text_color="#FFFFFF",
+            font=button_font,
             corner_radius=20,
             width=250,
             height=40,
@@ -3025,87 +3052,80 @@ class PatientPage(ctk.CTkFrame):
         )
         quantity_used_btn.place(x=80, y=290)
 
+
+        #Philhealth Info
         philhealth_info_panel = ctk.CTkFrame(
             self.detailed_info_frame,
             width=950,
             height=300,
             fg_color="white",
-            corner_radius=20
+            corner_radius=20,
+            bg_color="#E8FBFC"
         )
-        philhealth_info_panel.place(x=600, y=600) 
+        philhealth_info_panel.place(x=550, y=700) 
 
         left_bar = ctk.CTkFrame(
             philhealth_info_panel,
-            width=20,
+            width=15,
             height=300,
             fg_color="#68EDC6",
-            corner_radius=0
+            corner_radius=20
         )
         left_bar.place(x=0, y=0)
 
-        title_label = ctk.CTkLabel(
-            philhealth_info_panel,
-            text="Phil Health and Other Info",
-            font=("Merriweather", 20, "bold")
-        )
+        title_label = ctk.CTkLabel(philhealth_info_panel,text="Phil Health and Other Info",font=title_font)
         title_label.place(x=50, y=20)
 
-        self.philhealth_number_label = ctk.CTkLabel(philhealth_info_panel,text="PhilHealth Number",font=("Merriweather", 14))
-        self.philhealth_number_label.place(x=50, y=70)
+        self.philhealth_number_label = ctk.CTkLabel(philhealth_info_panel,text="PhilHealth Number",font=label_font,height=15)
+        self.philhealth_number_label.place(relx=.125,rely=.3)
+        self.philhealth_number_labelv = ctk.CTkLabel(philhealth_info_panel,text="PH1234567890",font=output_font,height=18)
+        self.philhealth_number_labelv.place(relx=.125,rely=.4)
 
-        self.philhealth_number_labelv = ctk.CTkLabel(philhealth_info_panel,text="PH1234567890",font=("Merriweather", 14, "bold"))
-        self.philhealth_number_labelv.place(x=50, y=90)
+        self.membership_label = ctk.CTkLabel(philhealth_info_panel,text="Membership",font=label_font,height=15)
+        self.membership_label.place(relx=.35,rely=.3)
+        self.membership_labelv = ctk.CTkLabel(philhealth_info_panel,text="Active",font=output_font,height=18)
+        self.membership_labelv.place(relx=.35,rely=.4)
 
-        self.membership_label = ctk.CTkLabel(philhealth_info_panel,text="Membership",font=("Merriweather", 14))
-        self.membership_label.place(x=300, y=70)
+        self.pwd_label = ctk.CTkLabel(philhealth_info_panel,text="PWD",font=label_font,height=15)
+        self.pwd_label.place(relx=.125,rely=.6)
+        self.pwd_labelv = ctk.CTkLabel(philhealth_info_panel,text="Yes",font=output_font,height=18)
+        self.pwd_labelv.place(relx=.125,rely=.7)
 
-        self.membership_labelv = ctk.CTkLabel(philhealth_info_panel,text="Active",font=("Merriweather", 14, "bold"))
-        self.membership_labelv.place(x=300, y=90)
+        self.pwd_id_label = ctk.CTkLabel(philhealth_info_panel,text="PWD ID No.",font=label_font,height=15)
+        self.pwd_id_label.place(relx=.35,rely=.6)
+        self.pwd_id_labelv = ctk.CTkLabel(philhealth_info_panel,text="PWD987654321",font=output_font,height=18)
+        self.pwd_id_labelv.place(relx=.35,rely=.7)
 
-        self.pwd_label = ctk.CTkLabel(philhealth_info_panel,text="PWD",font=("Merriweather", 14))
-        self.pwd_label.place(x=50, y=120)
+        self.senior_label = ctk.CTkLabel(philhealth_info_panel,text="SENIOR",font=label_font,height=15)
+        self.senior_label.place(relx=.575,rely=.6)
+        self.senior_labelv = ctk.CTkLabel(philhealth_info_panel,text="No",font=output_font,height=18)
+        self.senior_labelv.place(relx=.575,rely=.7)
 
-        self.pwd_labelv = ctk.CTkLabel(philhealth_info_panel,text="Yes",font=("Merriweather", 14, "bold"))
-        self.pwd_labelv.place(x=50, y=140)
+        self.senior_id_label = ctk.CTkLabel(philhealth_info_panel,text="SENIOR ID No.",font=label_font,height=15)
+        self.senior_id_label.place(relx=.8,rely=.6)
+        self.senior_id_labelv = ctk.CTkLabel(philhealth_info_panel,text="None",font=output_font,height=18)
+        self.senior_id_labelv.place(relx=.8,rely=.7)
 
-        self.pwd_id_label = ctk.CTkLabel(philhealth_info_panel,text="PWD ID Number",font=("Merriweather", 14))
-        self.pwd_id_label.place(x=300, y=120)
-
-        self.pwd_id_labelv = ctk.CTkLabel(philhealth_info_panel,text="PWD987654321",font=("Merriweather", 14, "bold"))
-        self.pwd_id_labelv.place(x=300, y=140)
-
-        self.senior_label = ctk.CTkLabel(philhealth_info_panel,text="SENIOR",font=("Merriweather", 14))
-        self.senior_label.place(x=530, y=120)
-
-        self.senior_labelv = ctk.CTkLabel(philhealth_info_panel,text="No",font=("Merriweather", 14, "bold"))
-        self.senior_labelv.place(x=530, y=140)
-
-        self.senior_id_label = ctk.CTkLabel(philhealth_info_panel,text="SENIOR ID Number",font=("Merriweather", 14))
-        self.senior_id_label.place(x=730, y=120)
-
-        self.senior_id_labelv = ctk.CTkLabel(philhealth_info_panel,text="None",font=("Merriweather", 14, "bold"))
-        self.senior_id_labelv.place(x=730, y=140)
-
-        self.back_button = ctk.CTkButton(self.detailed_info_frame, text="Back", font=("Merriweather", 14),
+        self.back_button = ctk.CTkButton(self.detailed_info_frame, text="Back", font=button_font,text_color="#FFFFFF",
             corner_radius=20,
-            width=250,
+            width=200,
             height=40,
             fg_color="#01516D",
             hover_color="#013B50", 
             command=self.show_table_view)
         self.back_button.place(x=10, y=10)
 
-        self.upload_button = ctk.CTkButton(self.detailed_info_frame, text="Upload Photo", font=("Merriweather", 14),
+        self.upload_button = ctk.CTkButton(self.detailed_info_frame, text="Upload Photo", font=button_font,text_color="#FFFFFF",
             corner_radius=20,
-            width=250,
+            width=200,
             height=40,
             fg_color="#00C88D",
             hover_color="#013B50")
         self.upload_button.place(x=700, y=10)
 
-        self.edit_button_detailed = ctk.CTkButton(self.detailed_info_frame, text="Edit Details", font=("Merriweather", 14),
+        self.edit_button_detailed = ctk.CTkButton(self.detailed_info_frame, text="Edit Details", font=button_font,text_color="#FFFFFF",
             corner_radius=20,
-            width=250,
+            width=200,
             height=40,
             fg_color="#01516D",
             command=self.open_edit_window,
@@ -3449,7 +3469,7 @@ class PatientPage(ctk.CTkFrame):
     
     def open_patient_history(self):
         self.patient_history_window = PatientHistory(self.master)
-        self.patient_history_window.place(x=60, y=10)
+        self.patient_history_window.place(relx=.5,rely=.5,anchor="center")
 
         patient_id = self.patient_id_value.cget("text")
 
@@ -3463,12 +3483,12 @@ class PatientPage(ctk.CTkFrame):
 
     def open_medication(self):
         self.medication_window = Medication(self.master)
-        self.medication_window.place(x=60, y=10)
+        self.medication_window.place(relx=.5,rely=.5,anchor="center")
         self.medication_window.medication_info(self.patient_id_value.cget("text"))
 
     def open_contact_info(self):
         self.contact_info_window = ContactInfoRelativeInfo(self.master)
-        self.contact_info_window.place(x=60, y=10)
+        self.contact_info_window.place(relx=.5,rely=.5,anchor="center")
         self.contact_info_window.contact_relative_info(self.patient_id_value.cget("text"))
 
     def open_quantity_used_info(self):
@@ -3730,26 +3750,26 @@ class PatientPage(ctk.CTkFrame):
 
 class PatientHistory(ctk.CTkFrame):
     def __init__(self, master=None, **kwargs):
-        super().__init__(master, width=1443, height=1000, fg_color="white", corner_radius=20, **kwargs)
+        super().__init__(master, width=1400, height=930, fg_color="white", corner_radius=20, **kwargs)
         self.pack_propagate(False)
 
-        self.left_bar = ctk.CTkFrame(self, width=20, fg_color="#1A374D", corner_radius=0)
-        self.left_bar.pack(side="left", fill="y")
+        self.left_bar = ctk.CTkFrame(self, width=20, fg_color="#1A374D", corner_radius=20)
+        self.left_bar.place(x=0)
 
-        self.title_label = ctk.CTkLabel(self, text="Patient History", font=("Merriweather", 20, "bold"))
-        self.title_label.place(x=50, y=20)
+        self.title_label = ctk.CTkLabel(self, text="Patient History", font=("Merriweather Bold", 25))
+        self.title_label.place(x=50, y=30)
 
         self.family_history = FamilyHistory(self)
-        self.family_history.place(x=50, y=70)
+        self.family_history.place(relx=.075,rely=.125)
 
         self.medical_history = MedicalHistory(self)
-        self.medical_history.place(x=800, y=70)
+        self.medical_history.place(relx=.5,rely=.125)
 
         self.other_history = OtherHistory(self)
-        self.other_history.place(x=50, y=400)
+        self.other_history.place(relx=.075,rely=.525)
 
         self.exit_button = create_exit_button(self, command=self.exit_patienthistory)
-        self.exit_button.place(x=1330, y=15)
+        self.exit_button.place(x=1300, y=20)
 
     def exit_patienthistory(self):
         print("Patient History closed")
@@ -3757,23 +3777,27 @@ class PatientHistory(ctk.CTkFrame):
 
 class Medication(ctk.CTkFrame):
     def __init__(self, master=None, **kwargs):
-        super().__init__(master, width=980, height=400, fg_color="white", corner_radius=20, **kwargs)
+        super().__init__(master, width=980, height=400, fg_color="white", corner_radius=0,**kwargs)
         self.pack_propagate(False)
 
-        self.left_bar = ctk.CTkFrame(self, width=20, fg_color="#1A374D", corner_radius=0)
-        self.left_bar.pack(side="left", fill="y")
+        title_font=("Merriweather Bold",25)
+        label_font=("Merriweather Light",15)
+        output_font=("Merriweather Sans Bold",18)
 
-        self.title_label = ctk.CTkLabel(self, text="Medication", font=("Merriweather", 20, "bold"))
-        self.title_label.place(x=40, y=20)
+        self.left_bar = ctk.CTkFrame(self, width=20, height=400,fg_color="#1A374D", corner_radius=0)
+        self.left_bar.place(x=0)
 
-        self.medication_header = ctk.CTkLabel(self, text="Drugs Taken", font=("Merriweather", 16))
+        self.title_label = ctk.CTkLabel(self, text="Medication", font=title_font)
+        self.title_label.place(x=50, y=20)
+
+        self.medication_header = ctk.CTkLabel(self, text="Drugs Taken", font=label_font)
         self.medication_header.place(x=60, y=70)
 
         self.medication_labels = []
         y_position = 100
         for _ in range(10):
-            label = ctk.CTkLabel(self, text="", font=("Merriweather", 13), text_color="black")
-            label.place(x=60, y=y_position)
+            label = ctk.CTkLabel(self, text="", font=output_font, text_color="black")
+            label.place(x=100, y=y_position)
             self.medication_labels.append(label)
             y_position += 30
 
@@ -3809,13 +3833,8 @@ class ContactInfoRelativeInfo(ctk.CTkFrame):
         super().__init__(master, width=980, height=815, fg_color="white", corner_radius=20, **kwargs)
         self.pack_propagate(False)
 
-        self.left_bar = ctk.CTkFrame(
-            self,
-            width=20,
-            fg_color="#1A374D",  
-            corner_radius=0
-        )
-        self.left_bar.pack(side="left", fill="y")
+        self.left_bar = ctk.CTkFrame(self, width=15,height=815, fg_color="#68EDC6", corner_radius=0,)
+        self.left_bar.place(x=0)
 
         self.contact_info_label = ctk.CTkLabel(self, text="Contact Info", font=("Merriweather", 20, "bold"))
         self.contact_info_label.place(x=50, y=20)
@@ -3935,43 +3954,36 @@ class ContactInfoRelativeInfo(ctk.CTkFrame):
         print("Contact and Relative Info closed")
         self.place_forget()
 
-class FamilyHistory(ctk.CTkFrame):
+class FamilyHistory(ctk.CTkScrollableFrame):
     def __init__(self, master=None, **kwargs):
-        super().__init__(master, width=600, height=250, fg_color="white", corner_radius=20, **kwargs)
+        super().__init__(master, width=500, height=250, fg_color="white", corner_radius=20,scrollbar_button_color="#BBBBBB",scrollbar_button_hover_color="#979797",**kwargs)
         self.pack_propagate(False)
 
-        self.left_bar = ctk.CTkFrame(
-            self,
-            width=20,
-            fg_color="#68EDC6",  
-            corner_radius=0
-        )
-        self.left_bar.pack(side="left", fill="y")
-
-        self.canvas, self.scrollbar, self.scrollable_frame = add_scrollable_frame(self)
+        self.left_bar = ctk.CTkFrame(self, width=15,height=250, fg_color="#68EDC6", corner_radius=0,)
+        self.left_bar.place(x=0)
 
         self.title_label = ctk.CTkLabel(
-            self.scrollable_frame, text="Family History", font=("Merriweather", 20, "bold")
+            self, text="Family History", font=("Merriweather", 20, "bold")
         )
         self.title_label.grid(row=0, column=0, pady=10, padx=30)
 
         self.hypertension_label = ctk.CTkLabel(
-            self.scrollable_frame, text="• Hypertension", font=("Merriweather", 14), text_color="black"
+            self, text="• Hypertension", font=("Merriweather", 14), text_color="black"
         )
         self.hypertension_label.grid(row=2, column=0, pady=1, padx=30, sticky="w" )
 
         self.diabetes_label = ctk.CTkLabel(
-            self.scrollable_frame, text="• Diabetes Mellitus", font=("Merriweather", 14), text_color="black"
+            self, text="• Diabetes Mellitus", font=("Merriweather", 14), text_color="black"
         )
         self.diabetes_label.grid(row=3, column=0, pady=1, padx=30, sticky="w")
 
         self.malignancy_label = ctk.CTkLabel(
-            self.scrollable_frame, text="• Malignancy", font=("Merriweather", 14), text_color="black"
+            self, text="• Malignancy", font=("Merriweather", 14), text_color="black"
         )
         self.malignancy_label.grid(row=4, column=0, pady=1, padx=30, sticky="w")
 
         self.other_label = ctk.CTkLabel(
-            self.scrollable_frame, text="• Other", font=("Merriweather", 14), text_color="black"
+            self, text="• Other", font=("Merriweather", 14), text_color="black"
         )
         self.other_label.grid(row=5, column=0, pady=1, padx=30, sticky="w")
 
@@ -3997,54 +4009,48 @@ class FamilyHistory(ctk.CTkFrame):
         ]
         DataRetrieval.assign_retrieved_data(labels, data)
 
-class MedicalHistory(ctk.CTkFrame):
+class MedicalHistory(ctk.CTkScrollableFrame):
     def __init__(self, master=None, **kwargs):
-        super().__init__(master, width=600, height=250, fg_color="white", corner_radius=20, **kwargs)
+        super().__init__(master, width=500, height=250, fg_color="white", corner_radius=20 ,scrollbar_button_color="#BBBBBB",scrollbar_button_hover_color="#979797",**kwargs)
         self.pack_propagate(False) 
 
-        self.left_bar = ctk.CTkFrame(
-            self,
-            width=20,
-            fg_color="#68EDC6",
-            corner_radius=0
-        )
-        self.left_bar.pack(side="left", fill="y")
-
-        self.canvas, self.scrollbar, self.scrollable_frame = add_scrollable_frame(self)
+        self.left_bar = ctk.CTkFrame(self, width=15,height=250, fg_color="#68EDC6", corner_radius=20)
+        self.left_bar.place(x=0)
+    
 
         self.title_label = ctk.CTkLabel(
-            self.scrollable_frame, text="Medical History", font=("Merriweather", 20, "bold")
+            self, text="Medical History", font=("Merriweather", 20, "bold")
         )
         self.title_label.grid(row=0, column=0, pady=10, padx=30, sticky="w")
 
         start_y = 1
 
         self.kidney_disease_label = ctk.CTkLabel(
-            self.scrollable_frame, text="• Kidney Disease", font=("Merriweather", 14), text_color="black"
+            self, text="• Kidney Disease", font=("Merriweather", 14), text_color="black"
         )
         self.kidney_disease_label.grid(row=start_y, column=0, sticky="w", padx=30)
         start_y += 1
 
         self.urinary_stone_label = ctk.CTkLabel(
-            self.scrollable_frame, text="• Urinary Stone", font=("Merriweather", 14), text_color="black"
+            self, text="• Urinary Stone", font=("Merriweather", 14), text_color="black"
         )
         self.urinary_stone_label.grid(row=start_y, column=0, sticky="w", padx=30)
         start_y += 1
 
         self.recurrent_uti_label = ctk.CTkLabel(
-            self.scrollable_frame, text="• Recurrent UTI", font=("Merriweather", 14), text_color="black"
+            self, text="• Recurrent UTI", font=("Merriweather", 14), text_color="black"
         )
         self.recurrent_uti_label.grid(row=start_y, column=0, sticky="w", padx=30)
         start_y += 1
 
         self.diabetes_type_label = ctk.CTkLabel(
-            self.scrollable_frame, text="• Diabetes Type", font=("Merriweather", 14), text_color="black"
+            self, text="• Diabetes Type", font=("Merriweather", 14), text_color="black"
         )
         self.diabetes_type_label.grid(row=start_y, column=0, sticky="w", padx=30)
         start_y += 1
 
         self.other_medical_history_label = ctk.CTkLabel(
-            self.scrollable_frame, text="• Other", font=("Merriweather", 14), text_color="black"
+            self, text="• Other", font=("Merriweather", 14), text_color="black"
         )
         self.other_medical_history_label.grid(row=start_y, column=0, sticky="w", padx=30)
 
@@ -4070,13 +4076,13 @@ class MedicalHistory(ctk.CTkFrame):
         ]
         DataRetrieval.assign_retrieved_data(labels, data)
 
-class OtherHistory(ctk.CTkFrame):
+class OtherHistory(ctk.CTkScrollableFrame):
     def __init__(self, master=None, **kwargs):
-        super().__init__(master, width=1255, height=474, fg_color="white", corner_radius=20, **kwargs)
+        super().__init__(master, width=1080, height=400, fg_color="#FFFFFF", corner_radius=20,scrollbar_button_color="#BBBBBB",scrollbar_button_hover_color="#979797",**kwargs)
         self.pack_propagate(False)
 
-        self.left_bar = ctk.CTkFrame(self, width=20, fg_color="#68EDC6", corner_radius=0)
-        self.left_bar.pack(side="left", fill="y")
+        self.left_bar = ctk.CTkFrame(self, width=15,height=400, fg_color="#68EDC6", corner_radius=20)
+        self.left_bar.place(x=0)
 
         y_offset = 20
         spacing = 40
@@ -4149,30 +4155,6 @@ class OtherHistory(ctk.CTkFrame):
             self.clinical_impression_info
         ]
         DataRetrieval.assign_retrieved_data(labels, data)
-
-def add_scrollable_frame(parent_frame, width=600, height=250):
-        canvas = tk.Canvas(parent_frame, bg="white", highlightthickness=0)
-        canvas.pack(side="left", fill="both", expand=True, padx=(0, 10), pady=10)
-
-        scrollbar = ctk.CTkScrollbar(parent_frame, orientation="vertical", command=canvas.yview, fg_color="white", button_color="#1A374D")
-        scrollbar.pack(side="right", fill="y", pady=10)
-
-        canvas.configure(yscrollcommand=scrollbar.set)
-
-        scrollable_frame = ctk.CTkFrame(canvas, fg_color="white")
-        scrollable_window = canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-
-        def configure_scroll_region(event):
-            canvas.configure(scrollregion=canvas.bbox("all"))
-
-        def resize_canvas(event):
-            canvas_width = event.width
-            canvas.itemconfig(scrollable_window, width=canvas_width)
-
-        scrollable_frame.bind("<Configure>", configure_scroll_region)
-        canvas.bind("<Configure>", resize_canvas)
-
-        return canvas, scrollbar, scrollable_frame
 
 def create_exit_button(parent, command=None):
     image = Image.open("assets/exit.png")
@@ -4436,7 +4418,7 @@ class SupplyPage(ctk.CTkFrame):
         
         output_font = ("Merriweather", 15)
         label_font = ("Merriweather Sans bold", 15)
-        button_font = ("Merriweather Bold",20)
+        button_font = ("Merriweather Bold",15)
         title_font = ("Merriweather Bold",20)
 
         style = ttk.Style()
@@ -4455,24 +4437,33 @@ class SupplyPage(ctk.CTkFrame):
         self.add_button = ctk.CTkButton(
             self.button_frame,
             text="Add",
-            font=ctk.CTkFont("Arial", 16, "bold"),
+            font=button_font,
+            text_color="#FFFFFF",
+            fg_color="#1A374D",
+            bg_color="#FFFFFF",
             command=self.open_add_window,
             width=180,  
-            height=50    
+            height=40,
+            corner_radius=20    
         )
         self.add_button.pack(side="left", padx=10)
 
         # Sort dropdown
         self.sort_dropdown = ctk.CTkOptionMenu(
             self.button_frame,
+            text_color="#FFFFFF",
+            fg_color="#1A374D",
+            button_color="#1A374D",
+            bg_color="#FFFFFF",
             values=["Item ID", "Item Name", "Category", "Remaining Stock", "Restock Date", "Date Registered"],
-            font=ctk.CTkFont("Arial", 16, "bold"),
+            font=button_font,
             width=180,
-            height=50,
+            height=40,
+            corner_radius=20,
             command=self.sort_by_option_simple
         )
         self.sort_dropdown.pack(side="left", padx=10)
-        self.sort_dropdown.set("Sort By")
+        self.sort_dropdown.set("        Sort By")
 
          # Search container
         self.search_container = ctk.CTkFrame(
@@ -4557,11 +4548,11 @@ class SupplyPage(ctk.CTkFrame):
         self.edit_stock_button = ctk.CTkButton(
             self.navbar,
             text="Edit Stock",
-            font=("Arial", 16, "bold"),
-            width=150,
+            font=button_font,
+            width=180,
             height=40,
             fg_color="#1A374D",
-            hover_color="#1A374D",
+            hover_color="#00C88D",
             text_color="white",
             corner_radius=20,
         )
@@ -4631,8 +4622,8 @@ class SupplyPage(ctk.CTkFrame):
             corner_radius=20,
             width=200,
             height=40,
-            fg_color="#FF8C00",
-            hover_color="#FF7F00",
+            fg_color="#1A374D",
+            hover_color="#00C88D",
             command=self.open_edit_window 
         )
         self.output_edit_button.place(x=260, y=30)
@@ -4684,126 +4675,123 @@ class SupplyPage(ctk.CTkFrame):
         # Supply Info Frame
         supply_info_frame = ctk.CTkFrame(
             self.Main_Supply_Frame,
-            width=950,
-            height=400, 
+            width=1000,
+            height=350, 
             fg_color="white",
             corner_radius=20
         )
-        supply_info_frame.place(x=600, y=120) 
+        supply_info_frame.place(x=550, y=120) 
+
+        Infooutput_font = ("Merriweather Sans Bold", 18)
+        Infolabel_font = ("Merriweather ", 15)
+        Infotitle_font = ("Merriweather Bold",25)
 
         left_bar = ctk.CTkFrame(
             supply_info_frame,
             width=20,
-            height=400,  
+            height=350,  
             fg_color="#68EDC6",
             bg_color="white",
             corner_radius=20
         )
         left_bar.place(x=0, y=0)
 
-        Supply_title_label = ctk.CTkLabel(supply_info_frame, text="Supply Info", font=title_font)
-        Supply_title_label.place(x=40, y=30)
+        Supply_title_label = ctk.CTkLabel(supply_info_frame, text="Supply Info", font=Infotitle_font)
+        Supply_title_label.place(x=50, y=20)
 
         # FIRST ROW - Supply Name, Category, Remaining Stock
         # Supply Name Label and Output
-        self.Supply_Name_Label = ctk.CTkLabel(supply_info_frame, text="Supply Name", font=label_font)
-        self.Supply_Name_Label.place(x=80, y=70)
-        self.Supply_Name_Output = ctk.CTkLabel(supply_info_frame, text="", font=output_font)
-        self.Supply_Name_Output.place(x=80, y=100)
+        self.Supply_Name_Label = ctk.CTkLabel(supply_info_frame, text="Supply Name", font=Infolabel_font)
+        self.Supply_Name_Label.place(relx=.125,rely=.2)
+        self.Supply_Name_Output = ctk.CTkLabel(supply_info_frame, text="", font=Infooutput_font)
+        self.Supply_Name_Output.place(relx=.125,rely=.26)
 
         # Category Label and Output
-        self.Category_Label = ctk.CTkLabel(supply_info_frame, text="Category", font=label_font)
-        self.Category_Label.place(x=300, y=70)
-        self.Category_Output = ctk.CTkLabel(supply_info_frame, text="", font=output_font)
-        self.Category_Output.place(x=300, y=100)
+        self.Category_Label = ctk.CTkLabel(supply_info_frame, text="Category", font=Infolabel_font)
+        self.Category_Label.place(relx=.425,rely=.2)
+        self.Category_Output = ctk.CTkLabel(supply_info_frame, text="", font=Infooutput_font)
+        self.Category_Output.place(relx=.425,rely=.26)
 
         # Remaining Stock Label and Output
-        self.currentstock_Label = ctk.CTkLabel(supply_info_frame, text="Remaining Stock", font=label_font)
-        self.currentstock_Label.place(x=520, y=70)
-        self.currentstock_Output = ctk.CTkLabel(supply_info_frame, text="", font=output_font)
-        self.currentstock_Output.place(x=520, y=100)
+        self.currentstock_Label = ctk.CTkLabel(supply_info_frame, text="Remaining Stock", font=Infolabel_font)
+        self.currentstock_Label.place(relx=.725,rely=.2)
+        self.currentstock_Output = ctk.CTkLabel(supply_info_frame, text="", font=Infooutput_font)
+        self.currentstock_Output.place(relx=.725,rely=.26)
 
         # SECOND ROW - Date Registered, Average Weekly Usage, Delivery Time
         # Date Registered Label and Output
-        self.Registered_Date_Label = ctk.CTkLabel(supply_info_frame, text="Date Registered", font=label_font)
-        self.Registered_Date_Label.place(x=80, y=140)
-        self.Registered_Date_Output = ctk.CTkLabel(supply_info_frame, text="", font=output_font)
-        self.Registered_Date_Output.place(x=80, y=170)
+        self.Registered_Date_Label = ctk.CTkLabel(supply_info_frame, text="Date Registered", font=Infolabel_font)
+        self.Registered_Date_Label.place(relx=.125,rely=.5)
+        self.Registered_Date_Output = ctk.CTkLabel(supply_info_frame, text="", font=Infooutput_font)
+        self.Registered_Date_Output.place(relx=.125,rely=.56)
 
         # Average Weekly Usage Label and Output
-        self.Average_Weekly_Usage_Label = ctk.CTkLabel(supply_info_frame, text="Average Weekly Usage", font=label_font)
-        self.Average_Weekly_Usage_Label.place(x=300, y=140)
-        self.Average_Weekly_Usage_Output = ctk.CTkLabel(supply_info_frame, text="", font=output_font)
-        self.Average_Weekly_Usage_Output.place(x=300, y=170)
+        self.Average_Weekly_Usage_Label = ctk.CTkLabel(supply_info_frame, text="Average Weekly Usage", font=Infolabel_font)
+        self.Average_Weekly_Usage_Label.place(relx=.425,rely=.5)
+        self.Average_Weekly_Usage_Output = ctk.CTkLabel(supply_info_frame, text="", font=Infooutput_font)
+        self.Average_Weekly_Usage_Output.place(relx=.425,rely=.56)
 
         # Delivery Time Label and Output
-        self.Delivery_Time_Label = ctk.CTkLabel(supply_info_frame, text="Delivery Time", font=label_font)
-        self.Delivery_Time_Label.place(x=520, y=140)
-        self.Delivery_Time_Output = ctk.CTkLabel(supply_info_frame, text="", font=output_font)
-        self.Delivery_Time_Output.place(x=520, y=170)
+        self.Delivery_Time_Label = ctk.CTkLabel(supply_info_frame, text="Delivery Time", font=Infolabel_font)
+        self.Delivery_Time_Label.place(relx=.725,rely=.5)
+        self.Delivery_Time_Output = ctk.CTkLabel(supply_info_frame, text="", font=Infooutput_font)
+        self.Delivery_Time_Output.place(relx=.725,rely=.56)
 
         # THIRD ROW - Supplier Name, Previous Restock Expiry, Current Restock Expiry
         # Supplier Name Label and Output
-        self.Supplier_Name_Label = ctk.CTkLabel(supply_info_frame, text="Supplier Name", font=label_font)
-        self.Supplier_Name_Label.place(x=80, y=210)
-        self.Supplier_Name_Output = ctk.CTkLabel(supply_info_frame, text="", font=output_font)
-        self.Supplier_Name_Output.place(x=80, y=240)
+        self.Supplier_Name_Label = ctk.CTkLabel(supply_info_frame, text="Supplier Name", font=Infolabel_font)
+        self.Supplier_Name_Label.place(relx=.125,rely=.8)
+        self.Supplier_Name_Output = ctk.CTkLabel(supply_info_frame, text="", font=Infooutput_font)
+        self.Supplier_Name_Output.place(relx=.125,rely=.86)
 
         # Previous Restock Expiry Label and Output
-        self.Previous_Restock_Expiry_Label = ctk.CTkLabel(supply_info_frame, text="Previous Restock Expiry", font=label_font)
-        self.Previous_Restock_Expiry_Label.place(x=300, y=210)
-        self.Previous_Restock_Expiry_Output = ctk.CTkLabel(supply_info_frame, text="", font=output_font)
-        self.Previous_Restock_Expiry_Output.place(x=300, y=240)
+        self.Previous_Restock_Expiry_Label = ctk.CTkLabel(supply_info_frame, text="Previous Restock Expiry", font=Infolabel_font)
+        self.Previous_Restock_Expiry_Label.place(relx=.425,rely=.8)
+        self.Previous_Restock_Expiry_Output = ctk.CTkLabel(supply_info_frame, text="", font=Infooutput_font)
+        self.Previous_Restock_Expiry_Output.place(relx=.425,rely=.86)
 
         # Current Restock Expiry Label and Output
-        self.Current_Restock_Expiry_Label = ctk.CTkLabel(supply_info_frame, text="Current Restock Expiry", font=label_font)
-        self.Current_Restock_Expiry_Label.place(x=520, y=210)
-        self.Current_Restock_Expiry_Output = ctk.CTkLabel(supply_info_frame, text="", font=output_font)
-        self.Current_Restock_Expiry_Output.place(x=520, y=240)
+        self.Current_Restock_Expiry_Label = ctk.CTkLabel(supply_info_frame, text="Current Restock Expiry", font=Infolabel_font)
+        self.Current_Restock_Expiry_Label.place(relx=.725,rely=.8)
+        self.Current_Restock_Expiry_Output = ctk.CTkLabel(supply_info_frame, text="", font=Infooutput_font)
+        self.Current_Restock_Expiry_Output.place(relx=.725,rely=.87)
+
+        Progresstitle_font = ("Merriweather Bold",25)
 
         # Storage Meter Frame
         storage_meter_frame = ctk.CTkFrame(
             self.Main_Supply_Frame,
-            width=950,
-            height=250,
+            width=1000,
+            height=184,
             fg_color="white",
             corner_radius=20
         )
-        storage_meter_frame.place(x=600, y=430)
+        storage_meter_frame.place(x=550, y=485)
 
-        left_bar = ctk.CTkFrame(
-            storage_meter_frame,
-            width=20,
-            height=250,
-            fg_color="#68EDC6",
-            bg_color="white",
-            corner_radius=20
-        )
-        left_bar.place(x=0, y=0)
 
-        storageMeter_title_label = ctk.CTkLabel(storage_meter_frame, text="Inventory Quantity", font=title_font)
+        storageMeter_title_label = ctk.CTkLabel(storage_meter_frame, text="Inventory Quantity", font=Progresstitle_font)
         storageMeter_title_label.place(x=40, y=20)
 
-        self.StorageMeter = ctk.CTkProgressBar(storage_meter_frame, width=800, height=40, fg_color="white", progress_color="green", border_width=1, border_color="black")
-        self.StorageMeter.place(x=100,y=100)
+        self.StorageMeter = ctk.CTkProgressBar(storage_meter_frame, width=720, height=40, fg_color="white", progress_color="green", border_width=1, border_color="black")
+        self.StorageMeter.place(relx=.5,rely=.5,anchor="center")
 
         self.Status_Label = ctk.CTkLabel(storage_meter_frame, text="Status :", font=label_font)
-        self.Status_Label.place(x=100,y=180)
+        self.Status_Label.place(x=100,rely=.7)
 
         self.Status_Output = ctk.CTkLabel(storage_meter_frame, text="", font=label_font)
-        self.Status_Output.place(x=180,y=180)
+        self.Status_Output.place(x=180,rely=.7)
 
         self.Available_Items_Label = ctk.CTkLabel(storage_meter_frame, text="Available Items :", font=label_font)
-        self.Available_Items_Label.place(x=650,y=180)
+        self.Available_Items_Label.place(x=650,rely=.7)
 
         self.Remaining_Output = ctk.CTkLabel(storage_meter_frame, text="", font=label_font)
-        self.Remaining_Output.place(x=790,y=180)
+        self.Remaining_Output.place(x=790,rely=.7)
 
         self.Seperator_Output = ctk.CTkLabel(storage_meter_frame, text="/", font=label_font)
-        self.Seperator_Output.place(x=830,y=180)
+        self.Seperator_Output.place(x=830,rely=.7)
 
         self.Capacity_Output = ctk.CTkLabel(storage_meter_frame, text="", font=label_font)
-        self.Capacity_Output.place(x=850,y=180)
+        self.Capacity_Output.place(x=850,rely=.7)
 
         # Edit Stock Frame
         self.Edit_Stock_Frame = ctk.CTkFrame(self.Main_Supply_Frame,
@@ -4811,7 +4799,7 @@ class SupplyPage(ctk.CTkFrame):
                 height=200,
                 fg_color="white",
                 corner_radius=20)
-        self.Edit_Stock_Frame.place(x=50, y=600)
+        self.Edit_Stock_Frame.place(x=50, y=550)
 
         self.Top_bar = ctk.CTkFrame(self.Edit_Stock_Frame,
                 width=400,
@@ -4888,6 +4876,7 @@ class SupplyPage(ctk.CTkFrame):
             text="Quantity Used",
             width=150,
             height=50,
+            font=button_font,
             fg_color="#1A374D", 
             text_color="white",
             corner_radius=10,
@@ -4902,7 +4891,7 @@ class SupplyPage(ctk.CTkFrame):
                 height=230,
                 fg_color="white",
                 corner_radius=20)
-        self.Reminder_Frame.place(x=50, y=820)
+        self.Reminder_Frame.place(x=50, y=780)
 
         # Reminder icon and label container
         self.reminder_header_frame = ctk.CTkFrame(self.Reminder_Frame,
@@ -4958,15 +4947,15 @@ class SupplyPage(ctk.CTkFrame):
 
         # Restock Logs Frame
         self.Restock_Logs_Frame = ctk.CTkFrame(self.Main_Supply_Frame,
-                width=950,
-                height=380,
+                width=1000,
+                height=320,
                 fg_color="white",
                 corner_radius=20)
-        self.Restock_Logs_Frame.place(x=600, y=690)
+        self.Restock_Logs_Frame.place(x=550, y=690)
 
         # Top bar for restock logs frame
         self.Restock_Logs_Top_bar = ctk.CTkFrame(self.Restock_Logs_Frame,
-                width=950,
+                width=1000,
                 height=20,
                 fg_color="#68EDC6")
         self.Restock_Logs_Top_bar.place(y=0)
