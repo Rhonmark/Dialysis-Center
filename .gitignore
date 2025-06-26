@@ -1,8 +1,5 @@
 .env
-computation.txt
 
-*.pyc
-__pycache__/
 
 
 

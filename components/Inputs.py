@@ -2,7 +2,9 @@ import tkinter as tk
 from tkinter import ttk, PhotoImage
 from tkcalendar import DateEntry
 from datetime import date, datetime
-
+import customtkinter as ctk
+from customtkinter import CTkImage
+from PIL import Image
 from components.buttons import CTkButtonSelectable
 from components.textfields_patients import TextField_Patients
 from components.state import login_shared_states
@@ -10,7 +12,7 @@ from components.state import login_shared_states
 from backend.connector import db_connection as db
 from backend.crud import submit_form_creation, submit_form_subcreation, submit_form_extra, retrieve_form_data
 
-class BaseWindow(tk.Toplevel):
+class BaseWindow(ctk.CTkToplevel): 
     def __init__(self, parent, title, next_window=None, previous_window=None):
         super().__init__(parent)
         self.title(title)
@@ -21,52 +23,71 @@ class BaseWindow(tk.Toplevel):
         self.next_window = next_window
         self.previous_window = previous_window
 
-        self.border_frame = tk.Frame(self, bg="black", bd=0.5) 
-        self.border_frame.pack(expand=True, fill="both", padx=0, pady=0)
-
-        self.main_frame = tk.Frame(self.border_frame, bg="white")
+        self.main_frame = ctk.CTkFrame(self, fg_color="white",corner_radius=0)
         self.main_frame.pack(expand=True, fill="both", padx=0.5, pady=0.5)
 
-        self.sidebar = tk.Frame(self.main_frame, width=30, bg="#1A374D")
+        button_font = ("Merriweather Bold", 15)
+
+        self.sidebar = ctk.CTkFrame(self.main_frame, width=30, fg_color="#1A374D", corner_radius=25, bg_color="transparent")
         self.sidebar.pack(side="left", fill="y")
 
-        self.exit_icon = PhotoImage(file="assets/exit.png")
-        self.btn_exit = tk.Button(self, image=self.exit_icon, bd=0, bg="white", activebackground="white", command=self.destroy)
-        self.btn_exit.place(x=1200, y=10)  
+        exit_img = Image.open("assets/exit.png")
+        self.exit_icon = CTkImage(exit_img, size=(30, 30))
+
+        self.btn_exit = ctk.CTkButton(self, height=25,width=25,image=self.exit_icon,text="",fg_color="#FFFFFF",hover_color="#FFFFFF",bg_color="#FFFFFF", border_width=0, command=self.destroy)
+        self.btn_exit.place(x=1225, y=20)  
 
         if self.next_window:
-            self.btn_next = CTkButtonSelectable(
+            self.btn_next = ctk.CTkButton(
                 self, 
-                text="Next", 
+                text="Next",
+                text_color="#FFFFFF" ,
+                font=button_font,
                 command=self.open_next, 
-                width=120, 
-                height=40  
+                width=200, 
+                height=50,
+                corner_radius=20,
+                fg_color="#00C88D", 
+                hover_color="#1A374D",
+                bg_color="#FFFFFF"
             )
-            self.btn_next.place(x=1070, y=600)
+            self.btn_next.place(x=1020, y=600)
 
         if not self.next_window: 
             # Check if we're in edit mode 
             if hasattr(self, 'edit_mode') and self.edit_mode:
-                self.btn_update = CTkButtonSelectable(
+                self.btn_update = ctk.CTkButton(
                     self, 
-                    text="Update", 
+                    text="Update",  
+                    text_color="#FFFFFF" ,
+                    font=button_font,
                     command=self.update_form, 
-                    width=120, 
-                    height=40  
+                    width=200, 
+                    height=50,
+                    corner_radius=20,
+                    fg_color="#00C88D", 
+                    hover_color="#1A374D",
+                    bg_color="#FFFFFF"
                 )
-                self.btn_update.place(x=1070, y=600)
+                self.btn_update.place(x=1020, y=600)
             else:
-                self.btn_submit = CTkButtonSelectable(
+                self.btn_submit = ctk.CTkButton(
                     self, 
-                    text="Submit", 
+                    text="Submit",  
+                    text_color="#FFFFFF" ,
+                    font=button_font,
                     command=self.submit_form, 
-                    width=120, 
-                    height=40  
+                    width=200, 
+                    height=50,
+                    corner_radius=20,
+                    fg_color="#1A374D", 
+                    hover_color="#00C88D",
+                    bg_color="#FFFFFF"  
                 )
-                self.btn_submit.place(x=1070, y=600)
+                self.btn_submit.place(x=1020, y=600)
 
         if self.previous_window:
-            self.back_icon = PhotoImage(file="assets/back.png")
+            self.back_icon = PhotoImage(file="assets/back.png" )
             self.btn_back = tk.Button(self, image=self.back_icon, bd=0, bg="white", activebackground="white", command=self.go_back)
             self.btn_back.place(x=50, y=25)
 
@@ -97,76 +118,116 @@ class BaseWindow(tk.Toplevel):
         y = (self.winfo_screenheight() // 2) - (height // 2)
         self.geometry(f"1300x700+{x}+{y}")
 
-class PatientInfoWindow(BaseWindow):
+class PatientInfoWindow(BaseWindow): 
     def __init__(self, parent, data):
+    
+
         self.edit_mode = data.get('edit_mode', False) if data else False
         self.patient_id = data.get('patient_id') if data else None
         
         super().__init__(parent, "Patient Information", next_window=ContactPersonWindow, previous_window=None)
         self.data = data if data else {}
 
-        title_text = "Edit Patient Information" if self.edit_mode else "Patient Information"
-        tk.Label(self, text=title_text, font=("Merriweather bold", 25), bg="white").place(x=90, y=60)
+        label_font = ("Merriweather Sans Bold",15)
+        entry_font = ("Merriweather Sans", 12)
+        button_font = ("Merriweather Bold", 20)
+        required_font = ("Merriweather Sans bold", 10)
 
-        tk.Label(self, text="Last Name *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=150)
-        self.entry_lastname = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_lastname.place(x=120, y=200, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=230)
+        def create_underline(x, y, width):
+            ctk.CTkFrame(self, height=1, width=width, fg_color="black").place(x=x, y=y)
 
-        tk.Label(self, text="First Name *", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=150)
-        self.entry_firstname = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_firstname.place(x=420, y=200, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=230)
-
-        tk.Label(self, text="Middle Name", font=("Merriweather Sans bold", 15), bg="white").place(x=720, y=150)
-        self.entry_middlename = TextField_Patients(self, width=15, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_middlename.place(x=720, y=200, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=150).place(x=720, y=230)
-
-        tk.Label(self, text="Status *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=270)
-        self.status_var = tk.StringVar(value="active")
-        tk.Radiobutton(self, text="Active", variable=self.status_var, value="active", bg="white", font=("Merriweather Sans", 12)).place(x=120, y=320)
-        tk.Radiobutton(self, text="Inactive", variable=self.status_var, value="inactive", bg="white", font=("Merriweather Sans", 12)).place(x=200, y=320)
-
-        tk.Label(self, text="Type of Access *", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=270)
-        self.access_options = ["L AVF", "R AVF", "L AVG", "R AVG", "L CVC", "R CVC", "L PDC", "R PDC"]
-        self.entry_access = ttk.Combobox(self, values=self.access_options, width=17, font=("Merriweather light", 12), state="readonly")
-        self.entry_access.place(x=420, y=320, height=25)
-
-        tk.Label(self, text="Birthdate *", font=("Merriweather Sans bold", 15), bg="white").place(x=720, y=270)
-        self.entry_birthdate = DateEntry(self, width=18, font=("Merriweather light", 12), bg="white", date_pattern="yyyy-MM-dd", state="normal")
-        self.entry_birthdate.place(x=720, y=320, height=25)
         
-        tk.Label(self, text="Age *", font=("Merriweather Sans bold", 15), bg="white").place(x=1020, y=270)
-        self.entry_age = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_age.place(x=1020, y=320, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=180).place(x=1020, y=350)
 
-        tk.Label(self, text="Gender *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=390)
-        self.entry_gender = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_gender.place(x=120, y=440, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=470)
+        title_text = "Edit Patient Information" if self.edit_mode else "Patient Information"
+        ctk.CTkLabel(self, text=title_text, font=("Merriweather bold", 25), text_color="black", bg_color="white").place(x=90, y=60)
 
-        tk.Label(self, text="Height *", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=390)
-        self.entry_height = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_height.place(x=420, y=440, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=470)
+        
+       # Last Name Field
+        ctk.CTkLabel(self, text="Last Name", font=label_font, fg_color="white", text_color="black").place(x=120, y=150)
+        self.entry_lastname = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white", placeholder_text="Type here")
+        self.entry_lastname.place(x=120, y=200)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=205, y=150)  
+        create_underline(120, 230, 180)
 
-        tk.Label(self, text="Civil Status *", font=("Merriweather Sans bold", 15), bg="white").place(x=720, y=390)
-        self.entry_civil_status = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_civil_status.place(x=720, y=440, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=180).place(x=720, y=470)
+        # First Name Field
+        ctk.CTkLabel(self, text="First Name", font=label_font, fg_color="white", text_color="black").place(x=420, y=150)
+        self.entry_firstname = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white", placeholder_text="Type here")
+        self.entry_firstname.place(x=420, y=200)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=510, y=150)  
+        create_underline(420, 230, 180)
 
-        tk.Label(self, text="Religion *", font=("Merriweather Sans bold", 15), bg="white").place(x=1020, y=390)
-        self.entry_religion = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_religion.place(x=1020, y=440, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=180).place(x=1020, y=470)
+        # Middle Name Field (No required - no change needed)
+        ctk.CTkLabel(self, text="Middle Name", font=label_font, fg_color="white", text_color="black").place(x=720, y=150)
+        self.entry_middlename = ctk.CTkEntry(self, width=150, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white", placeholder_text="Type here")
+        self.entry_middlename.place(x=720, y=200)
+        create_underline(720, 230, 150)
 
-        tk.Label(self, text="Complete Address *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=510)
-        self.entry_address = TextField_Patients(self, width=50, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_address.place(x=120, y=560, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=500).place(x=120, y=590)
+        # Status Field
+        ctk.CTkLabel(self, text="Status", font=label_font, fg_color="white", text_color="black").place(x=120, y=270)
+        self.status_var = tk.StringVar(value="active")
+        ctk.CTkRadioButton(self, text="Active", variable=self.status_var, value="active", font=entry_font, fg_color="#00C88D", text_color="black", bg_color="white", radiobutton_width=20, radiobutton_height=20).place(x=120, y=320)
+        ctk.CTkRadioButton(self, text="Inactive", variable=self.status_var, value="inactive", font=entry_font, fg_color="#00C88D", text_color="black", bg_color="white", radiobutton_width=20, radiobutton_height=20).place(x=200, y=320)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=175, y=270)  
+        create_underline(120, 350, 160)
 
+        # Type of Access Field
+        ctk.CTkLabel(self, text="Type of Access", font=label_font, fg_color="white", text_color="black").place(x=420, y=270)
+        self.access_options = ["L AVF", "R AVF", "L AVG", "R AVG", "L CVC", "R CVC", "L PDC", "R PDC"]
+        self.entry_access = ctk.CTkComboBox(self, values=self.access_options, width=180, height=30, button_color="#00C88D",font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white", state="readonly")
+        self.entry_access.place(x=420, y=320)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=540, y=270)  
+        create_underline(420, 350, 180)
+
+        # Birthdate Field
+        ctk.CTkLabel(self, text="Birthdate", font=label_font, fg_color="white", text_color="black").place(x=720, y=270)
+        self.entry_birthdate = DateEntry(self, width=12, font=entry_font, bg="white", date_pattern="yyyy-MM-dd", state="normal")
+        self.entry_birthdate.place(x=720, y=320, height=25)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=795, y=270)  
+        create_underline(720, 345, 180)
+
+        # Age Field
+        ctk.CTkLabel(self, text="Age", font=label_font, fg_color="white", text_color="black").place(x=1020, y=270)
+        self.entry_age = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white", placeholder_text="Type here")
+        self.entry_age.place(x=1020, y=320)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=1055, y=270)  
+        create_underline(1020, 350, 180)
+
+        # Gender Field
+        ctk.CTkLabel(self, text="Gender", font=label_font, fg_color="white", text_color="black").place(x=120, y=390)
+        self.entry_gender = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white", placeholder_text="Type here")
+        self.entry_gender.place(x=120, y=440)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=185, y=390)  
+        create_underline(120, 470, 180)
+
+        # Height Field
+        ctk.CTkLabel(self, text="Height", font=label_font, fg_color="white", text_color="black").place(x=420, y=390)
+        self.entry_height = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white", placeholder_text="Type here")
+        self.entry_height.place(x=420, y=440)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=485, y=390)  
+        create_underline(420, 470, 180)
+
+        # Civil Status Field
+        ctk.CTkLabel(self, text="Civil Status", font=label_font, fg_color="white", text_color="black").place(x=720, y=390)
+        self.entry_civil_status = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white", placeholder_text="Type here")
+        self.entry_civil_status.place(x=720, y=440)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=815, y=390)  
+        create_underline(720, 470, 180)
+
+        # Religion Field
+        ctk.CTkLabel(self, text="Religion", font=label_font, fg_color="white", text_color="black").place(x=1020, y=390)
+        self.entry_religion = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white", placeholder_text="Type here")
+        self.entry_religion.place(x=1020, y=440)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=1095, y=390)  
+        create_underline(1020, 470, 180)
+
+        # Complete Address Field
+        ctk.CTkLabel(self, text="Complete Address", font=label_font, fg_color="white", text_color="black").place(x=120, y=510)
+        self.entry_address = ctk.CTkEntry(self, width=500, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white", placeholder_text="Type here")
+        self.entry_address.place(x=120, y=560)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=265, y=510)  
+        create_underline(120, 590, 500)
+            
+        
         self.entry_birthdate.bind("<<DateEntrySelected>>", self.update_age)
 
         if self.edit_mode and self.patient_id:
@@ -177,13 +238,16 @@ class PatientInfoWindow(BaseWindow):
     def restore_form_data(self):
         try:
             if self.data.get("patient_last_name"):
-                self.entry_lastname.set_real_value(self.data.get("patient_last_name"))
+                self.entry_lastname.delete(0, "end")
+                self.entry_lastname.insert(0, self.data.get("patient_last_name"))
                 
             if self.data.get("patient_first_name"):
-                self.entry_firstname.set_real_value(self.data.get("patient_first_name"))
+                self.entry_firstname.delete(0, "end")
+                self.entry_firstname.insert(0, self.data.get("patient_first_name"))
                 
             if self.data.get("patient_middle_name"):
-                self.entry_middlename.set_real_value(self.data.get("patient_middle_name"))
+                self.entry_middlename.delete(0, "end")
+                self.entry_middlename.insert(0, self.data.get("patient_middle_name"))
                 
             if self.data.get("patient_status"):
                 self.status_var.set(self.data.get("patient_status"))
@@ -197,40 +261,46 @@ class PatientInfoWindow(BaseWindow):
                 self.entry_birthdate.set_date(birthdate)
                 
             if self.data.get("patient_age"):
-                self.entry_age.set_real_value(self.data.get("patient_age"))
+                self.entry_age.delete(0, "end")
+                self.entry_age.insert(0, self.data.get("patient_age"))
                 
             if self.data.get("patient_gender"):
-                self.entry_gender.set_real_value(self.data.get("patient_gender"))
+                self.entry_gender.delete(0, "end")
+                self.entry_gender.insert(0, self.data.get("patient_gender"))
                 
             if self.data.get("patient_height"):
-                self.entry_height.set_real_value(self.data.get("patient_height"))
+                self.entry_height.delete(0, "end")
+                self.entry_height.insert(0, self.data.get("patient_height"))
                 
             if self.data.get("patient_civil_status"):
-                self.entry_civil_status.set_real_value(self.data.get("patient_civil_status"))
+                self.entry_civil_status.delete(0, "end")
+                self.entry_civil_status.insert(0, self.data.get("patient_civil_status"))
                 
             if self.data.get("patient_religion"):
-                self.entry_religion.set_real_value(self.data.get("patient_religion"))
+                self.entry_religion.delete(0, "end")
+                self.entry_religion.insert(0, self.data.get("patient_religion"))
                 
             if self.data.get("patient_address"):
-                self.entry_address.set_real_value(self.data.get("patient_address"))
-            
+                self.entry_address.delete(0, "end")
+                self.entry_address.insert(0, self.data.get("patient_address"))
+        
         except Exception as e:
             print(f"❌ Error restoring form data: {e}")
 
     def save_current_data(self):
         try:
-            self.data["patient_last_name"] = self.entry_lastname.get_real_value()
-            self.data["patient_first_name"] = self.entry_firstname.get_real_value()
-            self.data["patient_middle_name"] = self.entry_middlename.get_real_value()
+            self.data["patient_last_name"] = self.entry_lastname.get()
+            self.data["patient_first_name"] = self.entry_firstname.get()
+            self.data["patient_middle_name"] = self.entry_middlename.get()
             self.data["patient_status"] = self.status_var.get()
             self.data["patient_access"] = self.entry_access.get()
             self.data["patient_birthdate"] = self.entry_birthdate.get_date().strftime("%Y-%m-%d")
-            self.data["patient_age"] = self.entry_age.get_real_value()
-            self.data["patient_gender"] = self.entry_gender.get_real_value()
-            self.data["patient_height"] = self.entry_height.get_real_value()
-            self.data["patient_civil_status"] = self.entry_civil_status.get_real_value()
-            self.data["patient_religion"] = self.entry_religion.get_real_value()
-            self.data["patient_address"] = self.entry_address.get_real_value()
+            self.data["patient_age"] = self.entry_age.get()
+            self.data["patient_gender"] = self.entry_gender.get()
+            self.data["patient_height"] = self.entry_height.get()
+            self.data["patient_civil_status"] = self.entry_civil_status.get()
+            self.data["patient_religion"] = self.entry_religion.get()
+            self.data["patient_address"] = self.entry_address.get()
             
         except Exception as e:
             print(f"❌ Error saving current data: {e}")
@@ -243,8 +313,8 @@ class PatientInfoWindow(BaseWindow):
                 
                 cursor.execute("""
                     SELECT pi.last_name, pi.first_name, pi.middle_name, pi.status, 
-                           pi.access_type, pi.birthdate, pi.age, pi.gender, pi.height, 
-                           pi.civil_status, pi.religion, pi.address
+                        pi.access_type, pi.birthdate, pi.age, pi.gender, pi.height, 
+                        pi.civil_status, pi.religion, pi.address
                     FROM patient_info pi
                     WHERE pi.patient_id = %s
                 """, (self.patient_id,))
@@ -252,9 +322,17 @@ class PatientInfoWindow(BaseWindow):
                 patient_data = cursor.fetchone()
                 
                 if patient_data:
-                    self.entry_lastname.set_real_value(patient_data[0])
-                    self.entry_firstname.set_real_value(patient_data[1])
-                    self.entry_middlename.set_real_value(patient_data[2])
+                    if patient_data[0]:
+                        self.entry_lastname.delete(0, "end")
+                        self.entry_lastname.insert(0, patient_data[0])
+                    
+                    if patient_data[1]:
+                        self.entry_firstname.delete(0, "end")
+                        self.entry_firstname.insert(0, patient_data[1])
+                    
+                    if patient_data[2]:
+                        self.entry_middlename.delete(0, "end")
+                        self.entry_middlename.insert(0, patient_data[2])
                     
                     if patient_data[3]:
                         self.status_var.set(patient_data[3])
@@ -266,13 +344,28 @@ class PatientInfoWindow(BaseWindow):
                         self.entry_birthdate.set_date(patient_data[5])
                     
                     if patient_data[6]:
-                        self.entry_age.set_real_value(str(patient_data[6]))
+                        self.entry_age.delete(0, "end")
+                        self.entry_age.insert(0, str(patient_data[6]))
                     
-                    self.entry_gender.set_real_value(patient_data[7])
-                    self.entry_height.set_real_value(patient_data[8])
-                    self.entry_civil_status.set_real_value(patient_data[9])
-                    self.entry_religion.set_real_value(patient_data[10])
-                    self.entry_address.set_real_value(patient_data[11])
+                    if patient_data[7]:
+                        self.entry_gender.delete(0, "end")
+                        self.entry_gender.insert(0, patient_data[7])
+                    
+                    if patient_data[8]:
+                        self.entry_height.delete(0, "end")
+                        self.entry_height.insert(0, patient_data[8])
+                    
+                    if patient_data[9]:
+                        self.entry_civil_status.delete(0, "end")
+                        self.entry_civil_status.insert(0, patient_data[9])
+                    
+                    if patient_data[10]:
+                        self.entry_religion.delete(0, "end")
+                        self.entry_religion.insert(0, patient_data[10])
+                    
+                    if patient_data[11]:
+                        self.entry_address.delete(0, "end")
+                        self.entry_address.insert(0, patient_data[11])
                 
                 cursor.close()
                 connect.close()
@@ -291,18 +384,18 @@ class PatientInfoWindow(BaseWindow):
     
     def open_next(self, data=None):
         try:
-            self.data["patient_last_name"] = self.entry_lastname.get_real_value().lower().capitalize()
-            self.data["patient_first_name"] = self.entry_firstname.get_real_value().lower().capitalize()
-            self.data["patient_middle_name"] = self.entry_middlename.get_real_value().lower().capitalize()
+            self.data["patient_last_name"] = self.entry_lastname.get().lower().capitalize()
+            self.data["patient_first_name"] = self.entry_firstname.get().lower().capitalize()
+            self.data["patient_middle_name"] = self.entry_middlename.get().lower().capitalize()
             self.data["patient_status"] = self.status_var.get().capitalize()
             self.data["patient_access"] = self.entry_access.get()
             self.data["patient_birthdate"] = self.entry_birthdate.get_date().strftime("%Y-%m-%d")  
-            self.data["patient_age"] = self.entry_age.get_real_value()
-            self.data["patient_gender"] = self.entry_gender.get_real_value().lower().capitalize()
-            self.data["patient_height"] = self.entry_height.get_real_value()
-            self.data["patient_civil_status"] = self.entry_civil_status.get_real_value().lower().capitalize()
-            self.data["patient_religion"] = self.entry_religion.get_real_value().lower().capitalize()
-            self.data["patient_address"] = self.entry_address.get_real_value().lower().capitalize()
+            self.data["patient_age"] = self.entry_age.get()
+            self.data["patient_gender"] = self.entry_gender.get().lower().capitalize()
+            self.data["patient_height"] = self.entry_height.get()
+            self.data["patient_civil_status"] = self.entry_civil_status.get().lower().capitalize()
+            self.data["patient_religion"] = self.entry_religion.get().lower().capitalize()
+            self.data["patient_address"] = self.entry_address.get().lower().capitalize()
             
             self.data["edit_mode"] = self.edit_mode
             self.data["patient_id"] = self.patient_id
@@ -320,40 +413,62 @@ class ContactPersonWindow(BaseWindow):
         super().__init__(parent, "Contact Information", next_window=RelativeInfoWindow, previous_window=PatientInfoWindow)
         self.data = data if data else {}
 
+        Title_font = ("Merriweather bold", 25)
+        label_font = ("Merriweather Sans Bold",15)
+        entry_font = ("Merriweather Sans", 13)
+        button_font = ("Merriweather Bold", 20)
+        required_font = ("Merriweather Sans bold", 10)
+
+        def create_underline(x, y, width):
+            ctk.CTkFrame(self, height=1, width=width, fg_color="black").place(x=x, y=y)
+
+       
+
         title_text = "Edit Contact Information" if self.edit_mode else "Contact Information"
-        tk.Label(self, text=title_text, font=("Merriweather bold", 25), bg="white").place(x=90, y=60)
+        ctk.CTkLabel(self, text=title_text, font=("Merriweather bold", 25), text_color="black", bg_color="white").place(x=90, y=100)
 
-        tk.Label(self, text="Contact Person Info", font=("Merriweather bold", 25), bg="white").place(x=90, y=100)
 
-        tk.Label(self, text="Last Name *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=190)
-        self.entry_lastname = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_lastname.place(x=120, y=240, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=270)
-    
-        tk.Label(self, text="First Name *", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=190)
-        self.entry_firstname = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_firstname.place(x=420, y=240, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=270)
+        # Last Name Field
+        ctk.CTkLabel(self, text="Last Name", font=label_font, fg_color="white", text_color="black").place(x=120, y=190)
+        self.entry_lastname = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white",placeholder_text="Type here")
+        self.entry_lastname.place(x=120, y=240)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=205, y=190)  
+        create_underline(120, 270, 180)
 
-        tk.Label(self, text="Middle Name*", font=("Merriweather Sans bold", 15), bg="white").place(x=720, y=190)
-        self.entry_middlename = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_middlename.place(x=720, y=240, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=180).place(x=720, y=270)
+        # First Name Field
+        ctk.CTkLabel(self, text="First Name", font=label_font, fg_color="white", text_color="black").place(x=420, y=190)
+        self.entry_firstname = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white",placeholder_text="Type here")
+        self.entry_firstname.place(x=420, y=240)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=510, y=190)  
+        create_underline(420, 270, 180)
 
-        tk.Label(self, text="Contact Number *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=310)
-        self.entry_contact = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_contact.place(x=120, y=360, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=390)
+        # Middle Name Field
+        ctk.CTkLabel(self, text="Middle Name", font=label_font, fg_color="white", text_color="black").place(x=720, y=190)
+        self.entry_middlename = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white",placeholder_text="Type here")
+        self.entry_middlename.place(x=720, y=240)
+        create_underline(720, 270, 180)
 
-        tk.Label(self, text="Relationship to the Patient *", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=310)
-        self.entry_relationship = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_relationship.place(x=420, y=360, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=390)
+        # Contact Number Field
+        ctk.CTkLabel(self, text="Contact Number", font=label_font, fg_color="white", text_color="black").place(x=120, y=310)
+        self.entry_contact = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white",placeholder_text="Type here")
+        self.entry_contact.place(x=120, y=360)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=250, y=310)  
+        create_underline(120, 390, 180)
 
-        tk.Label(self, text="Complete Address *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=430)
-        self.entry_address = TextField_Patients(self, width=50, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_address.place(x=120, y=480, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=500).place(x=120, y=510)
+        # Relationship to the Patient Field
+        ctk.CTkLabel(self, text="Relationship to the Patient", font=label_font, fg_color="white", text_color="black").place(x=420, y=310)
+        self.entry_relationship = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white",placeholder_text="Type here")
+        self.entry_relationship.place(x=420, y=360)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=635, y=310)  
+        create_underline(420, 390, 180)
+
+        # Complete Address Field
+        ctk.CTkLabel(self, text="Complete Address", font=label_font, fg_color="white", text_color="black").place(x=120, y=430)
+        self.entry_address = ctk.CTkEntry(self, width=500, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white",placeholder_text="Type here")
+        self.entry_address.place(x=120, y=480)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=265, y=430)  
+        create_underline(120, 510, 500)
+
 
         if self.edit_mode and self.patient_id:
             self.populate_fields()
@@ -385,12 +500,12 @@ class ContactPersonWindow(BaseWindow):
 
     def save_current_data(self):
         try:
-            self.data["contact_last_name"] = self.entry_lastname.get_real_value().lower().capitalize()
-            self.data["contact_first_name"] = self.entry_firstname.get_real_value().lower().capitalize()
-            self.data["contact_middle_name"] = self.entry_middlename.get_real_value().lower().capitalize()
-            self.data["contact_number"] = self.entry_contact.get_real_value()
-            self.data["relationship_to_patient"] = self.entry_relationship.get_real_value().lower().capitalize()
-            self.data["contact_address"] = self.entry_address.get_real_value().lower().capitalize()
+            self.data["contact_last_name"] = self.entry_lastname.get().lower().capitalize()
+            self.data["contact_first_name"] = self.entry_firstname.get().lower().capitalize()
+            self.data["contact_middle_name"] = self.entry_middlename.get().lower().capitalize()
+            self.data["contact_number"] = self.entry_contact.get()
+            self.data["relationship_to_patient"] = self.entry_relationship.get().lower().capitalize()
+            self.data["contact_address"] = self.entry_address.get().lower().capitalize()
             
         except Exception as e:
             print(f"❌ Error saving current contact data: {e}")
@@ -426,12 +541,12 @@ class ContactPersonWindow(BaseWindow):
 
     def open_next(self, data=None):
         try:
-            self.data["contact_last_name"] = self.entry_lastname.get_real_value().lower().capitalize()
-            self.data["contact_first_name"] = self.entry_firstname.get_real_value().lower().capitalize()
-            self.data["contact_middle_name"] = self.entry_middlename.get_real_value().lower().capitalize()
-            self.data["contact_number"] = self.entry_contact.get_real_value()
-            self.data["relationship_to_patient"] = self.entry_relationship.get_real_value().lower().capitalize()
-            self.data["contact_address"] = self.entry_address.get_real_value().lower().capitalize()
+            self.data["contact_last_name"] = self.entry_lastname.get().lower().capitalize()
+            self.data["contact_first_name"] = self.entry_firstname.get().lower().capitalize()
+            self.data["contact_middle_name"] = self.entry_middlename.get().lower().capitalize()
+            self.data["contact_number"] = self.entry_contact.get()
+            self.data["relationship_to_patient"] = self.entry_relationship.get().lower().capitalize()
+            self.data["contact_address"] = self.entry_address.get().lower().capitalize()
 
             self.data["edit_mode"] = self.edit_mode
             self.data["patient_id"] = self.patient_id
@@ -449,33 +564,53 @@ class RelativeInfoWindow(BaseWindow):
         super().__init__(parent, "Relative Information", next_window=PhilHealthInfoWindow, previous_window=ContactPersonWindow)
         self.data = data if data else {}
 
+
+        label_font = ("Merriweather Sans Bold",15)
+        entry_font = ("Merriweather Sans", 13)
+        button_font = ("Merriweather Bold", 20)
+        required_font = ("Merriweather Sans bold", 10)
+
+        def create_underline(x, y, width):
+            ctk.CTkFrame(self, height=1, width=width, fg_color="black").place(x=x, y=y)
+
+
         title_text = "Edit Relative Information" if self.edit_mode else "Relative Information"
-        tk.Label(self, text=title_text, font=("Merriweather bold", 25), bg="white").place(x=90, y=60)
+        ctk.CTkLabel(self, text=title_text, font=("Merriweather bold", 25), text_color="black", bg_color="white").place(x=90, y=100)
 
-        tk.Label(self, text="Last Name*", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=190)
-        self.entry_lastname = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_lastname.place(x=120, y=240, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=270)
+        # Last Name
+        ctk.CTkLabel(self, text="Last Name", font=label_font, fg_color="white", text_color="black").place(x=120, y=190)
+        self.entry_lastname = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white",placeholder_text="Type here")
+        self.entry_lastname.place(x=120, y=240)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=205, y=190)  
+        create_underline(120, 270, 180)
 
-        tk.Label(self, text="First Name*", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=190)
-        self.entry_firstname = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_firstname.place(x=420, y=240, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=270)
+        # First Name Field
+        ctk.CTkLabel(self, text="First Name", font=label_font, fg_color="white", text_color="black").place(x=420, y=190)
+        self.entry_firstname = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white",placeholder_text="Type here")
+        self.entry_firstname.place(x=420, y=240)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=510, y=190)  
+        create_underline(420, 270, 180)
 
-        tk.Label(self, text="Middle Name*", font=("Merriweather Sans bold", 15), bg="white").place(x=720, y=190)
-        self.entry_middlename = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_middlename.place(x=720, y=240, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=180).place(x=720, y=270)
+        # Middle Name Field
+        ctk.CTkLabel(self, text="Middle Name", font=label_font, fg_color="white", text_color="black").place(x=720, y=190)
+        self.entry_middlename = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white",placeholder_text="Type here")
+        self.entry_middlename.place(x=720, y=240)
+        create_underline(720, 270, 180)
 
-        tk.Label(self, text="Contact Number*", font=("Merriweather Sans bold",15), bg="white").place(x=120, y=310)
-        self.entry_contact = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_contact.place(x=120, y=360, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=390)
+        # Contact Number Field
+        ctk.CTkLabel(self, text="Contact Number", font=label_font, fg_color="white", text_color="black").place(x=120, y=310)
+        self.entry_contact = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white",placeholder_text="Type here")
+        self.entry_contact.place(x=120, y=360)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=250, y=310)  
+        create_underline(120, 390, 180)
 
-        tk.Label(self, text="Complete Address*", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=430)
-        self.entry_address = TextField_Patients(self, width=50, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_address.place(x=120, y=480, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=500).place(x=120, y=510)
+        # Complete Address Field
+        ctk.CTkLabel(self, text="Complete Address", font=label_font, fg_color="white", text_color="black").place(x=120, y=430)
+        self.entry_address = ctk.CTkEntry(self, width=500, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white",placeholder_text="Type here")
+        self.entry_address.place(x=120, y=480)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=265, y=430)  
+        create_underline(120, 510, 500)
+
 
         if self.edit_mode and self.patient_id:
             self.populate_fields()
@@ -485,30 +620,30 @@ class RelativeInfoWindow(BaseWindow):
     def restore_form_data(self):
         try:
             if self.data.get("relative_last_name"):
-                self.entry_lastname.set_real_value(self.data.get("relative_last_name"))
+                self.entry_lastname.insert(0, self.data.get("relative_last_name"))
                 
             if self.data.get("relative_first_name"):
-                self.entry_firstname.set_real_value(self.data.get("relative_first_name"))
+                self.entry_firstname.insert(0, self.data.get("relative_first_name"))
                 
             if self.data.get("relative_middle_name"):
-                self.entry_middlename.set_real_value(self.data.get("relative_middle_name"))
+                self.entry_middlename.insert(0, self.data.get("relative_middle_name"))
                 
             if self.data.get("relative_contact_number"):
-                self.entry_contact.set_real_value(self.data.get("relative_contact_number"))
+                self.entry_contact.insert(0, self.data.get("relative_contact_number"))
                 
             if self.data.get("relative_address"):
-                self.entry_address.set_real_value(self.data.get("relative_address"))
+                self.entry_address.insert(0, self.data.get("relative_address"))
             
         except Exception as e:
             print(f"❌ Error restoring relative form data: {e}")
 
     def save_current_data(self):
         try:
-            self.data["relative_last_name"] = self.entry_lastname.get_real_value().lower().capitalize()
-            self.data["relative_first_name"] = self.entry_firstname.get_real_value().lower().capitalize()
-            self.data["relative_middle_name"] = self.entry_middlename.get_real_value().lower().capitalize()
-            self.data["relative_contact_number"] = self.entry_contact.get_real_value()
-            self.data["relative_address"] = self.entry_address.get_real_value().lower().capitalize()
+            self.data["relative_last_name"] = self.entry_lastname.get().lower().capitalize()
+            self.data["relative_first_name"] = self.entry_firstname.get().lower().capitalize()
+            self.data["relative_middle_name"] = self.entry_middlename.get().lower().capitalize()
+            self.data["relative_contact_number"] = self.entry_contact.get()
+            self.data["relative_address"] = self.entry_address.get().lower().capitalize()
             
         except Exception as e:
             print(f"❌ Error saving current relative data: {e}")
@@ -529,11 +664,11 @@ class RelativeInfoWindow(BaseWindow):
                 relative_data = cursor.fetchone()
 
                 if relative_data:
-                    self.entry_lastname.set_real_value(relative_data[0])
-                    self.entry_firstname.set_real_value(relative_data[1])
-                    self.entry_middlename.set_real_value(relative_data[2])
-                    self.entry_contact.set_real_value(relative_data[3])
-                    self.entry_address.set_real_value(relative_data[4])
+                    self.entry_lastname.insert(0, relative_data[0])
+                    self.entry_firstname.insert(0, relative_data[1])
+                    self.entry_middlename.insert(0, relative_data[2])
+                    self.entry_contact.insert(0, relative_data[3])
+                    self.entry_address.insert(0, relative_data[4])
 
                 cursor.close()
                 connect.close()
@@ -543,11 +678,11 @@ class RelativeInfoWindow(BaseWindow):
 
     def open_next(self, data=None):
         try:
-            self.data["relative_last_name"] = self.entry_lastname.get_real_value().lower().capitalize()
-            self.data["relative_first_name"] = self.entry_firstname.get_real_value().lower().capitalize()
-            self.data["relative_middle_name"] = self.entry_middlename.get_real_value().lower().capitalize()
-            self.data["relative_contact_number"] = self.entry_contact.get_real_value()
-            self.data["relative_address"] = self.entry_address.get_real_value().lower().capitalize()
+            self.data["relative_last_name"] = self.entry_lastname.get().lower().capitalize()
+            self.data["relative_first_name"] = self.entry_firstname.get().lower().capitalize()
+            self.data["relative_middle_name"] = self.entry_middlename.get().lower().capitalize()
+            self.data["relative_contact_number"] = self.entry_contact.get()
+            self.data["relative_address"] = self.entry_address.get().lower().capitalize()
 
             self.data["edit_mode"] = self.edit_mode
             self.data["patient_id"] = self.patient_id
@@ -565,39 +700,54 @@ class PhilHealthInfoWindow(BaseWindow):
         super().__init__(parent, "PhilHealth and Other Info", next_window=PatientHistory1Window, previous_window=RelativeInfoWindow)
         self.data = data if data else {}
 
+        label_font = ("Merriweather Sans Bold",15)
+        entry_font = ("Merriweather Sans", 13)
+        button_font = ("Merriweather Bold", 20)
+        required_font = ("Merriweather Sans bold", 10)
+
+        def create_underline(x, y, width):
+            ctk.CTkFrame(self, height=1, width=width, fg_color="black").place(x=x, y=y)
+
         title_text = "Edit PhilHealth and Other Info" if self.edit_mode else "PhilHealth and Other Info"
-        tk.Label(self, text=title_text, font=("Merriweather bold", 25), bg="white").place(x=90, y=60)
+        ctk.CTkLabel(self, text=title_text, font=("Merriweather bold", 25), text_color="black", bg_color="white").place(x=90, y=100)
 
-        tk.Label(self, text="PhilHealth Number *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=190)
-        self.entry_philhealth = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_philhealth.place(x=120, y=240, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=180).place(x=120, y=270)
+        # PhilHealth Number Field
+        ctk.CTkLabel(self, text="PhilHealth Number", font=label_font, fg_color="white", text_color="black").place(x=120, y=190)
+        self.entry_philhealth = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white",placeholder_text="Type here")
+        self.entry_philhealth.place(x=120, y=240)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=275, y=190)
+        create_underline(120, 270, 180)
 
-        tk.Label(self, text="Membership *", font=("Merriweather Sans bold",15), bg="white").place(x=420, y=190)
-        self.entry_membership = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_membership.place(x=420, y=240, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=270)
+        # Membership Field
+        ctk.CTkLabel(self, text="Membership", font=label_font, fg_color="white", text_color="black").place(x=420, y=190)
+        self.entry_membership = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white",placeholder_text="Type here")
+        self.entry_membership.place(x=420, y=240)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=525, y=190)
+        create_underline(420, 270, 180)
 
-        tk.Label(self, text="PWD", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=310)
-        self.pwd_var = tk.IntVar() 
+        # PWD Radio Buttons
+        ctk.CTkLabel(self, text="PWD", font=label_font, fg_color="white", text_color="black").place(x=120, y=310)
+        self.pwd_var = ctk.IntVar()
+        ctk.CTkRadioButton(self, text="Yes", variable=self.pwd_var, value=1, font=entry_font, text_color="black", fg_color="#00C88D", bg_color="white").place(x=120, y=350)
+        ctk.CTkRadioButton(self, text="No", variable=self.pwd_var, value=0, font=entry_font, text_color="black", fg_color="#00C88D", bg_color="white").place(x=180, y=350)
 
-        tk.Radiobutton(self, text="Yes", variable=self.pwd_var, value=1, bg="white", font=("Merriweather Sans", 12)).place(x=120, y=350)
-        tk.Radiobutton(self, text="No", variable=self.pwd_var, value=0, bg="white", font=("Merriweather Sans", 12)).place(x=180, y=350)
+        # PWD ID Number Field
+        ctk.CTkLabel(self, text="PWD ID Number", font=label_font, fg_color="white", text_color="black").place(x=420, y=310)
+        self.entry_pwd_id = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white",placeholder_text="Type here")
+        self.entry_pwd_id.place(x=420, y=360)
+        create_underline(420, 390, 180)
 
-        tk.Label(self, text="PWD ID Number", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=310)
-        self.entry_pwd_id = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_pwd_id.place(x=420, y=360, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=390)
+        # Senior Radio Buttons
+        ctk.CTkLabel(self, text="Senior", font=label_font, fg_color="white", text_color="black").place(x=120, y=440)
+        self.senior_var = ctk.IntVar()
+        ctk.CTkRadioButton(self, text="Yes", variable=self.senior_var, value=1, font=entry_font, text_color="black", fg_color="#00C88D", bg_color="white").place(x=120, y=480)
+        ctk.CTkRadioButton(self, text="No", variable=self.senior_var, value=0, font=entry_font, text_color="black", fg_color="#00C88D", bg_color="white").place(x=180, y=480)
 
-        tk.Label(self, text="Senior", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=440)
-        self.senior_var = tk.IntVar() 
-        tk.Radiobutton(self, text="Yes", variable=self.senior_var, value=1, bg="white", font=("Merriweather Sans", 12)).place(x=120, y=480)
-        tk.Radiobutton(self, text="No", variable=self.senior_var, value=0, bg="white", font=("Merriweather Sans", 12)).place(x=180, y=480)
-
-        tk.Label(self, text="Senior ID Number", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=430)
-        self.entry_senior_id = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_senior_id.place(x=420, y=480, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=180).place(x=420, y=510)
+        # Senior ID Number Field
+        ctk.CTkLabel(self, text="Senior ID Number", font=label_font, fg_color="white", text_color="black").place(x=420, y=430)
+        self.entry_senior_id = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white",placeholder_text="Type here")
+        self.entry_senior_id.place(x=420, y=480)
+        create_underline(420, 510, 180)
         
         if self.edit_mode and self.patient_id:
             self.populate_fields()
@@ -607,10 +757,10 @@ class PhilHealthInfoWindow(BaseWindow):
     def restore_form_data(self):
         try:
             if self.data.get("philhealth_number"):
-                self.entry_philhealth.set_real_value(self.data.get("philhealth_number"))
+                self.entry_philhealth.insert(0, self.data.get("philhealth_number"))
                 
             if self.data.get("membership_type"):
-                self.entry_membership.set_real_value(self.data.get("membership_type"))
+                self.entry_membership.insert(0, self.data.get("membership_type"))
                 
             if "is_pwd" in self.data:
                 self.pwd_var.set(self.data.get("is_pwd"))
@@ -619,22 +769,22 @@ class PhilHealthInfoWindow(BaseWindow):
                 self.senior_var.set(self.data.get("is_senior"))
                 
             if self.data.get("pwd_id"):
-                self.entry_pwd_id.set_real_value(self.data.get("pwd_id"))
+                self.entry_pwd_id.insert(0, self.data.get("pwd_id"))
                 
             if self.data.get("senior_id"):
-                self.entry_senior_id.set_real_value(self.data.get("senior_id"))
+                self.entry_senior_id.insert(0, self.data.get("senior_id"))
             
         except Exception as e:
             print(f"❌ Error restoring PhilHealth form data: {e}")
 
     def save_current_data(self):
         try:
-            self.data["philhealth_number"] = self.entry_philhealth.get_real_value()
-            self.data["membership_type"] = self.entry_membership.get_real_value().lower().capitalize()
+            self.data["philhealth_number"] = self.entry_philhealth.get()
+            self.data["membership_type"] = self.entry_membership.get().lower().capitalize()
             self.data["is_pwd"] = self.pwd_var.get()
             self.data["is_senior"] = self.senior_var.get()
-            self.data["pwd_id"] = self.entry_pwd_id.get_real_value()
-            self.data["senior_id"] = self.entry_senior_id.get_real_value()
+            self.data["pwd_id"] = self.entry_pwd_id.get()
+            self.data["senior_id"] = self.entry_senior_id.get()
             
         except Exception as e:
             print(f"❌ Error saving current PhilHealth data: {e}")
@@ -647,7 +797,7 @@ class PhilHealthInfoWindow(BaseWindow):
 
                 cursor.execute("""
                     SELECT pb.philhealth_number, pb.membership_type, pb.is_pwd, 
-                           pb.pwd_id, pb.is_senior, pb.senior_id
+                        pb.pwd_id, pb.is_senior, pb.senior_id
                     FROM patient_benefits pb
                     WHERE pb.patient_id = %s
                 """, (self.patient_id,))
@@ -655,14 +805,14 @@ class PhilHealthInfoWindow(BaseWindow):
                 philhealth_data = cursor.fetchone()
 
                 if philhealth_data:
-                    self.entry_philhealth.set_real_value(philhealth_data[0])
-                    self.entry_membership.set_real_value(philhealth_data[1])
+                    self.entry_philhealth.insert(0, philhealth_data[0] if philhealth_data[0] else "")
+                    self.entry_membership.insert(0, philhealth_data[1] if philhealth_data[1] else "")
                     
                     self.pwd_var.set(1 if philhealth_data[2] else 0)
-                    self.entry_pwd_id.set_real_value(str(philhealth_data[3]) if philhealth_data[3] else "")
+                    self.entry_pwd_id.insert(0, str(philhealth_data[3]) if philhealth_data[3] else "")
                     
                     self.senior_var.set(1 if philhealth_data[4] else 0)
-                    self.entry_senior_id.set_real_value(str(philhealth_data[5]) if philhealth_data[5] else "")
+                    self.entry_senior_id.insert(0, str(philhealth_data[5]) if philhealth_data[5] else "")
 
                 cursor.close()
                 connect.close()
@@ -672,12 +822,12 @@ class PhilHealthInfoWindow(BaseWindow):
 
     def open_next(self, data=None):
         try:
-            self.data["philhealth_number"] = self.entry_philhealth.get_real_value()
-            self.data["membership_type"] = self.entry_membership.get_real_value()
+            self.data["philhealth_number"] = self.entry_philhealth.get()
+            self.data["membership_type"] = self.entry_membership.get()
             self.data["is_pwd"] = self.pwd_var.get()
             self.data["is_senior"] = self.senior_var.get()
-            self.data["pwd_id"] = self.entry_pwd_id.get_real_value()
-            self.data["senior_id"] = self.entry_senior_id.get_real_value()
+            self.data["pwd_id"] = self.entry_pwd_id.get()
+            self.data["senior_id"] = self.entry_senior_id.get()
 
             self.data["edit_mode"] = self.edit_mode
             self.data["patient_id"] = self.patient_id
@@ -695,50 +845,78 @@ class PatientHistory1Window(BaseWindow):
         super().__init__(parent, "Patient History Part 1", next_window=PatientHistory2Window, previous_window=PhilHealthInfoWindow)
         self.data = data if data else {}
 
+        label_font = ("Merriweather Sans Bold",15)
+        entry_font = ("Merriweather Sans", 13)
+        button_font = ("Merriweather Bold", 20)
+        required_font = ("Merriweather Sans bold", 10)
+
+        def create_underline(x, y, width):
+            ctk.CTkFrame(self, height=1, width=width, fg_color="black").place(x=x, y=y)
+
+        # Title
         title_text = "Edit Patient History Part 1" if self.edit_mode else "Patient History Part 1"
-        tk.Label(self, text=title_text, font=("Merriweather bold", 25), bg="white").place(x=90, y=60)
+        ctk.CTkLabel(self, text=title_text, font=("Merriweather bold", 25), text_color="black", bg_color="white").place(x=90, y=100)
 
-        self.family_hypertension = tk.BooleanVar()
-        self.family_diabetes = tk.BooleanVar()
-        self.family_malignancy = tk.BooleanVar()
+        # Family History Boolean Variables
+        self.family_hypertension = ctk.BooleanVar()
+        self.family_diabetes = ctk.BooleanVar()
+        self.family_malignancy = ctk.BooleanVar()
+
+        ctk.CTkLabel(self, text="Family History", font=label_font, fg_color="white", text_color="black").place(x=120, y=190)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=235, y=190) 
         
-        tk.Checkbutton(self, variable=self.family_hypertension, bg="white").place(x=120, y=240)
-        tk.Label(self, text="Hypertension", font=("Merriweather Sans bold", 12), bg="white").place(x=140, y=240)
 
-        tk.Checkbutton(self, variable=self.family_diabetes, bg="white").place(x=320, y=240)
-        tk.Label(self, text="Diabetes Mellitus", font=("Merriweather Sans bold", 12), bg="white").place(x=340, y=240)
+        # Family History Checkboxes
+        ctk.CTkCheckBox(self, variable=self.family_hypertension, text="Hypertension", 
+                        font=entry_font, text_color="black", fg_color="#008400", 
+                        bg_color="white", checkbox_width=20, checkbox_height=20).place(x=120, y=240)
 
-        tk.Checkbutton(self, variable=self.family_malignancy, bg="white").place(x=520, y=240)
-        tk.Label(self, text="Malignancy", font=("Merriweather Sans bold", 12), bg="white").place(x=540, y=240)
+        ctk.CTkCheckBox(self, variable=self.family_diabetes, text="Diabetes Mellitus", 
+                        font=entry_font, text_color="black", fg_color="#008400", 
+                        bg_color="white", checkbox_width=20, checkbox_height=20).place(x=370, y=240)
 
-        tk.Label(self, text="Other:", font=("Merriweather Sans bold", 12), bg="white").place(x=140, y=300)
-        self.family_other = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.family_other.place(x=140 , y=340, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=180).place(x=140, y=370)
+        ctk.CTkCheckBox(self, variable=self.family_malignancy, text="Malignancy", 
+                        font=entry_font, text_color="black", fg_color="#008400", 
+                        bg_color="white", checkbox_width=20, checkbox_height=20).place(x=620, y=240)
 
-        tk.Label(self, text="Medical History*", font=("Merriweather sans bold", 15), bg="white").place(x=120, y=400)
+        # Family History Other Field
+        ctk.CTkLabel(self, text="Other:", font=entry_font, fg_color="white", text_color="black").place(x=140, y=300)
+        self.family_other = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white")
+        self.family_other.place(x=140, y=340)
+        create_underline(140, 370, 180)
 
-        self.med_kidney_disease = tk.BooleanVar()
-        self.med_urinary_stone = tk.BooleanVar()
-        self.med_recurrent_uti = tk.BooleanVar()
-        self.med_diabetes_type = tk.BooleanVar()
-        
-        tk.Checkbutton(self, variable=self.med_kidney_disease, bg="white").place(x=120, y=450)
-        tk.Label(self, text="Hypertension prior to kidney disease", font=("Merriweather Sans bold", 12), bg="white").place(x=140, y=450)
+        # Medical History Label
+        ctk.CTkLabel(self, text="Medical History", font=label_font, fg_color="white", text_color="black").place(x=120, y=400)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=250, y=400) 
 
-        tk.Checkbutton(self, variable=self.med_urinary_stone, bg="white").place(x=320, y=450)
-        tk.Label(self, text="Urinary Stone", font=("Merriweather Sans bold", 12), bg="white").place(x=340, y=450)
+        # Medical History Boolean Variables
+        self.med_kidney_disease = ctk.BooleanVar()
+        self.med_urinary_stone = ctk.BooleanVar()
+        self.med_recurrent_uti = ctk.BooleanVar()
+        self.med_diabetes_type = ctk.BooleanVar()
 
-        tk.Checkbutton(self, variable=self.med_recurrent_uti, bg="white").place(x=520, y=450)
-        tk.Label(self, text="Recurrent UTI", font=("Merriweather Sans bold", 12), bg="white").place(x=540, y=450)
+        ctk.CTkCheckBox(self, variable=self.med_kidney_disease, text="Hypertension prior to kidney disease", 
+                        font=entry_font, text_color="black", fg_color="#008400", 
+                        bg_color="white", checkbox_width=20, checkbox_height=20).place(x=120, y=450)
 
-        tk.Checkbutton(self, variable=self.med_diabetes_type, bg="white").place(x=720, y=450)
-        tk.Label(self, text="Diabetes Mellitus Type", font=("Merriweather Sans bold", 12), bg="white").place(x=740, y=450)
+        ctk.CTkCheckBox(self, variable=self.med_urinary_stone, text="Urinary Stone", 
+                        font=entry_font, text_color="black", fg_color="#008400", 
+                        bg_color="white", checkbox_width=20, checkbox_height=20).place(x=400, y=450)
 
-        tk.Label(self, text="Other:", font=("Merriweather Sans bold", 12), bg="white").place(x=140, y=510)
-        self.med_other1 = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.med_other1.place(x=140, y=550, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=180).place(x=140, y=580)
+        ctk.CTkCheckBox(self, variable=self.med_recurrent_uti, text="Recurrent UTI", 
+                        font=entry_font, text_color="black", fg_color="#008400", 
+                        bg_color="white", checkbox_width=20, checkbox_height=20).place(x=650, y=450)
+
+        ctk.CTkCheckBox(self, variable=self.med_diabetes_type, text="Diabetes Mellitus Type", 
+                        font=entry_font, text_color="black", fg_color="#008400", 
+                        bg_color="white", checkbox_width=20, checkbox_height=20).place(x=900, y=450)
+
+        # Medical History Other Field
+        ctk.CTkLabel(self, text="Other:", font=entry_font, fg_color="white", text_color="black").place(x=140, y=510)
+        self.med_other1 = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white")
+        self.med_other1.place(x=140, y=550)
+        create_underline(140, 580, 180)
+
 
         if self.edit_mode and self.patient_id:
             self.populate_fields()
@@ -776,12 +954,12 @@ class PatientHistory1Window(BaseWindow):
             self.data["family_hypertension"] = self.family_hypertension.get()
             self.data["family_diabetes"] = self.family_diabetes.get()
             self.data["family_malignancy"] = self.family_malignancy.get()
-            self.data["family_other"] = self.family_other.get_real_value().lower().capitalize()
+            self.data["family_other"] = self.family_other.get().lower().capitalize()
             self.data["med_kidney_disease"] = self.med_kidney_disease.get()
             self.data["med_urinary_stone"] = self.med_urinary_stone.get()
             self.data["med_recurrent_uti"] = self.med_recurrent_uti.get()
             self.data["med_diabetes_type"] = self.med_diabetes_type.get()
-            self.data["med_other1"] = self.med_other1.get_real_value().lower().capitalize()
+            self.data["med_other1"] = self.med_other1.get().lower().capitalize()
             
         except Exception as e:
             print(f"❌ Error saving current Patient History 1 data: {e}")
@@ -793,8 +971,8 @@ class PatientHistory1Window(BaseWindow):
                 cursor = connect.cursor()
                 cursor.execute("""
                     SELECT ph.has_hypertension, ph.has_diabetes, ph.has_malignancy, 
-                           ph.other_family_history, ph.has_kidney_disease, ph.has_urinary_stone, 
-                           ph.has_recurrent_uti, ph.diabetes_type, ph.other_medical_history
+                        ph.other_family_history, ph.has_kidney_disease, ph.has_urinary_stone, 
+                        ph.has_recurrent_uti, ph.diabetes_type, ph.other_medical_history
                     FROM patient_history ph
                     WHERE ph.patient_id = %s
                 """, (self.patient_id,))
@@ -805,13 +983,13 @@ class PatientHistory1Window(BaseWindow):
                     self.family_hypertension.set(bool(history_data[0]))
                     self.family_diabetes.set(bool(history_data[1]))
                     self.family_malignancy.set(bool(history_data[2]))
-                    self.family_other.set_real_value(history_data[3] if history_data[3] else '')
+                    self.family_other.insert(0, history_data[3] if history_data[3] else '')
 
                     self.med_kidney_disease.set(bool(history_data[4]))
                     self.med_urinary_stone.set(bool(history_data[5]))
                     self.med_recurrent_uti.set(bool(history_data[6]))
                     self.med_diabetes_type.set(bool(history_data[7]))
-                    self.med_other1.set_real_value(history_data[8] if history_data[8] else '')
+                    self.med_other1.insert(0, history_data[8] if history_data[8] else '')
 
                 cursor.close()
                 connect.close()
@@ -824,12 +1002,12 @@ class PatientHistory1Window(BaseWindow):
             self.data["family_hypertension"] = self.family_hypertension.get()
             self.data["family_diabetes"] = self.family_diabetes.get()
             self.data["family_malignancy"] = self.family_malignancy.get()
-            self.data["family_other"] = self.family_other.get_real_value().lower().capitalize()
+            self.data["family_other"] = self.family_other.get().lower().capitalize()
             self.data["med_kidney_disease"] = self.med_kidney_disease.get()
             self.data["med_urinary_stone"] = self.med_urinary_stone.get()
             self.data["med_recurrent_uti"] = self.med_recurrent_uti.get()
             self.data["med_diabetes_type"] = self.med_diabetes_type.get()
-            self.data["med_other1"] = self.med_other1.get_real_value().lower().capitalize()
+            self.data["med_other1"] = self.med_other1.get().lower().capitalize()
 
             self.data["edit_mode"] = self.edit_mode
             self.data["patient_id"] = self.patient_id
@@ -847,18 +1025,29 @@ class PatientHistory2Window(BaseWindow):
         super().__init__(parent, "Patient History Part 2", next_window=PatientHistory3Window, previous_window=PatientHistory1Window)
         self.data = data if data else {}
 
+        label_font = ("Merriweather Sans Bold",15)
+        entry_font = ("Merriweather Sans", 13)
+        button_font = ("Merriweather Bold", 20)
+        required_font = ("Merriweather Sans bold", 10)
+
+        
+
         title_text = "Edit Patient History Part 2" if self.edit_mode else "Patient History Part 2"
-        tk.Label(self, text=title_text, font=("Merriweather bold", 25), bg="white").place(x=90, y=60)
+        ctk.CTkLabel(self, text=title_text, font=("Merriweather bold", 25), text_color="black", bg_color="white").place(x=90, y=100)
 
-        tk.Label(self, text="History of Present Illness*", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=190)
-        self.history_illness = tk.Text(self, width=80, height=5, font=("Merriweather light", 12), bg="white", bd=1, relief="solid")
-        self.history_illness.place(x=120, y=240)
-        self.add_placeholder(self.history_illness, "Type here")
+        # History of Present Illness Field
+        ctk.CTkLabel(self, text="History of Present Illness", font=label_font, fg_color="white", text_color="black").place(x=120, y=190)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=325, y=190)
+        self.history_illness = ctk.CTkTextbox(self, width=700, height=150, font=entry_font, text_color="black", fg_color="white", border_width=1.5, bg_color="white",corner_radius=20)
+        self.history_illness.place(x=170, y=240)
+        
 
-        tk.Label(self, text="Pertinent Past Medical History *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=400)
-        self.past_medical_history = tk.Text(self, width=80, height=5, font=("Merriweather light", 12), bg="white", bd=1, relief="solid")
-        self.past_medical_history.place(x=120, y=450)
-        self.add_placeholder(self.past_medical_history, "Type here")
+        # Pertinent Past Medical History Field
+        ctk.CTkLabel(self, text="Pertinent Past Medical History", font=label_font, fg_color="white", text_color="black").place(x=120, y=400)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=360, y=400)
+        self.past_medical_history = ctk.CTkTextbox(self, width=700 ,height=150, font=entry_font, text_color="black", fg_color="white", border_width=1.5, bg_color="white",corner_radius=20)
+        self.past_medical_history.place(x=170, y=450)
+        
 
         if self.edit_mode and self.patient_id:
             self.populate_fields()
@@ -964,35 +1153,53 @@ class PatientHistory3Window(BaseWindow):
         super().__init__(parent, "Patient History Part 3", next_window=MedicationWindow, previous_window=PatientHistory2Window)
         self.data = data if data else {}
 
-        title_text = "Edit Patient History Part 3" if self.edit_mode else "Patient History Part 3"
-        tk.Label(self, text=title_text, font=("Merriweather bold", 25), bg="white").place(x=90, y=60)
+        label_font = ("Merriweather Sans Bold",15)
+        entry_font = ("Merriweather Sans", 13)
+        button_font = ("Merriweather Bold", 20)
+        required_font = ("Merriweather Sans bold", 10)
 
-        tk.Label(self, text="Date of First Diagnosed having Kidney Disease*", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=190)
-        self.entry_diagnosed = DateEntry(self, width=18, font=("Merriweather light", 12), bg="white", date_pattern="yyyy-MM-dd", state="readonly")
+        def create_underline(x, y, width):
+            ctk.CTkFrame(self, height=1, width=width, fg_color="black").place(x=x, y=y)
+
+        title_text = "Edit Patient History Part 3" if self.edit_mode else "Patient History Part 3"
+        ctk.CTkLabel(self, text=title_text, font=("Merriweather bold", 25), bg_color="white").place(x=90, y=100)
+
+        # Date of First Diagnosed having Kidney Disease
+        ctk.CTkLabel(self, text="Date of First Diagnosed having Kidney Disease", font=label_font, fg_color="white", text_color="black").place(x=120, y=190)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=480, y=190)
+        self.entry_diagnosed = DateEntry(self, width=12, font=entry_font, bg="white", date_pattern="yyyy-MM-dd", state="readonly")
         self.entry_diagnosed.place(x=120, y=240, height=25)
 
-        tk.Label(self, text="Date of First Dialysis", font=("Merriweather Sans bold", 15), bg="white").place(x=750, y=190)
-        self.entry_dialysis = DateEntry(self, width=18, font=("Merriweather light", 12), bg="white", date_pattern="yyyy-MM-dd", state="readonly")
+        # Date of First Dialysis  
+        ctk.CTkLabel(self, text="Date of First Dialysis", font=label_font, fg_color="white", text_color="black").place(x=750, y=190)
+        self.entry_dialysis = DateEntry(self, width=12, font=entry_font, bg="white", date_pattern="yyyy-MM-dd", state="readonly")
         self.entry_dialysis.place(x=750, y=240, height=25)
 
-        tk.Label(self, text="Mode *", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=310)
-        self.mode_var = tk.StringVar(value="hemodialysis")
-        tk.Radiobutton(self, text="Peritoneal", variable=self.mode_var, value="peritoneal", bg="white", font=("Merriweather Sans", 12)).place(x=120, y=360)
-        tk.Radiobutton(self, text="Hemodialysis", variable=self.mode_var, value="hemodialysis", bg="white", font=("Merriweather Sans", 12)).place(x=220, y=360)
+        # Mode Section
+        ctk.CTkLabel(self, text="Mode", font=label_font, fg_color="white", text_color="black").place(x=120, y=310)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=170, y=310)
+        self.mode_var = ctk.StringVar(value="hemodialysis")
+        ctk.CTkRadioButton(self, text="Peritoneal", variable=self.mode_var, value="peritoneal", font=entry_font, text_color="black", fg_color="#008400", bg_color="white", radiobutton_width=20, radiobutton_height=20).place(x=120, y=360)
+        ctk.CTkRadioButton(self, text="Hemodialysis", variable=self.mode_var, value="hemodialysis", font=entry_font, text_color="black", fg_color="#008400", bg_color="white", radiobutton_width=20, radiobutton_height=20).place(x=220, y=360)
 
-        tk.Label(self, text="Type of Access *", font=("Merriweather Sans bold", 15), bg="white").place(x=420, y=310)
+        # Type of Access Section
+        ctk.CTkLabel(self, text="Type of Access", font=label_font, fg_color="white", text_color="black").place(x=420, y=310)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=540, y=310)
         self.access_options = ["L AVF", "R AVF", "L AVG", "R AVG", "L CVC", "R CVC", "L PDC", "R PDC"]
-        self.entry_access = ttk.Combobox(self, values=self.access_options, width=17, font=("Merriweather light", 12), state="readonly")
-        self.entry_access.place(x=420, y=360, height=25)
+        self.entry_access = ctk.CTkComboBox(self, values=self.access_options, width=180, height=25, font=entry_font, text_color="black", fg_color="white",button_color="#00C88D" ,border_width=1.5, bg_color="white", state="readonly")
+        self.entry_access.place(x=420, y=360)
 
-        tk.Label(self, text="Date of First Chronic Hemodialysis", font=("Merriweather Sans bold", 15), bg="white").place(x=120, y=430)
-        self.entry_chronic = DateEntry(self, width=18, font=("Merriweather light", 12), bg="white", date_pattern="yyyy-MM-dd", state="readonly")
-        self.entry_chronic.place(x=120, y=480, height=25)
+        # Date of First Chronic Hemodialysis
+        ctk.CTkLabel(self, text="Date of First Chronic Hemodialysis", font=label_font, fg_color="white", text_color="black").place(x=120, y=430)
+        self.entry_chronic = DateEntry(self, width=12,font=entry_font, bg="white", date_pattern="yyyy-MM-dd", state="readonly")
+        self.entry_chronic.place(x=120, y=480,height=25)
 
-        tk.Label(self, text="Clinical Impression*", font=("Merriweather Sans bold", 15), bg="white").place(x=550, y=430)
-        self.entry_clinical = TextField_Patients(self, width=18, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
-        self.entry_clinical.place(x=550, y=480, height=25)
-        tk.Frame(self, bg="#979797", height=1, width=180).place(x=550, y=510)
+        # Clinical Impression Section
+        ctk.CTkLabel(self, text="Clinical Impression", font=label_font, fg_color="white", text_color="black").place(x=550, y=430)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=710, y=430)
+        self.entry_clinical = ctk.CTkEntry(self, width=180, height=25, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white", placeholder_text="Type here")
+        self.entry_clinical.place(x=550, y=480)
+        create_underline(550, 510, 180)
 
         if self.edit_mode and self.patient_id:
             self.populate_fields()
@@ -1033,7 +1240,7 @@ class PatientHistory3Window(BaseWindow):
             self.data["mode"] = self.mode_var.get()
             self.data["access"] = self.entry_access.get()
             self.data["date_chronic"] = self.entry_chronic.get_date().strftime("%Y-%m-%d")
-            self.data["clinical_impression"] = self.entry_clinical.get_real_value()
+            self.data["clinical_impression"] = self.entry_clinical.get()
             
         except Exception as e:
             print(f"❌ Error saving current Patient History 3 data: {e}")
@@ -1045,7 +1252,7 @@ class PatientHistory3Window(BaseWindow):
                 cursor = connect.cursor()
                 cursor.execute("""
                     SELECT ph.first_diagnosis, ph.first_dialysis, ph.mode, 
-                           ph.access_type, ph.first_hemodialysis, ph.clinical_impression
+                        ph.access_type, ph.first_hemodialysis, ph.clinical_impression
                     FROM patient_history ph
                     WHERE ph.patient_id = %s
                 """, (self.patient_id,))
@@ -1064,7 +1271,10 @@ class PatientHistory3Window(BaseWindow):
                     if history_data[4]:
                         self.entry_chronic.set_date(history_data[4])
                     
-                    self.entry_clinical.set_real_value(history_data[5] if history_data[5] else "")
+                    # Changed from set_real_value() to insert() for CTkEntry
+                    clinical_value = history_data[5] if history_data[5] else ""
+                    self.entry_clinical.delete(0, "end")  # Clear existing content
+                    self.entry_clinical.insert(0, clinical_value)
 
                 cursor.close()
                 connect.close()
@@ -1079,7 +1289,7 @@ class PatientHistory3Window(BaseWindow):
             self.data["mode"] = self.mode_var.get()
             self.data["access"] = self.entry_access.get()
             self.data["date_chronic"] = self.entry_chronic.get_date().strftime("%Y-%m-%d")
-            self.data["clinical_impression"] = self.entry_clinical.get_real_value()
+            self.data["clinical_impression"] = self.entry_clinical.get()
 
             self.data["edit_mode"] = self.edit_mode
             self.data["patient_id"] = self.patient_id
@@ -1102,7 +1312,7 @@ class MedicationWindow(BaseWindow):
         self.max_columns = 3 
 
         title_text = "Edit Medications" if self.edit_mode else "Medication"
-        tk.Label(self.main_frame, text=title_text, font=("Merriweather bold", 25), bg="white").pack(pady=20)
+        ctk.CTkLabel(self.main_frame, text=title_text, font=("Merriweather bold", 25), text_color="#000000",bg_color="white").pack(pady=20)
 
         container = tk.Frame(self.main_frame, bg="white")
         container.pack(fill="both", expand=True, padx=20, pady=10)
@@ -1171,7 +1381,7 @@ class MedicationWindow(BaseWindow):
                 
                 for med in medications:
                     med_name = med[0] if med[0] else ""
-                    if med_name and med_name.strip() and med_name.strip() not in ['Type Here', 'Type here', 'type here', '']:
+                    if med_name and med_name.strip() and med_name.strip() not in ['Type Here', 'Type here', 'Type here', '']:
                         MedicationWindow.medication_slots.append(med_name.strip())
                 
                 while len(MedicationWindow.medication_slots) < 9:
@@ -1191,7 +1401,7 @@ class MedicationWindow(BaseWindow):
         tk.Label(frame, text=f"Medication {slot_number}", font=("Merriweather Sans bold", 12), bg="white").pack(anchor="w")
         entry = TextField_Patients(frame, width=15, font=("Merriweather light", 12), bg="white", bd=0, highlightthickness=0)
         entry.pack(anchor="w", pady=5)
-        tk.Frame(frame, bg="black", height=1, width=150).pack(anchor="w", pady=5)
+        tk.Frame(frame, bg="black", height=1, width=150).pack(anchor="w", pady=20)
 
         entry.set_real_value(value)
         
