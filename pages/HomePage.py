@@ -1302,11 +1302,10 @@ class HomePageContent(ctk.CTkFrame):
         self.navbar.pack_propagate(False)
         self.navbar.configure(border_width=0, border_color="black")
 
-        self.dropdown_visible = False 
-
-        self.dropdown_frame = ctk.CTkFrame(self.navbar, fg_color="#f0f0f0", corner_radius=8, width=150, height=100)
-        self.dropdown_frame.configure(border_width=1, border_color="gray")
-        self.dropdown_frame.place_forget()
+        #self.dropdown_visible = False 
+        #self.dropdown_frame = ctk.CTkFrame(self.navbar, fg_color="#f0f0f0", corner_radius=8, width=150, height=100)
+        #self.dropdown_frame.configure(border_width=1, border_color="gray")
+        #self.dropdown_frame.place_forget()
 
         self.welcome_label = ctk.CTkLabel(self.navbar, text="Welcome Back,", text_color="black", font=("Arial", 30, "bold"))
         self.welcome_label.place(relx=0.17, rely=0.5, anchor="e")
@@ -1397,19 +1396,42 @@ class HomePageContent(ctk.CTkFrame):
         self.namev2_label.place(relx=0.85, rely=0.5, anchor="e")
 
         self.notif_frame = NotificationFrame(self)
+        self.settings_frame = SettingsFrame(self)
+
+        # Load images
         notif_img = ctk.CTkImage(light_image=Image.open("assets/notif.png"), size=(42, 42))
         settings_img = ctk.CTkImage(light_image=Image.open("assets/settingsv2.png"), size=(42, 42))
 
         icon_y = 62
 
-        notif_btn = ctk.CTkButton(self.navbar, image=notif_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5",command=self.notif_frame.toggle)
+        # Notification button
+        notif_btn = ctk.CTkButton(
+            self.navbar, 
+            image=notif_img, 
+            text="", 
+            width=40, 
+            height=40, 
+            fg_color="transparent", 
+            hover_color="#f5f5f5",
+            command=self.notif_frame.toggle
+        )
         notif_btn.place(relx=1.0, x=-110, y=icon_y, anchor="center")
 
-        settings_btn = ctk.CTkButton(self.navbar, image=settings_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5", command=self.toggle_dropdown)
+        # Settings button 
+        settings_btn = ctk.CTkButton(
+            self.navbar, 
+            image=settings_img, 
+            text="", 
+            width=40, 
+            height=40, 
+            fg_color="transparent", 
+            hover_color="#f5f5f5", 
+            command=self.settings_frame.toggle  
+        )
         settings_btn.place(relx=1.0, x=-160, y=icon_y, anchor="center")
 
-        ctk.CTkButton(self.dropdown_frame, text="Account Settings", width=140, command=self.open_settings).pack(pady=5)
-        ctk.CTkButton(self.dropdown_frame, text="Log Out", width=140, command=self.logout).pack(pady=5)
+        #ctk.CTkButton(self.dropdown_frame, text="Account Settings", width=140, command=self.open_settings).pack(pady=5)
+        #ctk.CTkButton(self.dropdown_frame, text="Log Out", width=140, command=self.logout).pack(pady=5)
 
         self.bottom_line = ctk.CTkFrame(self.navbar, height=1.5, fg_color="black")
         self.bottom_line.place(relx=0, rely=1.0, relwidth=1.0, anchor="sw")
@@ -2007,7 +2029,7 @@ class HomePageContent(ctk.CTkFrame):
             self.after_cancel(self.fade_animation_job)
             self.fade_animation_job = None
 
-    def toggle_dropdown(self):
+    """def toggle_dropdown(self):
         if self.dropdown_visible:
             self.dropdown_frame.place_forget()
         else:
@@ -2021,10 +2043,10 @@ class HomePageContent(ctk.CTkFrame):
         print("Opening account settings...")
 
     def logout(self):
-        print("Logging out...")
+        print("Logging out...")"""
 
     def destroy(self):
-        """Clean up when the widget is destroyed"""
+        """Clean up when the widget is destroyed""" 
         self.stop_reminder_carousel()
         # Clean up matplotlib canvases
         if self.most_used_canvas:
@@ -2652,26 +2674,49 @@ class PatientPage(ctk.CTkFrame):
         self.navbar.pack_propagate(False)
         self.navbar.configure(border_width=0, border_color="black")
 
-        self.dropdown_visible = False 
+        #self.dropdown_visible = False 
 
-        self.dropdown_frame = ctk.CTkFrame(self.navbar, fg_color="#f0f0f0", corner_radius=8, width=150, height=100)
-        self.dropdown_frame.configure(border_width=1, border_color="gray")
-        self.dropdown_frame.place_forget()
+        #self.dropdown_frame = ctk.CTkFrame(self.navbar, fg_color="#f0f0f0", corner_radius=8, width=150, height=100)
+        #self.dropdown_frame.configure(border_width=1, border_color="gray")
+        #self.dropdown_frame.place_forget()
         
         self.notif_frame = NotificationFrame(self)
+        self.settings_frame = SettingsFrame(self)
+
+        # Load images
         notif_img = ctk.CTkImage(light_image=Image.open("assets/notif.png"), size=(42, 42))
         settings_img = ctk.CTkImage(light_image=Image.open("assets/settingsv2.png"), size=(42, 42))
 
         icon_y = 62
 
-        notif_btn = ctk.CTkButton(self.navbar, image=notif_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5", command=self.notif_frame.toggle)
+        # Notification button
+        notif_btn = ctk.CTkButton(
+            self.navbar, 
+            image=notif_img, 
+            text="", 
+            width=40, 
+            height=40, 
+            fg_color="transparent", 
+            hover_color="#f5f5f5",
+            command=self.notif_frame.toggle
+        )
         notif_btn.place(relx=1.0, x=-110, y=icon_y, anchor="center")
 
-        settings_btn = ctk.CTkButton(self.navbar, image=settings_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5", command=self.toggle_dropdown)
+        # Settings button 
+        settings_btn = ctk.CTkButton(
+            self.navbar, 
+            image=settings_img, 
+            text="", 
+            width=40, 
+            height=40, 
+            fg_color="transparent", 
+            hover_color="#f5f5f5", 
+            command=self.settings_frame.toggle  
+        )
         settings_btn.place(relx=1.0, x=-160, y=icon_y, anchor="center")
 
-        ctk.CTkButton(self.dropdown_frame, text="Account Settings", width=140, command=self.open_settings).pack(pady=5)
-        ctk.CTkButton(self.dropdown_frame, text="Log Out", width=140, command=self.logout).pack(pady=5)
+        #ctk.CTkButton(self.dropdown_frame, text="Account Settings", width=140, command=self.open_settings).pack(pady=5)
+        #ctk.CTkButton(self.dropdown_frame, text="Log Out", width=140, command=self.logout).pack(pady=5)
 
         self.bottom_line = ctk.CTkFrame(self.navbar, height=1.5, fg_color="black")
         self.bottom_line.place(relx=0, rely=1.0, relwidth=1.0, anchor="sw")
@@ -3451,7 +3496,7 @@ class PatientPage(ctk.CTkFrame):
             self.sort_dropdown.set("Sort By")
 
     # Navbar methods 
-    def toggle_dropdown(self):
+    """def toggle_dropdown(self):
         if self.dropdown_visible:
             self.dropdown_frame.place_forget()
         else:
@@ -3465,7 +3510,7 @@ class PatientPage(ctk.CTkFrame):
         print("Opening account settings...")
 
     def logout(self):
-        print("Logging out...")
+        print("Logging out...")"""
     
     def open_patient_history(self):
         self.patient_history_window = PatientHistory(self.master)
@@ -4392,26 +4437,48 @@ class SupplyPage(ctk.CTkFrame):
         self.navbar.pack_propagate(False)
         self.navbar.configure(border_width=0, border_color="black")
 
-        self.dropdown_visible = False 
+        #self.dropdown_visible = False 
 
-        self.dropdown_frame = ctk.CTkFrame(self.navbar, fg_color="#f0f0f0", corner_radius=8, width=150, height=100)
-        self.dropdown_frame.configure(border_width=1, border_color="gray")
-        self.dropdown_frame.place_forget()
+        #self.dropdown_frame = ctk.CTkFrame(self.navbar, fg_color="#f0f0f0", corner_radius=8, width=150, height=100)
+        #self.dropdown_frame.configure(border_width=1, border_color="gray")
+        #self.dropdown_frame.place_forget()
 
         self.notif_frame = NotificationFrame(self)
+        self.settings_frame = SettingsFrame(self)
+
+        # Load images
         notif_img = ctk.CTkImage(light_image=Image.open("assets/notif.png"), size=(42, 42))
         settings_img = ctk.CTkImage(light_image=Image.open("assets/settingsv2.png"), size=(42, 42))
 
         icon_y = 62
 
-        notif_btn = ctk.CTkButton(self.navbar, image=notif_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5", command=self.notif_frame.toggle)
+        # Notification button
+        notif_btn = ctk.CTkButton(
+            self.navbar, 
+            image=notif_img, 
+            text="", 
+            width=40, 
+            height=40, 
+            fg_color="transparent", 
+            hover_color="#f5f5f5",
+            command=self.notif_frame.toggle
+        )
         notif_btn.place(relx=1.0, x=-110, y=icon_y, anchor="center")
 
-        settings_btn = ctk.CTkButton(self.navbar, image=settings_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5", command=self.toggle_dropdown)
+        # Settings button 
+        settings_btn = ctk.CTkButton(
+            self.navbar, 
+            image=settings_img, 
+            text="", 
+            width=40, 
+            height=40, 
+            fg_color="transparent", 
+            hover_color="#f5f5f5", 
+            command=self.settings_frame.toggle  
+        )
         settings_btn.place(relx=1.0, x=-160, y=icon_y, anchor="center")
-
-        ctk.CTkButton(self.dropdown_frame, text="Account Settings", width=140, command=self.open_settings).pack(pady=5)
-        ctk.CTkButton(self.dropdown_frame, text="Log Out", width=140, command=self.logout).pack(pady=5)
+        #ctk.CTkButton(self.dropdown_frame, text="Account Settings", width=140, command=self.open_settings).pack(pady=5)
+        #ctk.CTkButton(self.dropdown_frame, text="Log Out", width=140, command=self.logout).pack(pady=5)
 
         self.bottom_line = ctk.CTkFrame(self.navbar, height=1.5, fg_color="black")
         self.bottom_line.place(relx=0, rely=1.0, relwidth=1.0, anchor="sw")
@@ -5299,7 +5366,7 @@ class SupplyPage(ctk.CTkFrame):
         self.perform_sort(option)
 
     # Navbar methods 
-    def toggle_dropdown(self):
+    """def toggle_dropdown(self):
         if self.dropdown_visible:
             self.dropdown_frame.place_forget()
         else:
@@ -5313,7 +5380,7 @@ class SupplyPage(ctk.CTkFrame):
         print("Opening account settings...")
 
     def logout(self):
-        print("Logging out...")
+        print("Logging out...")"""
 
     """def open_edit_stock_window(self):
         if hasattr(self, 'selected_supply_id') and self.selected_supply_id:
@@ -9626,3 +9693,303 @@ class SettingsPage(ctk.CTkFrame):
         finally:
             cursor.close()
             connect.close()
+
+class SettingsFrame(ctk.CTkFrame):
+    def __init__(self, parent, **kwargs):
+        super().__init__(parent, width=200, height=120, **kwargs)
+        self.parent = parent
+        self.visible = False
+        self.place_forget()
+        
+        # Configure frame appearance
+        self.configure(
+            fg_color="white",
+            corner_radius=10,
+            border_width=1,
+            border_color="#E0E0E0"
+        )
+        
+        # Get user information
+        self.user_info = self.get_user_info()
+        
+        # Setup UI
+        self.setup_ui()
+    
+    def get_user_info(self):
+        """Get current user information from database"""
+        try:
+            username = login_shared_states.get('logged_username', None)
+            connect = db()
+            cursor = connect.cursor()
+            
+            cursor.execute("""
+                SELECT full_name, role FROM users WHERE username = %s
+            """, (username,))
+            
+            result = cursor.fetchone()
+            
+            if result:
+                return {
+                    'full_name': result[0],
+                    'role': result[1],
+                    'username': username
+                }
+            else:
+                return {
+                    'full_name': 'Unknown User',
+                    'role': 'Unknown',
+                    'username': username or 'Unknown'
+                }
+                
+        except Exception as e:
+            print(f'Error fetching user info: {e}')
+            return {
+                'full_name': 'Error',
+                'role': 'Error',
+                'username': 'Error'
+            }
+        finally:
+            if 'cursor' in locals():
+                cursor.close()
+            if 'connect' in locals():
+                connect.close()
+    
+    def setup_ui(self):
+        """Setup the dropdown UI elements"""
+        
+        # User name label
+        self.name_label = ctk.CTkLabel(
+            self,
+            text=self.user_info['full_name'],
+            font=("Merriweather Bold", 14),
+            text_color="#000000"
+        )
+        self.name_label.place(x=15, y=15)
+        
+        # Role label
+        self.role_label = ctk.CTkLabel(
+            self,
+            text=self.user_info['role'],
+            font=("Poppins Regular", 12),
+            text_color="#666666"
+        )
+        self.role_label.place(x=15, y=40)
+        
+        # Separator line
+        separator = ctk.CTkFrame(
+            self,
+            width=170,
+            height=1,
+            fg_color="#E0E0E0"
+        )
+        separator.place(x=15, y=65)
+        
+        # Logout button
+        try:
+            logout_img = ctk.CTkImage(
+                light_image=Image.open("assets/ExitIcon.png"), 
+                size=(16, 16)
+            )
+            self.logout_button = ctk.CTkButton(
+                self,
+                image=logout_img,
+                text="Logout Account",
+                compound="left",
+                width=170,
+                height=35,
+                fg_color="#AC1616",
+                hover_color="#8B0000",
+                text_color="white",
+                font=("Merriweather Sans", 12),
+                corner_radius=8,
+                command=self.logout
+            )
+        except:
+            # Fallback if image fails to load
+            self.logout_button = ctk.CTkButton(
+                self,
+                text="🚪 Logout Account",
+                width=170,
+                height=35,
+                fg_color="#AC1616",
+                hover_color="#8B0000",
+                text_color="white",
+                font=("Merriweather Sans", 12),
+                corner_radius=8,
+                command=self.logout
+            )
+        
+        self.logout_button.place(x=15, y=75)
+    
+    def toggle(self):
+        """Toggle settings frame visibility"""
+        if self.visible:
+            self.place_forget()
+            self.visible = False
+        else:
+            # Position relative to the settings button (similar to notification frame)
+            self.place(relx=0.85, rely=0.08)
+            self.lift()
+            self.visible = True
+    
+    def logout(self):
+        """Handle logout functionality"""
+        
+        # Hide settings frame immediately
+        self.place_forget()
+        self.visible = False
+        
+        # Perform logout immediately without delay
+        self.perform_logout()
+    
+    def perform_logout(self):
+        """Perform the actual logout process"""
+        connect = None
+        cursor = None
+        
+        try:
+            username = login_shared_states.get('logged_username', None)
+            connect = db()
+            cursor = connect.cursor()
+
+            # Update logout time in sessions table
+            cursor.execute("""
+                UPDATE sessions
+                SET logout_time = NOW()
+                WHERE employee_id = (SELECT employee_id FROM users WHERE username = %s)
+            """, (username,))
+            connect.commit()
+
+            # Get session data for logging
+            cursor.execute("""
+                SELECT s.employee_id, s.login_time, s.logout_time
+                FROM sessions s
+                JOIN users u ON s.employee_id = u.employee_id
+                WHERE u.username = %s
+            """, (username,))
+            
+            session_data = cursor.fetchone()
+            
+            # Consume any remaining results
+            try:
+                while cursor.nextset():
+                    pass
+            except:
+                pass
+            
+            if session_data:
+                employee_id, login_time, logout_time = session_data
+                print("✅ Successfully logged out")
+
+                # Insert into sessions log
+                cursor.execute("""
+                    INSERT INTO sessions_log(employee_id, login_time, logout_time, login_duration)
+                    VALUES(%s, %s, %s, TIMEDIFF(%s, %s))
+                """, (employee_id, login_time, logout_time, logout_time, login_time))
+                connect.commit()
+                
+                try:
+                    while cursor.nextset():
+                        pass
+                except:
+                    pass
+
+            # Delete from active sessions
+            cursor.execute("""
+                DELETE FROM sessions
+                WHERE employee_id = (SELECT employee_id FROM users WHERE username = %s)
+            """, (username,))
+            connect.commit()
+            
+            try:
+                while cursor.nextset():
+                    pass
+            except:
+                pass
+
+            # Clear login shared states
+            login_shared_states.clear()
+            
+            print("🔄 Navigating to login page...")
+            
+            # Navigate back to login page
+            self.navigate_to_login()
+            
+        except Exception as e:
+            print(f"❌ Error with logout: {e}")
+            import traceback
+            traceback.print_exc()
+            # Even if there's an error, still try to go to login
+            self.navigate_to_login()
+        finally:
+            # Proper cleanup
+            if cursor:
+                try:
+                    cursor.close()
+                except:
+                    pass
+            if connect:
+                try:
+                    connect.close()
+                except:
+                    pass
+    
+    def navigate_to_login(self):
+        """Navigate back to login page smoothly"""
+        try:
+            # Method 1: Try to find navigation function in parent hierarchy
+            current_widget = self.parent
+            max_depth = 10  # Prevent infinite loop
+            depth = 0
+            
+            while current_widget and depth < max_depth:
+                # Check for shared_state with navigate function
+                if hasattr(current_widget, 'shared_state'):
+                    shared_state = current_widget.shared_state
+                    if isinstance(shared_state, dict) and 'navigate' in shared_state:
+                        print("✅ Found navigation function, going to LoginPage")
+                        shared_state['navigate']('LoginPage')
+                        return
+                
+                # Check for direct navigate method
+                if hasattr(current_widget, 'navigate'):
+                    print("✅ Found direct navigate method")
+                    current_widget.navigate('LoginPage')
+                    return
+                
+                # Move up the hierarchy
+                current_widget = getattr(current_widget, 'parent', None) or getattr(current_widget, 'master', None)
+                depth += 1
+            
+            # Method 2: Try to restart the application properly
+            print("🔄 Attempting application restart...")
+            import subprocess
+            import sys
+            import os
+            
+            # Get the root window
+            root = self.winfo_toplevel()
+            
+            # Start new instance
+            if hasattr(sys, 'argv') and sys.argv:
+                # Get the main script path
+                script_path = sys.argv[0]
+                if script_path.endswith('.py'):
+                    subprocess.Popen([sys.executable, script_path])
+                else:
+                    # If running from exe or other
+                    subprocess.Popen([script_path])
+            
+            # Close current instance
+            root.after(500, lambda: (root.quit(), root.destroy()))
+            
+        except Exception as e:
+            print(f"❌ Error navigating to login: {e}")
+            # Final fallback - just close gracefully
+            try:
+                root = self.winfo_toplevel()
+                root.quit()
+                root.destroy()
+            except:
+                import sys
+                sys.exit()
