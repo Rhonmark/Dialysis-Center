@@ -25,6 +25,7 @@ from matplotlib import font_manager as fm
 from dotenv import load_dotenv
 import math
 import calendar
+from pages.pdf_report_generator import PDFReportGenerator
 
 load_dotenv() 
 
@@ -34,6 +35,10 @@ DB_NAME = os.getenv("DB_NAME")
 
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("blue")
+
+report_shared_states = {
+    'current_period': 'Overall'
+}
 
 class DataRetrieval():
 
@@ -6379,6 +6384,8 @@ class ReportPage(ctk.CTkFrame):
             type_label.configure(text=choice)
             from datetime import datetime
 
+            report_shared_states['current_period'] = choice
+
             supply_identifiers = ['Item Restocked', 'Item Stock Status Alert', 'New Item Added', 'Item Usage Recorded']
             patient_identifier =  ['Patient Status', 'New Patient Added']
             backup_identifier = ['Manual Backup', 'Scheduled Backup']
@@ -6742,6 +6749,7 @@ class ReportPage(ctk.CTkFrame):
             self.load_supply_data()
             
             print(f"Updated counts - Active: {active_count}, Inactive: {inactive_count}")
+            
 
         type_label = ctk.CTkLabel(Interval_frame,font=TypeReport_font,text="",text_color="#104E44",height=12)
         type_label.place(relx=.5,rely=.72,anchor="center")
@@ -8396,8 +8404,43 @@ class MaintenancePage(ctk.CTkFrame):
         leftbar_frame_export.place(x=0)
 
         def export_pdf_action():
-            """Export backup data to PDF"""
-            print("📄 PDF export is clicked")
+            """Export report data to PDF with shared state access"""
+            try:
+                # Get current period from shared state
+                current_period = report_shared_states.get('current_period', 'Overall')
+                
+                print(f"📄 Generating PDF report for period: {current_period}")
+                
+                # Show progress message
+                progress_window = tk.Toplevel()
+                progress_window.title("Generating PDF Report")
+                progress_window.geometry("350x120")
+                progress_window.resizable(False, False)
+                progress_window.transient(self)
+                progress_window.grab_set()
+                
+                progress_label = tk.Label(progress_window, 
+                                        text=f"Generating PDF report for {current_period}...\nPlease wait...",
+                                        font=("Poppins", 11))
+                progress_label.pack(expand=True)
+                progress_window.update()
+                
+                # Create PDF generator and export
+                pdf_generator = PDFReportGenerator(db)
+                success = pdf_generator.export_report_to_pdf(current_period)
+                
+                progress_window.destroy()
+                
+                if success:
+                    print("✅ PDF report exported successfully!")
+                else:
+                    print("❌ PDF report export failed!")
+                    
+            except Exception as e:
+                if 'progress_window' in locals():
+                    progress_window.destroy()
+                print(f"❌ PDF export error: {str(e)}")
+                messagebox.showerror("Export Error", f"Failed to export PDF:\n{str(e)}")
 
         try:
             exportpdf_image = ctk.CTkImage(Image.open("assets/ExportPDF.png"), size=(20,20))
