@@ -2664,7 +2664,7 @@ class PatientPage(ctk.CTkFrame):
 
         icon_y = 62
 
-        notif_btn = ctk.CTkButton(self.navbar, image=notif_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5")
+        notif_btn = ctk.CTkButton(self.navbar, image=notif_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5", command=self.notif_frame.toggle)
         notif_btn.place(relx=1.0, x=-110, y=icon_y, anchor="center")
 
         settings_btn = ctk.CTkButton(self.navbar, image=settings_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5", command=self.toggle_dropdown)
@@ -4404,7 +4404,7 @@ class SupplyPage(ctk.CTkFrame):
 
         icon_y = 62
 
-        notif_btn = ctk.CTkButton(self.navbar, image=notif_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5")
+        notif_btn = ctk.CTkButton(self.navbar, image=notif_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5", command=self.notif_frame.toggle)
         notif_btn.place(relx=1.0, x=-110, y=icon_y, anchor="center")
 
         settings_btn = ctk.CTkButton(self.navbar, image=settings_img, text="", width=40, height=40, fg_color="transparent", hover_color="#f5f5f5", command=self.toggle_dropdown)
