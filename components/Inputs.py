@@ -323,16 +323,13 @@ class PatientInfoWindow(BaseWindow):
                 
                 if patient_data:
                     if patient_data[0]:
-                        self.entry_lastname.delete(0, "end")
-                        self.entry_lastname.insert(0, patient_data[0])
+                        self.entry_lastname.set_real_value(patient_data[0])
                     
                     if patient_data[1]:
-                        self.entry_firstname.delete(0, "end")
-                        self.entry_firstname.insert(0, patient_data[1])
+                        self.entry_firstname.set_real_value(patient_data[1])
                     
                     if patient_data[2]:
-                        self.entry_middlename.delete(0, "end")
-                        self.entry_middlename.insert(0, patient_data[2])
+                        self.entry_middlename.set_real_value(patient_data[2])
                     
                     if patient_data[3]:
                         self.status_var.set(patient_data[3])
@@ -344,28 +341,22 @@ class PatientInfoWindow(BaseWindow):
                         self.entry_birthdate.set_date(patient_data[5])
                     
                     if patient_data[6]:
-                        self.entry_age.delete(0, "end")
-                        self.entry_age.insert(0, str(patient_data[6]))
+                        self.entry_age.set_real_value(str(patient_data[6]))
                     
                     if patient_data[7]:
-                        self.entry_gender.delete(0, "end")
-                        self.entry_gender.insert(0, patient_data[7])
+                        self.entry_gender.set_real_value(patient_data[7])
                     
                     if patient_data[8]:
-                        self.entry_height.delete(0, "end")
-                        self.entry_height.insert(0, patient_data[8])
+                        self.entry_height.set_real_value(patient_data[8])
                     
                     if patient_data[9]:
-                        self.entry_civil_status.delete(0, "end")
-                        self.entry_civil_status.insert(0, patient_data[9])
+                        self.entry_civil_status.set_real_value(patient_data[9])
                     
                     if patient_data[10]:
-                        self.entry_religion.delete(0, "end")
-                        self.entry_religion.insert(0, patient_data[10])
+                        self.entry_religion.set_real_value(patient_data[10])
                     
                     if patient_data[11]:
-                        self.entry_address.delete(0, "end")
-                        self.entry_address.insert(0, patient_data[11])
+                        self.entry_address.set_real_value(patient_data[11])
                 
                 cursor.close()
                 connect.close()
@@ -620,19 +611,19 @@ class RelativeInfoWindow(BaseWindow):
     def restore_form_data(self):
         try:
             if self.data.get("relative_last_name"):
-                self.entry_lastname.insert(0, self.data.get("relative_last_name"))
+                self.entry_lastname.set_real_value(self.data.get("relative_last_name"))
                 
             if self.data.get("relative_first_name"):
-                self.entry_firstname.insert(0, self.data.get("relative_first_name"))
+                self.entry_firstname.set_real_value(self.data.get("relative_first_name"))
                 
             if self.data.get("relative_middle_name"):
-                self.entry_middlename.insert(0, self.data.get("relative_middle_name"))
+                self.entry_middlename.set_real_value(self.data.get("relative_middle_name"))
                 
             if self.data.get("relative_contact_number"):
-                self.entry_contact.insert(0, self.data.get("relative_contact_number"))
+                self.entry_contact.set_real_value(self.data.get("relative_contact_number"))
                 
             if self.data.get("relative_address"):
-                self.entry_address.insert(0, self.data.get("relative_address"))
+                self.entry_address.set_real_value(self.data.get("relative_address"))
             
         except Exception as e:
             print(f"❌ Error restoring relative form data: {e}")
@@ -664,11 +655,11 @@ class RelativeInfoWindow(BaseWindow):
                 relative_data = cursor.fetchone()
 
                 if relative_data:
-                    self.entry_lastname.insert(0, relative_data[0])
-                    self.entry_firstname.insert(0, relative_data[1])
-                    self.entry_middlename.insert(0, relative_data[2])
-                    self.entry_contact.insert(0, relative_data[3])
-                    self.entry_address.insert(0, relative_data[4])
+                    self.entry_lastname.set_real_value(relative_data[0])
+                    self.entry_firstname.set_real_value(relative_data[1])
+                    self.entry_middlename.set_real_value(relative_data[2])
+                    self.entry_contact.set_real_value(relative_data[3])
+                    self.entry_address.set_real_value(relative_data[4])
 
                 cursor.close()
                 connect.close()
@@ -757,10 +748,10 @@ class PhilHealthInfoWindow(BaseWindow):
     def restore_form_data(self):
         try:
             if self.data.get("philhealth_number"):
-                self.entry_philhealth.insert(0, self.data.get("philhealth_number"))
+                self.entry_philhealth.set_real_value(self.data.get("philhealth_number"))
                 
             if self.data.get("membership_type"):
-                self.entry_membership.insert(0, self.data.get("membership_type"))
+                self.entry_membership.set_real_value(self.data.get("membership_type"))
                 
             if "is_pwd" in self.data:
                 self.pwd_var.set(self.data.get("is_pwd"))
@@ -769,10 +760,10 @@ class PhilHealthInfoWindow(BaseWindow):
                 self.senior_var.set(self.data.get("is_senior"))
                 
             if self.data.get("pwd_id"):
-                self.entry_pwd_id.insert(0, self.data.get("pwd_id"))
+                self.entry_pwd_id.set_real_value(self.data.get("pwd_id"))
                 
             if self.data.get("senior_id"):
-                self.entry_senior_id.insert(0, self.data.get("senior_id"))
+                self.entry_senior_id.set_real_value(self.data.get("senior_id"))
             
         except Exception as e:
             print(f"❌ Error restoring PhilHealth form data: {e}")
@@ -805,14 +796,14 @@ class PhilHealthInfoWindow(BaseWindow):
                 philhealth_data = cursor.fetchone()
 
                 if philhealth_data:
-                    self.entry_philhealth.insert(0, philhealth_data[0] if philhealth_data[0] else "")
-                    self.entry_membership.insert(0, philhealth_data[1] if philhealth_data[1] else "")
+                    self.entry_philhealth.set_real_value(philhealth_data[0] if philhealth_data[0] else "")
+                    self.entry_membership.set_real_value(philhealth_data[1] if philhealth_data[1] else "")
                     
                     self.pwd_var.set(1 if philhealth_data[2] else 0)
-                    self.entry_pwd_id.insert(0, str(philhealth_data[3]) if philhealth_data[3] else "")
+                    self.entry_pwd_id.set_real_value(str(philhealth_data[3]) if philhealth_data[3] else "")
                     
                     self.senior_var.set(1 if philhealth_data[4] else 0)
-                    self.entry_senior_id.insert(0, str(philhealth_data[5]) if philhealth_data[5] else "")
+                    self.entry_senior_id.set_real_value(str(philhealth_data[5]) if philhealth_data[5] else "")
 
                 cursor.close()
                 connect.close()

@@ -2955,7 +2955,7 @@ class PatientPage(ctk.CTkFrame):
         )
         
         self.photo_frame.place(x=200,y=200)
-        
+
 
         self.top_frame = ctk.CTkFrame(
             self.photo_frame,
@@ -4169,59 +4169,96 @@ class MedicalHistory(ctk.CTkScrollableFrame):
 
 class OtherHistory(ctk.CTkScrollableFrame):
     def __init__(self, master=None, **kwargs):
-        super().__init__(master, width=1080, height=400, fg_color="#FFFFFF", corner_radius=20,scrollbar_button_color="#BBBBBB",scrollbar_button_hover_color="#979797",**kwargs)
+        super().__init__(master, width=1080, height=400, fg_color="#FFFFFF", corner_radius=20,
+                        scrollbar_button_color="#BBBBBB", scrollbar_button_hover_color="#979797", **kwargs)
         self.pack_propagate(False)
 
-        self.left_bar = ctk.CTkFrame(self, width=15,height=400, fg_color="#68EDC6", corner_radius=20)
-        self.left_bar.place(x=0)
+        # Left bar - using place since it's relative to the frame border
+        self.left_bar = ctk.CTkFrame(self, width=15, height=400, fg_color="#68EDC6", corner_radius=20)
+        self.left_bar.place(x=0, y=0)
 
-        y_offset = 20
-        spacing = 40
+        # Configure grid weights for proper layout
+        self.grid_columnconfigure(0, weight=1)
+        
+        current_row = 0
+        
+        # Title
+        title_label = ctk.CTkLabel(self, text="Other History", font=("Merriweather", 20, "bold"))
+        title_label.grid(row=current_row, column=0, pady=(20, 10), padx=(30, 10), sticky="w")
+        current_row += 1
 
-        def add_label_pair(text, y):
-            label = ctk.CTkLabel(self, text=text, font=("Merriweather", 14))
-            label.place(x=30, y=y)
-            info = ctk.CTkLabel(self, text="", font=("Merriweather", 14), text_color="black")
-            info.place(x=50, y=y + 25)
-            return info
+        # History of Present Illness
+        hpi_label = ctk.CTkLabel(self, text="History of Present Illness", font=("Merriweather", 14))
+        hpi_label.grid(row=current_row, column=0, pady=(10, 5), padx=(30, 10), sticky="w")
+        current_row += 1
+        
+        self.hpi_info = ctk.CTkLabel(self, text="", font=("Merriweather", 14), text_color="black")
+        self.hpi_info.grid(row=current_row, column=0, pady=(0, 15), padx=(50, 10), sticky="w")
+        current_row += 1
 
-        self.hpi_info = add_label_pair("History of Present Illness", y_offset)
-        y_offset += 70
+        # Pertinent Past Medical History
+        pmh_label = ctk.CTkLabel(self, text="Pertinent Past Medical History", font=("Merriweather", 14))
+        pmh_label.grid(row=current_row, column=0, pady=(10, 5), padx=(30, 10), sticky="w")
+        current_row += 1
+        
+        self.pmh_info = ctk.CTkLabel(self, text="", font=("Merriweather", 14), text_color="black")
+        self.pmh_info.grid(row=current_row, column=0, pady=(0, 15), padx=(50, 10), sticky="w")
+        current_row += 1
 
-        self.pmh_info = add_label_pair("Pertinent Past Medical History", y_offset)
-        y_offset += 70
+        # Create a frame for the four-column layout
+        details_frame = ctk.CTkFrame(self, fg_color="transparent")
+        details_frame.grid(row=current_row, column=0, pady=10, padx=(30, 10), sticky="ew")
+        
+        # Configure columns for the details frame
+        for i in range(4):
+            details_frame.grid_columnconfigure(i, weight=1)
+        
+        # Headers for the four columns
+        headers = ["Date first diagnosed having kidney disease", "Date of First Dialysis", "Mode", "Access Type"]
+        header_labels = []
+        
+        for i, header in enumerate(headers):
+            label = ctk.CTkLabel(details_frame, text=header, font=("Merriweather", 14))
+            label.grid(row=0, column=i, pady=(0, 5), padx=10, sticky="w")
+            header_labels.append(label)
+        
+        # Value labels for the four columns
+        self.kidney_disease_date_info = ctk.CTkLabel(details_frame, text="", font=("Merriweather", 14), text_color="black")
+        self.kidney_disease_date_info.grid(row=1, column=0, pady=(0, 15), padx=10, sticky="w")
+        
+        self.dialysis_date_info = ctk.CTkLabel(details_frame, text="", font=("Merriweather", 14), text_color="black")
+        self.dialysis_date_info.grid(row=1, column=1, pady=(0, 15), padx=10, sticky="w")
+        
+        self.mode_info = ctk.CTkLabel(details_frame, text="", font=("Merriweather", 14), text_color="black")
+        self.mode_info.grid(row=1, column=2, pady=(0, 15), padx=10, sticky="w")
+        
+        self.access_info = ctk.CTkLabel(details_frame, text="", font=("Merriweather", 14), text_color="black")
+        self.access_info.grid(row=1, column=3, pady=(0, 15), padx=10, sticky="w")
+        
+        current_row += 1
 
-        labels = ["Date first diagnosed having kidney disease", "Date of First Dialysis", "Mode", "Access Type"]
-        x_positions = [30, 360, 660, 900]
+        # Create frame for the bottom two fields
+        bottom_frame = ctk.CTkFrame(self, fg_color="transparent")
+        bottom_frame.grid(row=current_row, column=0, pady=10, padx=(30, 10), sticky="ew")
+        
+        # Configure columns for bottom frame
+        bottom_frame.grid_columnconfigure(0, weight=1)
+        bottom_frame.grid_columnconfigure(1, weight=1)
 
-        for i, text in enumerate(labels):
-            label = ctk.CTkLabel(self, text=text, font=("Merriweather", 14))
-            label.place(x=x_positions[i], y=y_offset)
+        # Chronic Hemodialysis Date
+        chd_label = ctk.CTkLabel(bottom_frame, text="Date of First Chronic Hemodialysis (*Leave NA if not)", 
+                                font=("Merriweather", 14))
+        chd_label.grid(row=0, column=0, pady=(0, 5), padx=10, sticky="w")
+        
+        self.chronic_hemo_date_info = ctk.CTkLabel(bottom_frame, text="", font=("Merriweather", 14), text_color="black")
+        self.chronic_hemo_date_info.grid(row=1, column=0, pady=(0, 15), padx=10, sticky="w")
 
-        y_offset += 25
-
-        self.kidney_disease_date_info = ctk.CTkLabel(self, text="", font=("Merriweather", 14), text_color="black")
-        self.kidney_disease_date_info.place(x=x_positions[0], y=y_offset)
-        self.dialysis_date_info = ctk.CTkLabel(self, text="", font=("Merriweather", 14), text_color="black")
-        self.dialysis_date_info.place(x=x_positions[1], y=y_offset)
-        self.mode_info = ctk.CTkLabel(self, text="", font=("Merriweather", 14), text_color="black")
-        self.mode_info.place(x=x_positions[2], y=y_offset)
-        self.access_info = ctk.CTkLabel(self, text="", font=("Merriweather", 14), text_color="black")
-        self.access_info.place(x=x_positions[3], y=y_offset)
-
-        y_offset += 60
-
-        chd_label = ctk.CTkLabel(self, text="Date of First Chronic Hemodialysis (*Leave NA if not)", font=("Merriweather", 14))
-        chd_label.place(x=30, y=y_offset)
-        clinical_label = ctk.CTkLabel(self, text="Clinical Impression", font=("Merriweather", 14))
-        clinical_label.place(x=660, y=y_offset)
-
-        y_offset += 25
-
-        self.chronic_hemo_date_info = ctk.CTkLabel(self, text="", font=("Merriweather", 14), text_color="black")
-        self.chronic_hemo_date_info.place(x=30, y=y_offset)
-        self.clinical_impression_info = ctk.CTkLabel(self, text="", font=("Merriweather", 14), text_color="black")
-        self.clinical_impression_info.place(x=660, y=y_offset)
+        # Clinical Impression
+        clinical_label = ctk.CTkLabel(bottom_frame, text="Clinical Impression", font=("Merriweather", 14))
+        clinical_label.grid(row=0, column=1, pady=(0, 5), padx=10, sticky="w")
+        
+        self.clinical_impression_info = ctk.CTkLabel(bottom_frame, text="", font=("Merriweather", 14), text_color="black")
+        self.clinical_impression_info.grid(row=1, column=1, pady=(0, 15), padx=10, sticky="w")
 
     def other_history_info(self, patient_id):
         try:
@@ -4230,11 +4267,12 @@ class OtherHistory(ctk.CTkScrollableFrame):
             if other_history:
                 self.display_other_history(other_history)
             else:
-                messagebox.showwarning("No Data", "Patient record not found")
+                print("No Data - Patient record not found")  
         except Exception as e:
-            print(e)
+            print(f"Error in other_history_info: {e}")
 
     def display_other_history(self, data):
+        """Display the other history data in the labels"""
         labels = [
             self.hpi_info,
             self.pmh_info,
@@ -4245,7 +4283,6 @@ class OtherHistory(ctk.CTkScrollableFrame):
             self.chronic_hemo_date_info,
             self.clinical_impression_info
         ]
-        DataRetrieval.assign_retrieved_data(labels, data)
 
 def create_exit_button(parent, command=None):
     image = Image.open("assets/exit.png")
