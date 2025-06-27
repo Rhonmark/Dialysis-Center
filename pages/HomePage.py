@@ -1302,18 +1302,35 @@ class HomePageContent(ctk.CTkFrame):
         self.navbar.pack_propagate(False)
         self.navbar.configure(border_width=0, border_color="black")
 
-        #self.dropdown_visible = False 
-        #self.dropdown_frame = ctk.CTkFrame(self.navbar, fg_color="#f0f0f0", corner_radius=8, width=150, height=100)
-        #self.dropdown_frame.configure(border_width=1, border_color="gray")
-        #self.dropdown_frame.place_forget()
-
         self.welcome_label = ctk.CTkLabel(self.navbar, text="Welcome Back,", text_color="black", font=("Arial", 30, "bold"))
         self.welcome_label.place(relx=0.17, rely=0.5, anchor="e")
 
-        self.name_label = ctk.CTkLabel(self.navbar, text=f"{first_name}!", text_color="black", font=("Arial", 30, "bold"))
-        self.name_label.place(relx=0.25, rely=0.5, anchor="e")
+        # IMPROVED FIRST NAME LABEL - Dynamic font sizing
+        # Calculate appropriate font size based on first name length
+        first_name_length = len(first_name)
+        if first_name_length <= 8:
+            first_name_font_size = 30
+        elif first_name_length <= 12:
+            first_name_font_size = 26
+        elif first_name_length <= 16:
+            first_name_font_size = 22
+        elif first_name_length <= 20:
+            first_name_font_size = 18
+        else:
+            first_name_font_size = 16
+            # For very long first names, truncate and add ellipsis
+            if first_name_length > 25:
+                first_name = first_name[:22] + "..."
 
-         # Search container
+        self.name_label = ctk.CTkLabel(
+            self.navbar, 
+            text=f"{first_name}!", 
+            text_color="black", 
+            font=("Arial", first_name_font_size, "bold")
+        )
+        self.name_label.place(relx=0.27, rely=0.5, anchor="e")
+
+        # Search container
         self.search_container = ctk.CTkFrame(
             self.navbar, 
             fg_color="white", 
@@ -1353,7 +1370,7 @@ class HomePageContent(ctk.CTkFrame):
         )
         self.search_entry.place(x=50, rely=0.5, anchor="w")
 
-        # calendar container
+        # Calendar container
         self.calendar_container = ctk.CTkFrame(
             self.navbar, 
             fg_color="white", 
@@ -1365,7 +1382,7 @@ class HomePageContent(ctk.CTkFrame):
         )
         self.calendar_container.place(x=810, y=70, anchor="w")
 
-        # calendar icon
+        # Calendar icon
         try:
             calendar_img = ctk.CTkImage(light_image=Image.open("assets/calendar.png"), size=(30, 30))
             calendar_icon = ctk.CTkLabel(self.calendar_container, image=calendar_img, text="")
@@ -1383,7 +1400,7 @@ class HomePageContent(ctk.CTkFrame):
         import datetime
         today_date = datetime.datetime.now().strftime("%B %d, %Y") 
 
-        # date label beside the icon
+        # Date label beside the icon
         date_label = ctk.CTkLabel(
             self.calendar_container,
             text=today_date,
@@ -1392,9 +1409,35 @@ class HomePageContent(ctk.CTkFrame):
         )
         date_label.place(x=60, rely=0.5, anchor="w")
 
-        self.namev2_label = ctk.CTkLabel(self.navbar, text=full_name, text_color="black", font=("Arial", 30, "bold"))
-        self.namev2_label.place(relx=0.85, rely=0.5, anchor="e")
+        # IMPROVED FULL NAME LABEL - Dynamic font sizing and better positioning
+        # Calculate appropriate font size based on name length
+        name_length = len(full_name)
+        if name_length <= 15:
+            font_size = 24
+        elif name_length <= 25:
+            font_size = 20
+        elif name_length <= 35:
+            font_size = 16
+        else:
+            font_size = 14
+            # For very long names, truncate and add ellipsis
+            if name_length > 40:
+                full_name = full_name[:37] + "..."
 
+        # Position the full name label with more space and better alignment
+        self.namev2_label = ctk.CTkLabel(
+            self.navbar, 
+            text=full_name, 
+            text_color="black", 
+            font=("Arial", font_size, "bold"),
+            wraplength=200  # Allow text wrapping if needed
+        )
+        
+        # Use a fixed position instead of relative to avoid overlap
+        # Adjust x position based on screen size or make it responsive
+        self.namev2_label.place(x=1120, rely=0.5, anchor="w")
+
+        # Load notification and settings frames
         self.notif_frame = NotificationFrame(self)
         self.settings_frame = SettingsFrame(self)
 
@@ -1404,7 +1447,7 @@ class HomePageContent(ctk.CTkFrame):
 
         icon_y = 62
 
-        # Notification button
+        # Notification button - positioned relative to name label
         notif_btn = ctk.CTkButton(
             self.navbar, 
             image=notif_img, 
@@ -1415,7 +1458,7 @@ class HomePageContent(ctk.CTkFrame):
             hover_color="#f5f5f5",
             command=self.notif_frame.toggle
         )
-        notif_btn.place(relx=1.0, x=-110, y=icon_y, anchor="center")
+        notif_btn.place(x=1350, y=icon_y, anchor="center")
 
         # Settings button 
         settings_btn = ctk.CTkButton(
@@ -1428,8 +1471,10 @@ class HomePageContent(ctk.CTkFrame):
             hover_color="#f5f5f5", 
             command=self.settings_frame.toggle  
         )
-        settings_btn.place(relx=1.0, x=-160, y=icon_y, anchor="center")
+        settings_btn.place(x=1400, y=icon_y, anchor="center")
 
+
+    
         #ctk.CTkButton(self.dropdown_frame, text="Account Settings", width=140, command=self.open_settings).pack(pady=5)
         #ctk.CTkButton(self.dropdown_frame, text="Log Out", width=140, command=self.logout).pack(pady=5)
 
@@ -1842,6 +1887,7 @@ class HomePageContent(ctk.CTkFrame):
         # Start the carousel animation and refresh recent patient
         self.start_reminder_carousel()
         self.refresh_recent_patient()
+
 
      # Add method to auto-refresh patient data when needed
     def refresh_patient_data_and_chart(self):
