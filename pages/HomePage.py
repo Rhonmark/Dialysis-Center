@@ -2008,8 +2008,8 @@ class HomePageContent(ctk.CTkFrame):
             else:
                 # No patients in database
                 self.name_value.configure(text="No Patient")
-                self.age_value.configure(text="--")
-                self.gender_value.configure(text="--")
+                self.age_value.configure(text="N/A")
+                self.gender_value.configure(text="N/A")
                 print("ℹ️ No patients found in database")
 
         except Exception as e:
@@ -2181,7 +2181,6 @@ class NotificationFrame(ctk.CTkFrame):
                     
                     self.create_notification_widget(notif_type, message, formatted_date)
             else:
-                print("DEBUG: No notifications found in database")
                 self.show_no_notifications()
                 
         except Exception as e:
