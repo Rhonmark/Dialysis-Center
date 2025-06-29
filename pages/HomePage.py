@@ -4273,16 +4273,62 @@ class OtherHistory(ctk.CTkScrollableFrame):
 
     def display_other_history(self, data):
         """Display the other history data in the labels"""
-        labels = [
-            self.hpi_info,
-            self.pmh_info,
-            self.kidney_disease_date_info,
-            self.dialysis_date_info,
-            self.mode_info,
-            self.access_info,
-            self.chronic_hemo_date_info,
-            self.clinical_impression_info
-        ]
+        
+        # Make sure we have data to display
+        if not data:
+            print("No other history data to display")
+            return
+        
+        try:
+            # Clear all labels first
+            labels = [
+                self.hpi_info,
+                self.pmh_info,
+                self.kidney_disease_date_info,
+                self.dialysis_date_info,
+                self.mode_info,
+                self.access_info,
+                self.chronic_hemo_date_info,
+                self.clinical_impression_info
+            ]
+            
+            # Clear existing text
+            for label in labels:
+                label.configure(text="")
+            
+            # Now assign the data to each label
+            # Assuming data is a list/tuple with values in this order:
+            # [hpi, pmh, kidney_disease_date, dialysis_date, mode, access, chronic_hemo_date, clinical_impression]
+            
+            if len(data) >= 1 and data[0]:
+                self.hpi_info.configure(text=str(data[0]))
+            
+            if len(data) >= 2 and data[1]:
+                self.pmh_info.configure(text=str(data[1]))
+            
+            if len(data) >= 3 and data[2]:
+                self.kidney_disease_date_info.configure(text=str(data[2]))
+            
+            if len(data) >= 4 and data[3]:
+                self.dialysis_date_info.configure(text=str(data[3]))
+            
+            if len(data) >= 5 and data[4]:
+                self.mode_info.configure(text=str(data[4]))
+            
+            if len(data) >= 6 and data[5]:
+                self.access_info.configure(text=str(data[5]))
+            
+            if len(data) >= 7 and data[6]:
+                self.chronic_hemo_date_info.configure(text=str(data[6]))
+            
+            if len(data) >= 8 and data[7]:
+                self.clinical_impression_info.configure(text=str(data[7]))
+            
+            print("✅ Other history data displayed successfully")
+            
+        except Exception as e:
+            print(f"❌ Error displaying other history data: {e}")
+            print(f"Data received: {data}")
 
 def create_exit_button(parent, command=None):
     image = Image.open("assets/exit.png")
