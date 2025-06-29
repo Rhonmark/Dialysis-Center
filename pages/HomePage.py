@@ -211,7 +211,6 @@ class HomePage(ctk.CTkFrame):
         except Exception as e:
             print(f"❌ Error refreshing patient data: {e}")
 
-
 class Sidebar(ctk.CTkFrame):
     def __init__(self, parent, shared_state):
         super().__init__(parent, fg_color="#1A374D", width=300, corner_radius=0)
@@ -274,12 +273,18 @@ class Sidebar(ctk.CTkFrame):
                 button.configure(fg_color="#1A374D", text_color="white")
 
     def navigate(self, page_name):
-        if self.master.shared_state.get("modal_open"):
-            print("Modal is open, cannot navigate.")
-            return
-
         self.highlight_selected(page_name)
         self.master.show_page(page_name)
+
+    def disable_buttons(self):
+        """Disable all sidebar buttons"""
+        for button in self.buttons.values():
+            button.configure(state="disabled")
+
+    def enable_buttons(self):
+        """Enable all sidebar buttons"""
+        for button in self.buttons.values():
+            button.configure(state="normal")
 
 class SearchResultsFrame(ctk.CTkFrame):
     def __init__(self, parent, **kwargs):
@@ -3258,6 +3263,28 @@ class PatientPage(ctk.CTkFrame):
         except Exception as e:
             print(f"Error opening Edit Usage window: {e}")
 
+    def disable_detailed_buttons(self):
+        """Disable buttons in the detailed view"""
+        if hasattr(self, 'back_button'):
+            self.back_button.configure(state="disabled")
+        if hasattr(self, 'upload_button'):
+            self.upload_button.configure(state="disabled")  
+        if hasattr(self, 'edit_button_detailed'):
+            self.edit_button_detailed.configure(state="disabled")
+        if hasattr(self, 'edit_usage_button'):
+            self.edit_usage_button.configure(state="disabled")
+
+    def enable_detailed_buttons(self):
+        """Enable buttons in the detailed view"""
+        if hasattr(self, 'back_button'):
+            self.back_button.configure(state="normal")
+        if hasattr(self, 'upload_button'):
+            self.upload_button.configure(state="normal")
+        if hasattr(self, 'edit_button_detailed'):
+            self.edit_button_detailed.configure(state="normal")
+        if hasattr(self, 'edit_usage_button'):
+            self.edit_usage_button.configure(state="normal")
+
     def refresh_quantity_used_windows(self, patient_id):
         """Refresh any open quantity used log windows for the current patient"""
         try:
@@ -3559,7 +3586,12 @@ class PatientPage(ctk.CTkFrame):
         print("Logging out...")"""
     
     def open_patient_history(self):
-        self.patient_history_window = PatientHistory(self.master)
+        # Get reference to sidebar from main app
+        sidebar = None
+        if hasattr(self.master, 'master') and hasattr(self.master.master, 'sidebar'):
+            sidebar = self.master.master.sidebar
+        
+        self.patient_history_window = PatientHistory(self.master, sidebar=sidebar, patient_page=self)
         self.patient_history_window.place(relx=.5,rely=.5,anchor="center")
 
         patient_id = self.patient_id_value.cget("text")
@@ -3573,12 +3605,20 @@ class PatientPage(ctk.CTkFrame):
         self.patient_history_window.other_history.display_other_history(patient_other_history)
 
     def open_medication(self):
-        self.medication_window = Medication(self.master)
+        sidebar = None
+        if hasattr(self.master, 'master') and hasattr(self.master.master, 'sidebar'):
+            sidebar = self.master.master.sidebar
+        
+        self.medication_window = Medication(self.master, sidebar=sidebar, patient_page=self)
         self.medication_window.place(relx=.5,rely=.5,anchor="center")
         self.medication_window.medication_info(self.patient_id_value.cget("text"))
 
     def open_contact_info(self):
-        self.contact_info_window = ContactInfoRelativeInfo(self.master)
+        sidebar = None
+        if hasattr(self.master, 'master') and hasattr(self.master.master, 'sidebar'):
+            sidebar = self.master.master.sidebar
+        
+        self.contact_info_window = ContactInfoRelativeInfo(self.master, sidebar=sidebar, patient_page=self)
         self.contact_info_window.place(relx=.5,rely=.5,anchor="center")
         self.contact_info_window.contact_relative_info(self.patient_id_value.cget("text"))
 
@@ -3669,13 +3709,11 @@ class PatientPage(ctk.CTkFrame):
 
             if get_patient_info_data:
                 self.display_patient_basic_info(get_patient_info_data)
-                # print("patient info: ", get_patient_info_data)
             else:
                 messagebox.showwarning("No Data", "Patient record not found")
 
             if get_patient_philhealth_data:
                 self.display_patient_philhealth_info(get_patient_philhealth_data)
-                # print("patient philhealth info: ", get_patient_philhealth_data)
             else:
                 messagebox.showwarning("No Data", "Patient record not found")
                 
@@ -3840,9 +3878,11 @@ class PatientPage(ctk.CTkFrame):
             self.enable_buttons()
 
 class PatientHistory(ctk.CTkFrame):
-    def __init__(self, master=None, **kwargs):
+    def __init__(self, master=None, sidebar=None, patient_page=None, **kwargs):
         super().__init__(master, width=1400, height=930, fg_color="white", corner_radius=20, **kwargs)
         self.pack_propagate(False)
+        self.sidebar = sidebar 
+        self.patient_page = patient_page  
 
         self.left_bar = ctk.CTkFrame(self, width=20, fg_color="#1A374D", corner_radius=20)
         self.left_bar.place(x=0)
@@ -3861,15 +3901,29 @@ class PatientHistory(ctk.CTkFrame):
 
         self.exit_button = create_exit_button(self, command=self.exit_patienthistory)
         self.exit_button.place(x=1300, y=20)
+        
+        # Disable sidebar and patient page buttons when window opens
+        if self.sidebar:
+            self.sidebar.disable_buttons()
+        if self.patient_page:
+            self.patient_page.disable_detailed_buttons()
 
     def exit_patienthistory(self):
         print("Patient History closed")
+        # Enable sidebar and patient page buttons when window closes
+        if self.sidebar:
+            self.sidebar.enable_buttons()
+        if self.patient_page:
+            self.patient_page.enable_detailed_buttons()
         self.place_forget()
 
+
 class Medication(ctk.CTkFrame):
-    def __init__(self, master=None, **kwargs):
+    def __init__(self, master=None, sidebar=None, patient_page=None, **kwargs):
         super().__init__(master, width=980, height=400, fg_color="white", corner_radius=0,**kwargs)
         self.pack_propagate(False)
+        self.sidebar = sidebar 
+        self.patient_page = patient_page  
 
         title_font=("Merriweather Bold",25)
         label_font=("Merriweather Light",15)
@@ -3895,8 +3949,19 @@ class Medication(ctk.CTkFrame):
         self.exit_button = create_exit_button(self, command=self.exit_panel)
         self.exit_button.place(x=900, y=15)
 
+        # Disable sidebar and patient page buttons when window opens
+        if self.sidebar:
+            self.sidebar.disable_buttons()
+        if self.patient_page:
+            self.patient_page.disable_detailed_buttons()
+
     def exit_panel(self):
-        print("Contact and Relative Info closed")
+        print("Medication closed")
+        # Enable sidebar and patient page buttons when window closes
+        if self.sidebar:
+            self.sidebar.enable_buttons()
+        if self.patient_page:
+            self.patient_page.enable_detailed_buttons()
         self.place_forget()
 
     def medication_info(self, patient_id):
@@ -3920,9 +3985,11 @@ class Medication(ctk.CTkFrame):
                 self.medication_labels[i].configure(text=f"• {med[0]}")
 
 class ContactInfoRelativeInfo(ctk.CTkFrame):
-    def __init__(self, master=None, **kwargs):
+    def __init__(self, master=None, sidebar=None, patient_page=None, **kwargs):
         super().__init__(master, width=980, height=815, fg_color="white", corner_radius=20, **kwargs)
         self.pack_propagate(False)
+        self.sidebar = sidebar 
+        self.patient_page = patient_page  
 
         self.left_bar = ctk.CTkFrame(self, width=15,height=815, fg_color="#68EDC6", corner_radius=0,)
         self.left_bar.place(x=0)
@@ -4002,8 +4069,19 @@ class ContactInfoRelativeInfo(ctk.CTkFrame):
         self.exit_button = create_exit_button(self, command=self.exit_panel)
         self.exit_button.place(x=900, y=15)
 
+        # Disable sidebar and patient page buttons when window opens
+        if self.sidebar:
+            self.sidebar.disable_buttons()
+        if self.patient_page:
+            self.patient_page.disable_detailed_buttons()
+
     def exit_panel(self):
         print("Contact and Relative Info closed")
+        # Enable sidebar and patient page buttons when window closes
+        if self.sidebar:
+            self.sidebar.enable_buttons()
+        if self.patient_page:
+            self.patient_page.enable_detailed_buttons()
         self.place_forget()
 
     def contact_relative_info(self, patient_id):
@@ -4041,9 +4119,6 @@ class ContactInfoRelativeInfo(ctk.CTkFrame):
         except Exception as e:
             print(f"[Error] Failed to retrieve contact/relative info: {e}")
 
-    def exit_panel(self):
-        print("Contact and Relative Info closed")
-        self.place_forget()
 
 class FamilyHistory(ctk.CTkScrollableFrame):
     def __init__(self, master=None, **kwargs):
