@@ -1097,13 +1097,20 @@ class HomePageContent(ctk.CTkFrame):
             
             tick_font = fm.FontProperties(fname='font/Inter_18pt-Italic.ttf')
 
-            # Create bar chart
-            ax.bar(df_10['item_name'], df_10['total_used'], color='#C0DABE')
-            ax.tick_params(axis='x', pad=10)
-            ax.margins(y=0.15) 
-            for label in ax.get_xticklabels() + ax.get_yticklabels():
-                        label.set_fontproperties(tick_font)
-                        label.set_fontsize(11)
+            # Check if there's data to display
+            if not df_10.empty:
+                # Create bar chart
+                ax.bar(df_10['item_name'], df_10['total_used'], color='#C0DABE')
+                ax.tick_params(axis='x', pad=10)
+                ax.margins(y=0.15) 
+                for label in ax.get_xticklabels() + ax.get_yticklabels():
+                            label.set_fontproperties(tick_font)
+                            label.set_fontsize(11)
+            else:
+                # No data available - show message
+                ax.text(0.5, 0.5, 'No data available', 
+                       horizontalalignment='center', verticalalignment='center',
+                       transform=ax.transAxes, fontsize=14, color='gray')
             
             # Remove spines
             for spine in ax.spines.values():
@@ -1414,33 +1421,15 @@ class HomePageContent(ctk.CTkFrame):
         )
         date_label.place(x=60, rely=0.5, anchor="w")
 
-        # IMPROVED FULL NAME LABEL - Dynamic font sizing and better positioning
-        # Calculate appropriate font size based on name length
-        name_length = len(full_name)
-        if name_length <= 15:
-            font_size = 24
-        elif name_length <= 25:
-            font_size = 20
-        elif name_length <= 35:
-            font_size = 16
-        else:
-            font_size = 14
-            # For very long names, truncate and add ellipsis
-            if name_length > 40:
-                full_name = full_name[:37] + "..."
-
-        # Position the full name label with more space and better alignment
         self.namev2_label = ctk.CTkLabel(
             self.navbar, 
             text=full_name, 
             text_color="black", 
-            font=("Arial", font_size, "bold"),
-            wraplength=200  # Allow text wrapping if needed
+            font=("Merriweather", 28, "bold"),
+            anchor="w"  
         )
-        
-        # Use a fixed position instead of relative to avoid overlap
-        # Adjust x position based on screen size or make it responsive
-        self.namev2_label.place(x=1120, rely=0.5, anchor="w")
+ 
+        self.namev2_label.place(x=1100, rely=0.5, anchor="w")
 
         # Load notification and settings frames
         self.notif_frame = NotificationFrame(self)
@@ -1452,7 +1441,7 @@ class HomePageContent(ctk.CTkFrame):
 
         icon_y = 62
 
-        # Notification button - positioned relative to name label
+        # Notification button
         notif_btn = ctk.CTkButton(
             self.navbar, 
             image=notif_img, 
@@ -1463,7 +1452,7 @@ class HomePageContent(ctk.CTkFrame):
             hover_color="#f5f5f5",
             command=self.notif_frame.toggle
         )
-        notif_btn.place(x=1350, y=icon_y, anchor="center")
+        notif_btn.place(relx=1.0, x=-110, y=icon_y, anchor="center")
 
         # Settings button 
         settings_btn = ctk.CTkButton(
@@ -1476,12 +1465,7 @@ class HomePageContent(ctk.CTkFrame):
             hover_color="#f5f5f5", 
             command=self.settings_frame.toggle  
         )
-        settings_btn.place(x=1400, y=icon_y, anchor="center")
-
-
-    
-        #ctk.CTkButton(self.dropdown_frame, text="Account Settings", width=140, command=self.open_settings).pack(pady=5)
-        #ctk.CTkButton(self.dropdown_frame, text="Log Out", width=140, command=self.logout).pack(pady=5)
+        settings_btn.place(relx=1.0, x=-160, y=icon_y, anchor="center")
 
         self.bottom_line = ctk.CTkFrame(self.navbar, height=1.5, fg_color="black")
         self.bottom_line.place(relx=0, rely=1.0, relwidth=1.0, anchor="sw")
@@ -1517,6 +1501,16 @@ class HomePageContent(ctk.CTkFrame):
         # Most Used Items icon 
         try:
             most_used_icon = ctk.CTkImage(light_image=Image.open("assets/refresh.png"), size=(24, 24))
+            most_used_icon_btn = ctk.CTkButton(
+                self.most_used_frame,
+                image=most_used_icon,
+                text="",
+                width=30,
+                height=30,
+                fg_color="transparent",
+                hover_color="#f0f0f0",
+                command=self.show_overall_usage
+            )
             most_used_icon_btn.place(x=210, y=38)
         except:
             # If icon fails to load, use emoji fallback
@@ -1893,7 +1887,6 @@ class HomePageContent(ctk.CTkFrame):
         self.start_reminder_carousel()
         self.refresh_recent_patient()
 
-
      # Add method to auto-refresh patient data when needed
     def refresh_patient_data_and_chart(self):
         """Method to be called from other pages when patient data changes"""
@@ -2004,12 +1997,14 @@ class HomePageContent(ctk.CTkFrame):
                 recent_patient_age = recent_patient[1]
                 recent_patient_gender = recent_patient[2]
                 
+                first_name_only = recent_patient_name.split()[0] if recent_patient_name else "Unknown"
+                
                 # Update the labels with fresh data
-                self.name_value.configure(text=recent_patient_name)
+                self.name_value.configure(text=first_name_only)
                 self.age_value.configure(text=str(recent_patient_age))
                 self.gender_value.configure(text=recent_patient_gender)
                 
-                print(f"✅ Recent patient refreshed: {recent_patient_name}")
+                print(f"✅ Recent patient refreshed: {first_name_only}")
             else:
                 # No patients in database
                 self.name_value.configure(text="No Patient")
@@ -2080,22 +2075,6 @@ class HomePageContent(ctk.CTkFrame):
             self.after_cancel(self.fade_animation_job)
             self.fade_animation_job = None
 
-    """def toggle_dropdown(self):
-        if self.dropdown_visible:
-            self.dropdown_frame.place_forget()
-        else:
-            x = self.winfo_rootx() + self.winfo_width() - 180
-            y = self.winfo_rooty() + 90
-            self.dropdown_frame.place(x=x, y=y)
-            self.dropdown_frame.lift() 
-        self.dropdown_visible = not self.dropdown_visible
-
-    def open_settings(self):
-        print("Opening account settings...")
-
-    def logout(self):
-        print("Logging out...")"""
-
     def destroy(self):
         """Clean up when the widget is destroyed""" 
         self.stop_reminder_carousel()
@@ -2106,7 +2085,7 @@ class HomePageContent(ctk.CTkFrame):
             self.yesterday_canvas.get_tk_widget().destroy()
         if self.pie_chart_canvas:
             self.pie_chart_canvas.get_tk_widget().destroy()
-        super().destroy() 
+        super().destroy()
 
 class NotificationFrame(ctk.CTkFrame):
     def __init__(self, parent, **kwargs):
