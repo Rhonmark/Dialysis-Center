@@ -1018,7 +1018,7 @@ class EditStockWindow(SupplyBaseWindow):
             print("Parameters:", store)
             
             cursor.execute(query, store)
-            
+        
             # Insert restock logs for tracking
             for item in stock_changes:
                 cursor.execute("""
@@ -1028,13 +1028,14 @@ class EditStockWindow(SupplyBaseWindow):
                     WHERE item_name = %s
                 """, (item['quantity'], item['item_name']))
 
+            # Update max_supply to reflect the new highest stock level
             for item in stock_changes:
                 cursor.execute("""
-                    SELECT item_id, average_weekly_usage, delivery_time_days, current_stock
-                    FROM supply 
+                    UPDATE supply 
+                    SET max_supply = GREATEST(max_supply, current_stock)
                     WHERE item_name = %s
                 """, (item['item_name'],))
-                
+
                 result = cursor.fetchone()
                 if result:
                     item_id, avg_weekly_usage, delivery_time, current_stock_val = result

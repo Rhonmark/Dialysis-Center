@@ -753,10 +753,6 @@ class HomePageContent(ctk.CTkFrame):
                 cursor.close()
                 connect.close()
 
-            # Static values for testing
-            #full_name = "User"
-            #first_name = "User"
-
             return first_name, full_name
 
         first_name, full_name = get_name()
@@ -768,8 +764,108 @@ class HomePageContent(ctk.CTkFrame):
         self.show_overall_usage()
         self.show_yesterday_usage()
         self.load_patient_data_and_pie_chart()
-
+        
+        # Load backup information - use regular version now since debug works
+        self.load_backup_information()
+        
         self.setup_search_functionality()
+
+    def load_backup_information(self):
+        """Load backup information from database and update the backup frame"""
+        try:
+            connect = db()
+            cursor = connect.cursor()
+
+            # Get Recent Manual Backup (backup_source is a file path, not containing 'Auto:')
+            cursor.execute("""
+                SELECT last_date FROM backup_logs 
+                WHERE backup_source NOT LIKE 'Auto:%' 
+                AND backup_source NOT LIKE 'Import:%'
+                AND last_date IS NOT NULL
+                ORDER BY backup_id DESC 
+                LIMIT 1
+            """)
+            manual_result = cursor.fetchone()
+            recent_manual_date = manual_result[0].strftime("%m-%d-%Y") if manual_result and manual_result[0] else "No data"
+
+            # Get Recent Scheduled/Auto Backup  
+            cursor.execute("""
+                SELECT last_date FROM backup_logs 
+                WHERE backup_source LIKE 'Auto:%'
+                AND last_date IS NOT NULL
+                ORDER BY backup_id DESC 
+                LIMIT 1
+            """)
+            scheduled_result = cursor.fetchone()
+            recent_scheduled_date = scheduled_result[0].strftime("%m-%d-%Y") if scheduled_result and scheduled_result[0] else "No data"
+
+            # Get Upcoming Scheduled Backup - check maintenance page for active timer
+            upcoming_scheduled_date = self.check_maintenance_backup_status()
+
+            # Update the backup labels with real data
+            self.update_backup_labels(recent_manual_date, recent_scheduled_date, upcoming_scheduled_date)
+
+            print(f"✅ Backup information loaded:")
+            print(f"   Recent Manual: {recent_manual_date}")
+            print(f"   Recent Scheduled: {recent_scheduled_date}")
+            print(f"   Upcoming Scheduled: {upcoming_scheduled_date}")
+
+        except Exception as e:
+            print(f'Error loading backup information: {e}')
+            # Set default values on error
+            self.update_backup_labels("Error", "Error", "Error")
+        finally:
+            if 'cursor' in locals():
+                cursor.close()
+            if 'connect' in locals():
+                connect.close()
+
+    def check_maintenance_backup_status(self):
+        """Check if there's an active backup schedule in maintenance page"""
+        try:
+            # Get reference to maintenance page through widget hierarchy
+            current_widget = self
+            homepage = None
+            
+            # Traverse up to find HomePage
+            while current_widget:
+                if hasattr(current_widget, '__class__'):
+                    class_name = current_widget.__class__.__name__
+                    if class_name == 'HomePage':
+                        homepage = current_widget
+                        break
+                current_widget = getattr(current_widget, 'master', None)
+            
+            if homepage and hasattr(homepage, 'pages'):
+                # Check if Maintenance page exists and has active backup timer
+                if 'Maintenance' in homepage.pages:
+                    maintenance_page = homepage.pages['Maintenance']
+                    if hasattr(maintenance_page, 'backup_timer') and maintenance_page.backup_timer:
+                        return "Active Schedule"
+            
+            return "Not Scheduled"
+            
+        except Exception as e:
+            print(f"Error checking maintenance backup status: {e}")
+            return "Not Scheduled"
+
+    def update_backup_labels(self, manual_date, scheduled_date, upcoming_date):
+        """Update the backup date labels with new data"""
+        try:
+            # Update Recent Manual Backup date
+            if hasattr(self, 'RecentManual_date'):
+                self.RecentManual_date.configure(text=manual_date)
+            
+            # Update Recent Scheduled Backup date
+            if hasattr(self, 'RecentSched_date'):
+                self.RecentSched_date.configure(text=scheduled_date)
+            
+            # Update Upcoming Scheduled Backup date
+            if hasattr(self, 'UpcomingSched_date'):
+                self.UpcomingSched_date.configure(text=upcoming_date)
+            
+        except Exception as e:
+            print(f'Error updating backup labels: {e}')
 
     def setup_search_functionality(self):
         """Setup search functionality for the search entry"""
@@ -932,8 +1028,6 @@ class HomePageContent(ctk.CTkFrame):
                 ) inactive_patients ON pi.patient_id = inactive_patients.patient_id
                 WHERE pi.status = 'Active'
             """)
-            #for simulation 
-            #HAVING TIMESTAMPDIFF(SECOND, MAX(usage_date), NOW()) > 5
 
             patients_to_inactivate = cursor.fetchall() 
 
@@ -950,8 +1044,6 @@ class HomePageContent(ctk.CTkFrame):
                 ) inactive_patients ON pi.patient_id = inactive_patients.patient_id
                 SET pi.status = 'Inactive'
             """)
-            #for simulation 
-            #HAVING TIMESTAMPDIFF(SECOND, MAX(usage_date), NOW()) > 5
 
             connect.commit()
 
@@ -975,10 +1067,6 @@ class HomePageContent(ctk.CTkFrame):
                         self.inactive_patients = values[i]
 
                 self.total_patients = sum(values)
-
-                # print('active:', self.active_patients)
-                # print('inactive:', self.inactive_patients)
-                # print('total patient:', self.total_patients)
 
                 # Update the labels
                 self.update_patient_labels()
@@ -1649,7 +1737,7 @@ class HomePageContent(ctk.CTkFrame):
         # Setup patient info boxes
         self.setup_patient_boxes()
 
-        # Backup Information Frame 
+        # Backup Information Frame
         self.backup_frame = ctk.CTkFrame(
             self,
             width=410,
@@ -1668,7 +1756,34 @@ class HomePageContent(ctk.CTkFrame):
         )
         left_bar.place(x=0, y=0)
 
-        # Backup labels with dates
+        # Add refresh button for backup information
+        try:
+            refresh_icon = ctk.CTkImage(light_image=Image.open("assets/refresh.png"), size=(20, 20))
+            backup_refresh_btn = ctk.CTkButton(
+                self.backup_frame,
+                image=refresh_icon,
+                text="",
+                width=25,
+                height=25,
+                fg_color="transparent",
+                hover_color="#f0f0f0",
+                command=self.load_backup_information
+            )
+            backup_refresh_btn.place(x=370, y=10)
+        except:
+            # Fallback without icon
+            backup_refresh_btn = ctk.CTkButton(
+                self.backup_frame,
+                text="🔄",
+                font=("Arial", 12),
+                width=25,
+                height=25,
+                fg_color="transparent",
+                hover_color="#f0f0f0",
+                command=self.load_backup_information
+            )
+            backup_refresh_btn.place(x=370, y=10)
+
         RecentManual_label = ctk.CTkLabel(
             self.backup_frame,
             text="Recent Manual Backup:",
@@ -1676,13 +1791,13 @@ class HomePageContent(ctk.CTkFrame):
         )
         RecentManual_label.place(x=30, y=35)
 
-        RecentManual_date = ctk.CTkLabel(
+        self.RecentManual_date = ctk.CTkLabel(
             self.backup_frame,
-            text="11-25-2025",
+            text="Loading...",
             font=("Arial", 14),
             text_color="#000000"
         )
-        RecentManual_date.place(x=250, y=37)
+        self.RecentManual_date.place(x=250, y=37)
 
         RecentSched_label = ctk.CTkLabel(
             self.backup_frame,
@@ -1691,13 +1806,13 @@ class HomePageContent(ctk.CTkFrame):
         )
         RecentSched_label.place(x=30, y=75)
 
-        RecentSched_date = ctk.CTkLabel(
+        self.RecentSched_date = ctk.CTkLabel(
             self.backup_frame,
-            text="11-20-2025",
+            text="Loading...",  
             font=("Arial", 14),
             text_color="#000000"
         )
-        RecentSched_date.place(x=270, y=77)
+        self.RecentSched_date.place(x=270, y=77)
 
         UpcomingSched_label = ctk.CTkLabel(
             self.backup_frame,
@@ -1706,13 +1821,22 @@ class HomePageContent(ctk.CTkFrame):
         )
         UpcomingSched_label.place(x=30, y=115)
 
-        UpcomingSched_date = ctk.CTkLabel(
+        self.UpcomingSched_date = ctk.CTkLabel(
             self.backup_frame,
-            text="12-01-2025",
+            text="Loading...",  
             font=("Arial", 14),
             text_color="#000000"
         )
-        UpcomingSched_date.place(x=295, y=117)
+        self.UpcomingSched_date.place(x=295, y=117)
+
+        # Add refresh indicator
+        refresh_indicator_backup = ctk.CTkLabel(
+            self.backup_frame,
+            text="Click refresh to update",
+            font=("Arial", 9),
+            text_color="#888888"
+        )
+        refresh_indicator_backup.place(x=270, y=155)
 
         # Total Patients Frame
         self.fifth_frame = ctk.CTkFrame(

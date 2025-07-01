@@ -120,8 +120,6 @@ class BaseWindow(ctk.CTkToplevel):
 
 class PatientInfoWindow(BaseWindow): 
     def __init__(self, parent, data):
-    
-
         self.edit_mode = data.get('edit_mode', False) if data else False
         self.patient_id = data.get('patient_id') if data else None
         
@@ -136,13 +134,10 @@ class PatientInfoWindow(BaseWindow):
         def create_underline(x, y, width):
             ctk.CTkFrame(self, height=1, width=width, fg_color="black").place(x=x, y=y)
 
-        
-
         title_text = "Edit Patient Information" if self.edit_mode else "Patient Information"
         ctk.CTkLabel(self, text=title_text, font=("Merriweather bold", 25), text_color="black", bg_color="white").place(x=90, y=60)
 
-        
-       # Last Name Field
+        # Last Name Field
         ctk.CTkLabel(self, text="Last Name", font=label_font, fg_color="white", text_color="black").place(x=120, y=150)
         self.entry_lastname = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white", placeholder_text="Type here")
         self.entry_lastname.place(x=120, y=200)
@@ -162,18 +157,18 @@ class PatientInfoWindow(BaseWindow):
         self.entry_middlename.place(x=720, y=200)
         create_underline(720, 230, 150)
 
-        # Status Field
+        # Status Field (Radio buttons)
         ctk.CTkLabel(self, text="Status", font=label_font, fg_color="white", text_color="black").place(x=120, y=270)
         self.status_var = tk.StringVar(value="active")
         ctk.CTkRadioButton(self, text="Active", variable=self.status_var, value="active", font=entry_font, fg_color="#00C88D", text_color="black", bg_color="white", radiobutton_width=20, radiobutton_height=20).place(x=120, y=320)
         ctk.CTkRadioButton(self, text="Inactive", variable=self.status_var, value="inactive", font=entry_font, fg_color="#00C88D", text_color="black", bg_color="white", radiobutton_width=20, radiobutton_height=20).place(x=200, y=320)
         ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=175, y=270)  
-        create_underline(120, 350, 160)
 
         # Type of Access Field
         ctk.CTkLabel(self, text="Type of Access", font=label_font, fg_color="white", text_color="black").place(x=420, y=270)
-        self.access_options = ["L AVF", "R AVF", "L AVG", "R AVG", "L CVC", "R CVC", "L PDC", "R PDC"]
+        self.access_options = ["", "L AVF", "R AVF", "L AVG", "R AVG", "L CVC", "R CVC", "L PDC", "R PDC"]
         self.entry_access = ctk.CTkComboBox(self, values=self.access_options, width=180, height=30, button_color="#00C88D",font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white", state="readonly")
+        self.entry_access.set("")  # Set to empty initially
         self.entry_access.place(x=420, y=320)
         ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=540, y=270)  
         create_underline(420, 350, 180)
@@ -185,33 +180,33 @@ class PatientInfoWindow(BaseWindow):
         ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=795, y=270)  
         create_underline(720, 345, 180)
 
-        # Age Field
+        # Age Field (Read-only label instead of entry)
         ctk.CTkLabel(self, text="Age", font=label_font, fg_color="white", text_color="black").place(x=1020, y=270)
-        self.entry_age = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white", placeholder_text="Type here")
-        self.entry_age.place(x=1020, y=320)
+        self.age_label = ctk.CTkLabel(self, width=180, height=30, font=entry_font, text_color="black", fg_color="#F8F8F8", corner_radius=5, text="0")
+        self.age_label.place(x=1020, y=320)
         ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=1055, y=270)  
         create_underline(1020, 350, 180)
 
-        # Gender Field
+        # Gender Field (Radio buttons)
         ctk.CTkLabel(self, text="Gender", font=label_font, fg_color="white", text_color="black").place(x=120, y=390)
-        self.entry_gender = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white", placeholder_text="Type here")
-        self.entry_gender.place(x=120, y=440)
+        self.gender_var = tk.StringVar(value="")
+        ctk.CTkRadioButton(self, text="Male", variable=self.gender_var, value="male", font=entry_font, fg_color="#00C88D", text_color="black", bg_color="white", radiobutton_width=20, radiobutton_height=20).place(x=120, y=440)
+        ctk.CTkRadioButton(self, text="Female", variable=self.gender_var, value="female", font=entry_font, fg_color="#00C88D", text_color="black", bg_color="white", radiobutton_width=20, radiobutton_height=20).place(x=200, y=440)
         ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=185, y=390)  
-        create_underline(120, 470, 180)
 
         # Height Field
-        ctk.CTkLabel(self, text="Height", font=label_font, fg_color="white", text_color="black").place(x=420, y=390)
-        self.entry_height = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white", placeholder_text="Type here")
+        ctk.CTkLabel(self, text="Height (cm)", font=label_font, fg_color="white", text_color="black").place(x=420, y=390)
+        self.entry_height = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white", placeholder_text="e.g. 170")
         self.entry_height.place(x=420, y=440)
         ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=485, y=390)  
         create_underline(420, 470, 180)
 
         # Civil Status Field
         ctk.CTkLabel(self, text="Civil Status", font=label_font, fg_color="white", text_color="black").place(x=720, y=390)
-        self.entry_civil_status = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white", placeholder_text="Type here")
-        self.entry_civil_status.place(x=720, y=440)
+        self.civil_status_var = tk.StringVar(value="")
+        ctk.CTkRadioButton(self, text="Single", variable=self.civil_status_var, value="single", font=entry_font, fg_color="#00C88D", text_color="black", bg_color="white", radiobutton_width=20, radiobutton_height=20).place(x=720, y=440)
+        ctk.CTkRadioButton(self, text="Married", variable=self.civil_status_var, value="married", font=entry_font, fg_color="#00C88D", text_color="black", bg_color="white", radiobutton_width=20, radiobutton_height=20).place(x=800, y=440)
         ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=815, y=390)  
-        create_underline(720, 470, 180)
 
         # Religion Field
         ctk.CTkLabel(self, text="Religion", font=label_font, fg_color="white", text_color="black").place(x=1020, y=390)
@@ -227,13 +222,101 @@ class PatientInfoWindow(BaseWindow):
         ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=265, y=510)  
         create_underline(120, 590, 500)
             
-        
         self.entry_birthdate.bind("<<DateEntrySelected>>", self.update_age)
 
         if self.edit_mode and self.patient_id:
             self.populate_fields()
         elif not self.edit_mode and self.data:
             self.restore_form_data()
+
+    def validate_required_fields(self):
+        """Validate all required fields before proceeding to next window"""
+        # Check if any required field is empty
+        empty_fields = []
+        
+        if not self.entry_lastname.get().strip():
+            empty_fields.append("Last Name")
+        if not self.entry_firstname.get().strip():
+            empty_fields.append("First Name")
+        if not self.status_var.get():
+            empty_fields.append("Status")
+        if not self.entry_access.get() or self.entry_access.get() == "":
+            empty_fields.append("Type of Access")
+        if not self.gender_var.get():
+            empty_fields.append("Gender")
+        if not self.entry_height.get().strip():
+            empty_fields.append("Height")
+        if not self.civil_status_var.get():
+            empty_fields.append("Civil Status")
+        if not self.entry_religion.get().strip():
+            empty_fields.append("Religion")
+        if not self.entry_address.get().strip():
+            empty_fields.append("Complete Address")
+        
+        # If there are empty fields, return the error type and message
+        if empty_fields:
+            return False, "required"
+        
+        # Check data type validation
+        invalid_fields = []
+        
+        # Check Last Name (letters only)
+        if not self.entry_lastname.get().replace(" ", "").isalpha():
+            invalid_fields.append("Last Name (letters only)")
+            
+        # Check First Name (letters only)
+        if not self.entry_firstname.get().replace(" ", "").isalpha():
+            invalid_fields.append("First Name (letters only)")
+            
+        # Check Height (numbers only)
+        try:
+            height = float(self.entry_height.get())
+            if height <= 0 or height > 300:  # Reasonable height range
+                invalid_fields.append("Height (must be between 1-300 cm)")
+        except ValueError:
+            invalid_fields.append("Height (numbers only)")
+            
+        # Check Religion (letters only)
+        if not self.entry_religion.get().replace(" ", "").isalpha():
+            invalid_fields.append("Religion (letters only)")
+        
+        # If there are invalid data types, return the error type and message
+        if invalid_fields:
+            return False, "invalid"
+        
+        return True, "valid"
+
+    def show_validation_error(self, error_type):
+        """Show validation error message based on error type"""
+        if error_type == "required":
+            message = "Please fill all required fields."
+        elif error_type == "invalid":
+            message = "Please enter valid data in the fields."
+        else:
+            message = "Please check your input."
+            
+        # Create error dialog
+        error_dialog = ctk.CTkToplevel(self)
+        error_dialog.title("Validation Error")
+        error_dialog.geometry("350x150")
+        error_dialog.transient(self)
+        error_dialog.grab_set()
+        
+        # Center the dialog
+        error_dialog.update_idletasks()
+        x = (error_dialog.winfo_screenwidth() // 2) - (350 // 2)
+        y = (error_dialog.winfo_screenheight() // 2) - (150 // 2)
+        error_dialog.geometry(f"350x150+{x}+{y}")
+        
+        # Error message
+        error_label = ctk.CTkLabel(error_dialog, text=message, 
+                                 font=("Merriweather Sans", 14), text_color="red")
+        error_label.pack(pady=30)
+        
+        # OK button
+        ok_button = ctk.CTkButton(error_dialog, text="OK", command=error_dialog.destroy,
+                                fg_color="#1A374D", hover_color="#00C88D")
+        ok_button.pack(pady=10)
 
     def restore_form_data(self):
         try:
@@ -250,7 +333,7 @@ class PatientInfoWindow(BaseWindow):
                 self.entry_middlename.insert(0, self.data.get("patient_middle_name"))
                 
             if self.data.get("patient_status"):
-                self.status_var.set(self.data.get("patient_status"))
+                self.status_var.set(self.data.get("patient_status").lower())
                 
             if self.data.get("patient_access"):
                 self.entry_access.set(self.data.get("patient_access"))
@@ -261,20 +344,17 @@ class PatientInfoWindow(BaseWindow):
                 self.entry_birthdate.set_date(birthdate)
                 
             if self.data.get("patient_age"):
-                self.entry_age.delete(0, "end")
-                self.entry_age.insert(0, self.data.get("patient_age"))
+                self.age_label.configure(text=str(self.data.get("patient_age")))
                 
             if self.data.get("patient_gender"):
-                self.entry_gender.delete(0, "end")
-                self.entry_gender.insert(0, self.data.get("patient_gender"))
+                self.gender_var.set(self.data.get("patient_gender").lower())
                 
             if self.data.get("patient_height"):
                 self.entry_height.delete(0, "end")
                 self.entry_height.insert(0, self.data.get("patient_height"))
                 
             if self.data.get("patient_civil_status"):
-                self.entry_civil_status.delete(0, "end")
-                self.entry_civil_status.insert(0, self.data.get("patient_civil_status"))
+                self.civil_status_var.set(self.data.get("patient_civil_status").lower())
                 
             if self.data.get("patient_religion"):
                 self.entry_religion.delete(0, "end")
@@ -295,10 +375,10 @@ class PatientInfoWindow(BaseWindow):
             self.data["patient_status"] = self.status_var.get()
             self.data["patient_access"] = self.entry_access.get()
             self.data["patient_birthdate"] = self.entry_birthdate.get_date().strftime("%Y-%m-%d")
-            self.data["patient_age"] = self.entry_age.get()
-            self.data["patient_gender"] = self.entry_gender.get()
+            self.data["patient_age"] = self.age_label.cget("text")
+            self.data["patient_gender"] = self.gender_var.get()
             self.data["patient_height"] = self.entry_height.get()
-            self.data["patient_civil_status"] = self.entry_civil_status.get()
+            self.data["patient_civil_status"] = self.civil_status_var.get()
             self.data["patient_religion"] = self.entry_religion.get()
             self.data["patient_address"] = self.entry_address.get()
             
@@ -339,7 +419,7 @@ class PatientInfoWindow(BaseWindow):
                     
                     # Set Status (RadioButton)
                     if patient_data[3]:
-                        self.status_var.set(patient_data[3])
+                        self.status_var.set(patient_data[3].lower())
                     
                     # Set Access Type (ComboBox)
                     if patient_data[4]:
@@ -349,25 +429,22 @@ class PatientInfoWindow(BaseWindow):
                     if patient_data[5]:
                         self.entry_birthdate.set_date(patient_data[5])
                     
-                    # Clear and populate Age
+                    # Set Age (Label)
                     if patient_data[6]:
-                        self.entry_age.delete(0, "end")
-                        self.entry_age.insert(0, str(patient_data[6]))
+                        self.age_label.configure(text=str(patient_data[6]))
                     
-                    # Clear and populate Gender
+                    # Set Gender (RadioButton)
                     if patient_data[7]:
-                        self.entry_gender.delete(0, "end")
-                        self.entry_gender.insert(0, patient_data[7])
+                        self.gender_var.set(patient_data[7].lower())
                     
                     # Clear and populate Height
                     if patient_data[8]:
                         self.entry_height.delete(0, "end")
                         self.entry_height.insert(0, patient_data[8])
                     
-                    # Clear and populate Civil Status
+                    # Set Civil Status (RadioButton)
                     if patient_data[9]:
-                        self.entry_civil_status.delete(0, "end")
-                        self.entry_civil_status.insert(0, patient_data[9])
+                        self.civil_status_var.set(patient_data[9].lower())
                     
                     # Clear and populate Religion
                     if patient_data[10]:
@@ -385,21 +462,26 @@ class PatientInfoWindow(BaseWindow):
             except Exception as e:
                 print(f"Error populating fields: {e}")
 
-    # Also update the update_age method to use the correct method:
     def update_age(self, event):
         try:
             birthdate = self.entry_birthdate.get_date()
             today = datetime.today()
             age = today.year - birthdate.year - ((today.month, today.day) < (birthdate.month, birthdate.day))
             
-            # Clear and insert the calculated age
-            self.entry_age.delete(0, "end")
-            self.entry_age.insert(0, str(age))
+            # Update age label
+            self.age_label.configure(text=str(age))
             
         except Exception as e:
             print(f"Error calculating age: {e}")
     
     def open_next(self, data=None):
+        # Validate required fields before proceeding
+        is_valid, error_type = self.validate_required_fields()
+        
+        if not is_valid:
+            self.show_validation_error(error_type)
+            return  # Don't proceed if validation fails
+        
         try:
             self.data["patient_last_name"] = self.entry_lastname.get().lower().capitalize()
             self.data["patient_first_name"] = self.entry_firstname.get().lower().capitalize()
@@ -407,10 +489,10 @@ class PatientInfoWindow(BaseWindow):
             self.data["patient_status"] = self.status_var.get().capitalize()
             self.data["patient_access"] = self.entry_access.get()
             self.data["patient_birthdate"] = self.entry_birthdate.get_date().strftime("%Y-%m-%d")  
-            self.data["patient_age"] = self.entry_age.get()
-            self.data["patient_gender"] = self.entry_gender.get().lower().capitalize()
+            self.data["patient_age"] = self.age_label.cget("text")
+            self.data["patient_gender"] = self.gender_var.get().capitalize()
             self.data["patient_height"] = self.entry_height.get()
-            self.data["patient_civil_status"] = self.entry_civil_status.get().lower().capitalize()
+            self.data["patient_civil_status"] = self.civil_status_var.get().capitalize()
             self.data["patient_religion"] = self.entry_religion.get().lower().capitalize()
             self.data["patient_address"] = self.entry_address.get().lower().capitalize()
             
@@ -439,11 +521,8 @@ class ContactPersonWindow(BaseWindow):
         def create_underline(x, y, width):
             ctk.CTkFrame(self, height=1, width=width, fg_color="black").place(x=x, y=y)
 
-       
-
         title_text = "Edit Contact Information" if self.edit_mode else "Contact Information"
         ctk.CTkLabel(self, text=title_text, font=("Merriweather bold", 25), text_color="black", bg_color="white").place(x=90, y=100)
-
 
         # Last Name Field
         ctk.CTkLabel(self, text="Last Name", font=label_font, fg_color="white", text_color="black").place(x=120, y=190)
@@ -467,7 +546,7 @@ class ContactPersonWindow(BaseWindow):
 
         # Contact Number Field
         ctk.CTkLabel(self, text="Contact Number", font=label_font, fg_color="white", text_color="black").place(x=120, y=310)
-        self.entry_contact = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white",placeholder_text="Type here")
+        self.entry_contact = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white",placeholder_text="e.g. 09123456789")
         self.entry_contact.place(x=120, y=360)
         ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=250, y=310)  
         create_underline(120, 390, 180)
@@ -486,11 +565,90 @@ class ContactPersonWindow(BaseWindow):
         ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=265, y=430)  
         create_underline(120, 510, 500)
 
-
         if self.edit_mode and self.patient_id:
             self.populate_fields()
         elif not self.edit_mode and self.data:
             self.restore_form_data()
+
+    def validate_required_fields(self):
+        """Validate all required fields before proceeding to next window"""
+        # Check if any required field is empty
+        empty_fields = []
+        
+        if not self.entry_lastname.get().strip():
+            empty_fields.append("Last Name")
+        if not self.entry_firstname.get().strip():
+            empty_fields.append("First Name")
+        if not self.entry_contact.get().strip():
+            empty_fields.append("Contact Number")
+        if not self.entry_relationship.get().strip():
+            empty_fields.append("Relationship to Patient")
+        if not self.entry_address.get().strip():
+            empty_fields.append("Complete Address")
+        
+        # If there are empty fields, return the error type and message
+        if empty_fields:
+            return False, "required"
+        
+        # Check data type validation
+        invalid_fields = []
+        
+        # Check Last Name (letters only)
+        if not self.entry_lastname.get().replace(" ", "").isalpha():
+            invalid_fields.append("Last Name (letters only)")
+            
+        # Check First Name (letters only)
+        if not self.entry_firstname.get().replace(" ", "").isalpha():
+            invalid_fields.append("First Name (letters only)")
+            
+        # Check Contact Number (numbers only, Philippine format)
+        contact = self.entry_contact.get().replace(" ", "").replace("-", "").replace("+", "")
+        if not contact.isdigit():
+            invalid_fields.append("Contact Number (numbers only)")
+        elif len(contact) < 10 or len(contact) > 13:
+            invalid_fields.append("Contact Number (invalid length)")
+            
+        # Check Relationship (letters only)
+        if not self.entry_relationship.get().replace(" ", "").isalpha():
+            invalid_fields.append("Relationship (letters only)")
+        
+        # If there are invalid data types, return the error type and message
+        if invalid_fields:
+            return False, "invalid"
+        
+        return True, "valid"
+
+    def show_validation_error(self, error_type):
+        """Show validation error message based on error type"""
+        if error_type == "required":
+            message = "Please fill all required fields."
+        elif error_type == "invalid":
+            message = "Please enter valid data in the fields."
+        else:
+            message = "Please check your input."
+            
+        # Create error dialog
+        error_dialog = ctk.CTkToplevel(self)
+        error_dialog.title("Validation Error")
+        error_dialog.geometry("350x150")
+        error_dialog.transient(self)
+        error_dialog.grab_set()
+        
+        # Center the dialog
+        error_dialog.update_idletasks()
+        x = (error_dialog.winfo_screenwidth() // 2) - (350 // 2)
+        y = (error_dialog.winfo_screenheight() // 2) - (150 // 2)
+        error_dialog.geometry(f"350x150+{x}+{y}")
+        
+        # Error message
+        error_label = ctk.CTkLabel(error_dialog, text=message, 
+                                 font=("Merriweather Sans", 14), text_color="red")
+        error_label.pack(pady=30)
+        
+        # OK button
+        ok_button = ctk.CTkButton(error_dialog, text="OK", command=error_dialog.destroy,
+                                fg_color="#1A374D", hover_color="#00C88D")
+        ok_button.pack(pady=10)
 
     def restore_form_data(self):
         try:
@@ -586,6 +744,13 @@ class ContactPersonWindow(BaseWindow):
                 print(f"Error populating contact fields: {e}")
 
     def open_next(self, data=None):
+        # Validate required fields before proceeding
+        is_valid, error_type = self.validate_required_fields()
+        
+        if not is_valid:
+            self.show_validation_error(error_type)
+            return  # Don't proceed if validation fails
+        
         try:
             self.data["contact_last_name"] = self.entry_lastname.get().lower().capitalize()
             self.data["contact_first_name"] = self.entry_firstname.get().lower().capitalize()
@@ -610,7 +775,6 @@ class RelativeInfoWindow(BaseWindow):
         super().__init__(parent, "Relative Information", next_window=PhilHealthInfoWindow, previous_window=ContactPersonWindow)
         self.data = data if data else {}
 
-
         label_font = ("Merriweather Sans Bold",15)
         entry_font = ("Merriweather Sans", 13)
         button_font = ("Merriweather Bold", 20)
@@ -618,7 +782,6 @@ class RelativeInfoWindow(BaseWindow):
 
         def create_underline(x, y, width):
             ctk.CTkFrame(self, height=1, width=width, fg_color="black").place(x=x, y=y)
-
 
         title_text = "Edit Relative Information" if self.edit_mode else "Relative Information"
         ctk.CTkLabel(self, text=title_text, font=("Merriweather bold", 25), text_color="black", bg_color="white").place(x=90, y=100)
@@ -645,7 +808,7 @@ class RelativeInfoWindow(BaseWindow):
 
         # Contact Number Field
         ctk.CTkLabel(self, text="Contact Number", font=label_font, fg_color="white", text_color="black").place(x=120, y=310)
-        self.entry_contact = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white",placeholder_text="Type here")
+        self.entry_contact = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white",placeholder_text="e.g. 09123456789")
         self.entry_contact.place(x=120, y=360)
         ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=250, y=310)  
         create_underline(120, 390, 180)
@@ -657,12 +820,84 @@ class RelativeInfoWindow(BaseWindow):
         ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=265, y=430)  
         create_underline(120, 510, 500)
 
-
         if self.edit_mode and self.patient_id:
             self.populate_fields()
         elif not self.edit_mode and self.data:
             self.restore_form_data()
 
+    def validate_required_fields(self):
+        """Validate all required fields before proceeding to next window"""
+        # Check if any required field is empty
+        empty_fields = []
+        
+        if not self.entry_lastname.get().strip():
+            empty_fields.append("Last Name")
+        if not self.entry_firstname.get().strip():
+            empty_fields.append("First Name")
+        if not self.entry_contact.get().strip():
+            empty_fields.append("Contact Number")
+        if not self.entry_address.get().strip():
+            empty_fields.append("Complete Address")
+        
+        # If there are empty fields, return the error type and message
+        if empty_fields:
+            return False, "required"
+        
+        # Check data type validation
+        invalid_fields = []
+        
+        # Check Last Name (letters only)
+        if not self.entry_lastname.get().replace(" ", "").isalpha():
+            invalid_fields.append("Last Name (letters only)")
+            
+        # Check First Name (letters only)
+        if not self.entry_firstname.get().replace(" ", "").isalpha():
+            invalid_fields.append("First Name (letters only)")
+            
+        # Check Contact Number (numbers only, Philippine format)
+        contact = self.entry_contact.get().replace(" ", "").replace("-", "").replace("+", "")
+        if not contact.isdigit():
+            invalid_fields.append("Contact Number (numbers only)")
+        elif len(contact) < 10 or len(contact) > 13:
+            invalid_fields.append("Contact Number (invalid length)")
+        
+        # If there are invalid data types, return the error type and message
+        if invalid_fields:
+            return False, "invalid"
+        
+        return True, "valid"
+
+    def show_validation_error(self, error_type):
+        """Show validation error message based on error type"""
+        if error_type == "required":
+            message = "Please fill all required fields."
+        elif error_type == "invalid":
+            message = "Please enter valid data in the fields."
+        else:
+            message = "Please check your input."
+            
+        # Create error dialog
+        error_dialog = ctk.CTkToplevel(self)
+        error_dialog.title("Validation Error")
+        error_dialog.geometry("350x150")
+        error_dialog.transient(self)
+        error_dialog.grab_set()
+        
+        # Center the dialog
+        error_dialog.update_idletasks()
+        x = (error_dialog.winfo_screenwidth() // 2) - (350 // 2)
+        y = (error_dialog.winfo_screenheight() // 2) - (150 // 2)
+        error_dialog.geometry(f"350x150+{x}+{y}")
+        
+        # Error message
+        error_label = ctk.CTkLabel(error_dialog, text=message, 
+                                 font=("Merriweather Sans", 14), text_color="red")
+        error_label.pack(pady=30)
+        
+        # OK button
+        ok_button = ctk.CTkButton(error_dialog, text="OK", command=error_dialog.destroy,
+                                fg_color="#1A374D", hover_color="#00C88D")
+        ok_button.pack(pady=10)
     
     def restore_form_data(self):
         try:
@@ -748,6 +983,13 @@ class RelativeInfoWindow(BaseWindow):
                 print(f"Error populating relative fields: {e}")
 
     def open_next(self, data=None):
+        # Validate required fields before proceeding
+        is_valid, error_type = self.validate_required_fields()
+        
+        if not is_valid:
+            self.show_validation_error(error_type)
+            return  # Don't proceed if validation fails
+        
         try:
             self.data["relative_last_name"] = self.entry_lastname.get().lower().capitalize()
             self.data["relative_first_name"] = self.entry_firstname.get().lower().capitalize()
@@ -784,7 +1026,7 @@ class PhilHealthInfoWindow(BaseWindow):
 
         # PhilHealth Number Field
         ctk.CTkLabel(self, text="PhilHealth Number", font=label_font, fg_color="white", text_color="black").place(x=120, y=190)
-        self.entry_philhealth = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white",placeholder_text="Type here")
+        self.entry_philhealth = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white",placeholder_text="e.g. 01-234567890-1")
         self.entry_philhealth.place(x=120, y=240)
         ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=275, y=190)
         create_underline(120, 270, 180)
@@ -799,24 +1041,28 @@ class PhilHealthInfoWindow(BaseWindow):
         # PWD Radio Buttons
         ctk.CTkLabel(self, text="PWD", font=label_font, fg_color="white", text_color="black").place(x=120, y=310)
         self.pwd_var = ctk.IntVar()
-        ctk.CTkRadioButton(self, text="Yes", variable=self.pwd_var, value=1, font=entry_font, text_color="black", fg_color="#00C88D", bg_color="white").place(x=120, y=350)
-        ctk.CTkRadioButton(self, text="No", variable=self.pwd_var, value=0, font=entry_font, text_color="black", fg_color="#00C88D", bg_color="white").place(x=180, y=350)
+        self.pwd_yes = ctk.CTkRadioButton(self, text="Yes", variable=self.pwd_var, value=1, font=entry_font, text_color="black", fg_color="#00C88D", bg_color="white", command=self.toggle_pwd_field)
+        self.pwd_yes.place(x=120, y=350)
+        self.pwd_no = ctk.CTkRadioButton(self, text="No", variable=self.pwd_var, value=0, font=entry_font, text_color="black", fg_color="#00C88D", bg_color="white", command=self.toggle_pwd_field)
+        self.pwd_no.place(x=180, y=350)
 
         # PWD ID Number Field
         ctk.CTkLabel(self, text="PWD ID Number", font=label_font, fg_color="white", text_color="black").place(x=420, y=310)
-        self.entry_pwd_id = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white",placeholder_text="Type here")
+        self.entry_pwd_id = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white",placeholder_text="Type here", state="disabled")
         self.entry_pwd_id.place(x=420, y=360)
         create_underline(420, 390, 180)
 
         # Senior Radio Buttons
         ctk.CTkLabel(self, text="Senior", font=label_font, fg_color="white", text_color="black").place(x=120, y=440)
         self.senior_var = ctk.IntVar()
-        ctk.CTkRadioButton(self, text="Yes", variable=self.senior_var, value=1, font=entry_font, text_color="black", fg_color="#00C88D", bg_color="white").place(x=120, y=480)
-        ctk.CTkRadioButton(self, text="No", variable=self.senior_var, value=0, font=entry_font, text_color="black", fg_color="#00C88D", bg_color="white").place(x=180, y=480)
+        self.senior_yes = ctk.CTkRadioButton(self, text="Yes", variable=self.senior_var, value=1, font=entry_font, text_color="black", fg_color="#00C88D", bg_color="white", command=self.toggle_senior_field)
+        self.senior_yes.place(x=120, y=480)
+        self.senior_no = ctk.CTkRadioButton(self, text="No", variable=self.senior_var, value=0, font=entry_font, text_color="black", fg_color="#00C88D", bg_color="white", command=self.toggle_senior_field)
+        self.senior_no.place(x=180, y=480)
 
         # Senior ID Number Field
         ctk.CTkLabel(self, text="Senior ID Number", font=label_font, fg_color="white", text_color="black").place(x=420, y=430)
-        self.entry_senior_id = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white",placeholder_text="Type here")
+        self.entry_senior_id = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white",placeholder_text="Type here", state="disabled")
         self.entry_senior_id.place(x=420, y=480)
         create_underline(420, 510, 180)
         
@@ -824,6 +1070,106 @@ class PhilHealthInfoWindow(BaseWindow):
             self.populate_fields()
         elif not self.edit_mode and self.data:
             self.restore_form_data()
+
+    def toggle_pwd_field(self):
+        """Enable/disable PWD ID field based on PWD selection"""
+        if self.pwd_var.get() == 1:  # Yes selected
+            self.entry_pwd_id.configure(state="normal")
+        else:  # No selected
+            self.entry_pwd_id.configure(state="disabled")
+            self.entry_pwd_id.delete(0, "end")  # Clear the field when disabled
+
+    def toggle_senior_field(self):
+        """Enable/disable Senior ID field based on Senior selection"""
+        if self.senior_var.get() == 1:  # Yes selected
+            self.entry_senior_id.configure(state="normal")
+        else:  # No selected
+            self.entry_senior_id.configure(state="disabled")
+            self.entry_senior_id.delete(0, "end")  # Clear the field when disabled
+
+    def validate_required_fields(self):
+        """Validate all required fields before proceeding to next window"""
+        # Check if any required field is empty
+        empty_fields = []
+        
+        if not self.entry_philhealth.get().strip():
+            empty_fields.append("PhilHealth Number")
+        if not self.entry_membership.get().strip():
+            empty_fields.append("Membership")
+        
+        # Check if PWD is Yes but no ID provided
+        if self.pwd_var.get() == 1 and not self.entry_pwd_id.get().strip():
+            empty_fields.append("PWD ID Number")
+        
+        # Check if Senior is Yes but no ID provided
+        if self.senior_var.get() == 1 and not self.entry_senior_id.get().strip():
+            empty_fields.append("Senior ID Number")
+        
+        # If there are empty fields, return the error type and message
+        if empty_fields:
+            return False, "required"
+        
+        # Check data type validation
+        invalid_fields = []
+        
+        # Check PhilHealth Number (numbers and dashes only)
+        philhealth = self.entry_philhealth.get().replace("-", "")
+        if not philhealth.isdigit():
+            invalid_fields.append("PhilHealth Number (numbers only)")
+        elif len(philhealth) != 12:  # PhilHealth format: XX-XXXXXXXXX-X (12 digits)
+            invalid_fields.append("PhilHealth Number (must be 12 digits)")
+            
+        # Check Membership (letters only)
+        if not self.entry_membership.get().replace(" ", "").isalpha():
+            invalid_fields.append("Membership (letters only)")
+        
+        # Check PWD ID if provided (numbers only)
+        if self.pwd_var.get() == 1 and self.entry_pwd_id.get().strip():
+            if not self.entry_pwd_id.get().isdigit():
+                invalid_fields.append("PWD ID Number (numbers only)")
+        
+        # Check Senior ID if provided (numbers only)
+        if self.senior_var.get() == 1 and self.entry_senior_id.get().strip():
+            if not self.entry_senior_id.get().isdigit():
+                invalid_fields.append("Senior ID Number (numbers only)")
+        
+        # If there are invalid data types, return the error type and message
+        if invalid_fields:
+            return False, "invalid"
+        
+        return True, "valid"
+
+    def show_validation_error(self, error_type):
+        """Show validation error message based on error type"""
+        if error_type == "required":
+            message = "Please fill all required fields."
+        elif error_type == "invalid":
+            message = "Please enter valid data in the fields."
+        else:
+            message = "Please check your input."
+            
+        # Create error dialog
+        error_dialog = ctk.CTkToplevel(self)
+        error_dialog.title("Validation Error")
+        error_dialog.geometry("350x150")
+        error_dialog.transient(self)
+        error_dialog.grab_set()
+        
+        # Center the dialog
+        error_dialog.update_idletasks()
+        x = (error_dialog.winfo_screenwidth() // 2) - (350 // 2)
+        y = (error_dialog.winfo_screenheight() // 2) - (150 // 2)
+        error_dialog.geometry(f"350x150+{x}+{y}")
+        
+        # Error message
+        error_label = ctk.CTkLabel(error_dialog, text=message, 
+                                 font=("Merriweather Sans", 14), text_color="red")
+        error_label.pack(pady=30)
+        
+        # OK button
+        ok_button = ctk.CTkButton(error_dialog, text="OK", command=error_dialog.destroy,
+                                fg_color="#1A374D", hover_color="#00C88D")
+        ok_button.pack(pady=10)
 
     def restore_form_data(self):
         try:
@@ -837,15 +1183,17 @@ class PhilHealthInfoWindow(BaseWindow):
                 
             if "is_pwd" in self.data:
                 self.pwd_var.set(self.data.get("is_pwd"))
+                self.toggle_pwd_field()  # Update field state
                 
             if "is_senior" in self.data:
                 self.senior_var.set(self.data.get("is_senior"))
+                self.toggle_senior_field()  # Update field state
                 
-            if self.data.get("pwd_id"):
+            if self.data.get("pwd_id") and self.pwd_var.get() == 1:
                 self.entry_pwd_id.delete(0, "end")
                 self.entry_pwd_id.insert(0, self.data.get("pwd_id"))
                 
-            if self.data.get("senior_id"):
+            if self.data.get("senior_id") and self.senior_var.get() == 1:
                 self.entry_senior_id.delete(0, "end")
                 self.entry_senior_id.insert(0, self.data.get("senior_id"))
             
@@ -858,8 +1206,8 @@ class PhilHealthInfoWindow(BaseWindow):
             self.data["membership_type"] = self.entry_membership.get().lower().capitalize()
             self.data["is_pwd"] = self.pwd_var.get()
             self.data["is_senior"] = self.senior_var.get()
-            self.data["pwd_id"] = self.entry_pwd_id.get()
-            self.data["senior_id"] = self.entry_senior_id.get()
+            self.data["pwd_id"] = self.entry_pwd_id.get() if self.pwd_var.get() == 1 else ""
+            self.data["senior_id"] = self.entry_senior_id.get() if self.senior_var.get() == 1 else ""
             
         except Exception as e:
             print(f"❌ Error saving current PhilHealth data: {e}")
@@ -892,17 +1240,19 @@ class PhilHealthInfoWindow(BaseWindow):
                     
                     # Set PWD radio button (True/False to 1/0)
                     self.pwd_var.set(1 if philhealth_data[2] else 0)
+                    self.toggle_pwd_field()
                     
                     # Clear and populate PWD ID
-                    if philhealth_data[3]:
+                    if philhealth_data[3] and self.pwd_var.get() == 1:
                         self.entry_pwd_id.delete(0, "end")
                         self.entry_pwd_id.insert(0, str(philhealth_data[3]))
                     
                     # Set Senior radio button (True/False to 1/0)
                     self.senior_var.set(1 if philhealth_data[4] else 0)
+                    self.toggle_senior_field()
                     
                     # Clear and populate Senior ID
-                    if philhealth_data[5]:
+                    if philhealth_data[5] and self.senior_var.get() == 1:
                         self.entry_senior_id.delete(0, "end")
                         self.entry_senior_id.insert(0, str(philhealth_data[5]))
 
@@ -913,13 +1263,20 @@ class PhilHealthInfoWindow(BaseWindow):
                 print(f"Error populating PhilHealth fields: {e}")
 
     def open_next(self, data=None):
+        # Validate required fields before proceeding
+        is_valid, error_type = self.validate_required_fields()
+        
+        if not is_valid:
+            self.show_validation_error(error_type)
+            return  # Don't proceed if validation fails
+        
         try:
             self.data["philhealth_number"] = self.entry_philhealth.get()
             self.data["membership_type"] = self.entry_membership.get()
             self.data["is_pwd"] = self.pwd_var.get()
             self.data["is_senior"] = self.senior_var.get()
-            self.data["pwd_id"] = self.entry_pwd_id.get()
-            self.data["senior_id"] = self.entry_senior_id.get()
+            self.data["pwd_id"] = self.entry_pwd_id.get() if self.pwd_var.get() == 1 else ""
+            self.data["senior_id"] = self.entry_senior_id.get() if self.senior_var.get() == 1 else ""
 
             self.data["edit_mode"] = self.edit_mode
             self.data["patient_id"] = self.patient_id
@@ -957,7 +1314,6 @@ class PatientHistory1Window(BaseWindow):
         ctk.CTkLabel(self, text="Family History", font=label_font, fg_color="white", text_color="black").place(x=120, y=190)
         ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=235, y=190) 
         
-
         # Family History Checkboxes
         ctk.CTkCheckBox(self, variable=self.family_hypertension, text="Hypertension", 
                         font=entry_font, text_color="black", fg_color="#008400", 
@@ -973,7 +1329,7 @@ class PatientHistory1Window(BaseWindow):
 
         # Family History Other Field
         ctk.CTkLabel(self, text="Other:", font=entry_font, fg_color="white", text_color="black").place(x=140, y=300)
-        self.family_other = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white")
+        self.family_other = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white", placeholder_text="Type here")
         self.family_other.place(x=140, y=340)
         create_underline(140, 370, 180)
 
@@ -1005,15 +1361,91 @@ class PatientHistory1Window(BaseWindow):
 
         # Medical History Other Field
         ctk.CTkLabel(self, text="Other:", font=entry_font, fg_color="white", text_color="black").place(x=140, y=510)
-        self.med_other1 = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white")
+        self.med_other1 = ctk.CTkEntry(self, width=180, height=30, font=entry_font, text_color="black", fg_color="white", border_width=0, bg_color="white", placeholder_text="Type here")
         self.med_other1.place(x=140, y=550)
         create_underline(140, 580, 180)
-
 
         if self.edit_mode and self.patient_id:
             self.populate_fields()
         elif not self.edit_mode and self.data:
             self.restore_form_data()
+
+    def validate_required_fields(self):
+        """Validate required fields before proceeding to next window"""
+        # Check if at least one checkbox is selected in Family History
+        family_selected = (self.family_hypertension.get() or 
+                          self.family_diabetes.get() or 
+                          self.family_malignancy.get() or 
+                          self.family_other.get().strip())
+        
+        # Check if at least one checkbox is selected in Medical History
+        medical_selected = (self.med_kidney_disease.get() or 
+                           self.med_urinary_stone.get() or 
+                           self.med_recurrent_uti.get() or 
+                           self.med_diabetes_type.get() or 
+                           self.med_other1.get().strip())
+        
+        # Check if required sections are filled
+        empty_sections = []
+        if not family_selected:
+            empty_sections.append("Family History")
+        if not medical_selected:
+            empty_sections.append("Medical History")
+        
+        # If there are empty sections, return the error type
+        if empty_sections:
+            return False, "required"
+        
+        # Check data type validation for "Other" fields if they have content
+        invalid_fields = []
+        
+        # Check Family History Other field (letters only if provided)
+        if self.family_other.get().strip():
+            if not self.family_other.get().replace(" ", "").isalpha():
+                invalid_fields.append("Family History Other (letters only)")
+        
+        # Check Medical History Other field (letters only if provided)
+        if self.med_other1.get().strip():
+            if not self.med_other1.get().replace(" ", "").isalpha():
+                invalid_fields.append("Medical History Other (letters only)")
+        
+        # If there are invalid data types, return the error type
+        if invalid_fields:
+            return False, "invalid"
+        
+        return True, "valid"
+
+    def show_validation_error(self, error_type):
+        """Show validation error message based on error type"""
+        if error_type == "required":
+            message = "Please fill all required fields."
+        elif error_type == "invalid":
+            message = "Please enter valid data in the fields."
+        else:
+            message = "Please check your input."
+            
+        # Create error dialog
+        error_dialog = ctk.CTkToplevel(self)
+        error_dialog.title("Validation Error")
+        error_dialog.geometry("350x150")
+        error_dialog.transient(self)
+        error_dialog.grab_set()
+        
+        # Center the dialog
+        error_dialog.update_idletasks()
+        x = (error_dialog.winfo_screenwidth() // 2) - (350 // 2)
+        y = (error_dialog.winfo_screenheight() // 2) - (150 // 2)
+        error_dialog.geometry(f"350x150+{x}+{y}")
+        
+        # Error message
+        error_label = ctk.CTkLabel(error_dialog, text=message, 
+                                 font=("Merriweather Sans", 14), text_color="red")
+        error_label.pack(pady=30)
+        
+        # OK button
+        ok_button = ctk.CTkButton(error_dialog, text="OK", command=error_dialog.destroy,
+                                fg_color="#1A374D", hover_color="#00C88D")
+        ok_button.pack(pady=10)
 
     def restore_form_data(self):
         try:
@@ -1102,6 +1534,13 @@ class PatientHistory1Window(BaseWindow):
                 print(f"Error populating Patient History 1 fields: {e}")
 
     def open_next(self, data=None):
+        # Validate required fields before proceeding
+        is_valid, error_type = self.validate_required_fields()
+        
+        if not is_valid:
+            self.show_validation_error(error_type)
+            return  # Don't proceed if validation fails
+        
         try:
             self.data["family_hypertension"] = self.family_hypertension.get()
             self.data["family_diabetes"] = self.family_diabetes.get()
@@ -1134,29 +1573,99 @@ class PatientHistory2Window(BaseWindow):
         button_font = ("Merriweather Bold", 20)
         required_font = ("Merriweather Sans bold", 10)
 
-        
-
         title_text = "Edit Patient History Part 2" if self.edit_mode else "Patient History Part 2"
         ctk.CTkLabel(self, text=title_text, font=("Merriweather bold", 25), text_color="black", bg_color="white").place(x=90, y=100)
 
         # History of Present Illness Field
-        ctk.CTkLabel(self, text="History of Present Illness", font=label_font, fg_color="white", text_color="black").place(x=120, y=190)
-        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=325, y=190)
+        ctk.CTkLabel(self, text="History of Present Illness (max 100 chars)", font=label_font, fg_color="white", text_color="black").place(x=120, y=190)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=390, y=190)
         self.history_illness = ctk.CTkTextbox(self, width=700, height=150, font=entry_font, text_color="black", fg_color="white", border_width=1.5, bg_color="white",corner_radius=20)
         self.history_illness.place(x=170, y=240)
         
-
         # Pertinent Past Medical History Field
-        ctk.CTkLabel(self, text="Pertinent Past Medical History", font=label_font, fg_color="white", text_color="black").place(x=120, y=400)
-        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=360, y=400)
+        ctk.CTkLabel(self, text="Pertinent Past Medical History (max 100 chars)", font=label_font, fg_color="white", text_color="black").place(x=120, y=400)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=425, y=400)
         self.past_medical_history = ctk.CTkTextbox(self, width=700 ,height=150, font=entry_font, text_color="black", fg_color="white", border_width=1.5, bg_color="white",corner_radius=20)
         self.past_medical_history.place(x=170, y=450)
-        
 
         if self.edit_mode and self.patient_id:
             self.populate_fields()
         elif not self.edit_mode and self.data:
             self.restore_form_data()
+
+    def validate_required_fields(self):
+        """Validate all required fields before proceeding to next window"""
+        # Check if any required field is empty
+        empty_fields = []
+        
+        # Check History of Present Illness
+        present_illness = self.get_text_value(self.history_illness)
+        if not present_illness:
+            empty_fields.append("History of Present Illness")
+        
+        # Check Pertinent Past Medical History
+        past_history = self.get_text_value(self.past_medical_history)
+        if not past_history:
+            empty_fields.append("Pertinent Past Medical History")
+        
+        # If there are empty fields, return the error type
+        if empty_fields:
+            return False, "required"
+        
+        # Check for minimum length and maximum length (database constraint)
+        invalid_fields = []
+        
+        # Check if histories are too short (less than 10 characters might be too brief)
+        if present_illness and len(present_illness.strip()) < 10:
+            invalid_fields.append("History of Present Illness (too brief)")
+        
+        if past_history and len(past_history.strip()) < 10:
+            invalid_fields.append("Pertinent Past Medical History (too brief)")
+        
+        # Check if histories exceed database limit (100 characters)
+        if present_illness and len(present_illness.strip()) > 100:
+            invalid_fields.append("History of Present Illness (max 100 characters)")
+        
+        if past_history and len(past_history.strip()) > 100:
+            invalid_fields.append("Pertinent Past Medical History (max 100 characters)")
+        
+        # If there are invalid entries, return the error type
+        if invalid_fields:
+            return False, "invalid"
+        
+        return True, "valid"
+
+    def show_validation_error(self, error_type):
+        """Show validation error message based on error type"""
+        if error_type == "required":
+            message = "Please fill all required fields."
+        elif error_type == "invalid":
+            message = "Please provide detailed information (10-100 characters) in the history fields."
+        else:
+            message = "Please check your input."
+            
+        # Create error dialog
+        error_dialog = ctk.CTkToplevel(self)
+        error_dialog.title("Validation Error")
+        error_dialog.geometry("350x150")
+        error_dialog.transient(self)
+        error_dialog.grab_set()
+        
+        # Center the dialog
+        error_dialog.update_idletasks()
+        x = (error_dialog.winfo_screenwidth() // 2) - (350 // 2)
+        y = (error_dialog.winfo_screenheight() // 2) - (150 // 2)
+        error_dialog.geometry(f"350x150+{x}+{y}")
+        
+        # Error message
+        error_label = ctk.CTkLabel(error_dialog, text=message, 
+                                 font=("Merriweather Sans", 14), text_color="red")
+        error_label.pack(pady=30)
+        
+        # OK button
+        ok_button = ctk.CTkButton(error_dialog, text="OK", command=error_dialog.destroy,
+                                fg_color="#1A374D", hover_color="#00C88D")
+        ok_button.pack(pady=10)
 
     def restore_form_data(self):
         try:
@@ -1241,6 +1750,13 @@ class PatientHistory2Window(BaseWindow):
         text_widget.bind("<FocusOut>", on_focus_out)
 
     def open_next(self, data=None):
+        # Validate required fields before proceeding
+        is_valid, error_type = self.validate_required_fields()
+        
+        if not is_valid:
+            self.show_validation_error(error_type)
+            return  # Don't proceed if validation fails
+        
         try:
             self.data["history_illness"] = self.get_text_value(self.history_illness)
             self.data["past_medical_history"] = self.get_text_value(self.past_medical_history)
@@ -1280,6 +1796,7 @@ class PatientHistory3Window(BaseWindow):
 
         # Date of First Dialysis  
         ctk.CTkLabel(self, text="Date of First Dialysis", font=label_font, fg_color="white", text_color="black").place(x=750, y=190)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=920, y=190)
         self.entry_dialysis = DateEntry(self, width=12, font=entry_font, bg="white", date_pattern="yyyy-MM-dd", state="readonly")
         self.entry_dialysis.place(x=750, y=240, height=25)
 
@@ -1293,12 +1810,14 @@ class PatientHistory3Window(BaseWindow):
         # Type of Access Section
         ctk.CTkLabel(self, text="Type of Access", font=label_font, fg_color="white", text_color="black").place(x=420, y=310)
         ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=540, y=310)
-        self.access_options = ["L AVF", "R AVF", "L AVG", "R AVG", "L CVC", "R CVC", "L PDC", "R PDC"]
+        self.access_options = ["", "L AVF", "R AVF", "L AVG", "R AVG", "L CVC", "R CVC", "L PDC", "R PDC"]
         self.entry_access = ctk.CTkComboBox(self, values=self.access_options, width=180, height=25, font=entry_font, text_color="black", fg_color="white",button_color="#00C88D" ,border_width=1.5, bg_color="white", state="readonly")
+        self.entry_access.set("")  # Set to empty initially
         self.entry_access.place(x=420, y=360)
 
         # Date of First Chronic Hemodialysis
         ctk.CTkLabel(self, text="Date of First Chronic Hemodialysis", font=label_font, fg_color="white", text_color="black").place(x=120, y=430)
+        ctk.CTkLabel(self, text="*Required", font=required_font, text_color="#008400", bg_color="white").place(x=380, y=430)
         self.entry_chronic = DateEntry(self, width=12,font=entry_font, bg="white", date_pattern="yyyy-MM-dd", state="readonly")
         self.entry_chronic.place(x=120, y=480,height=25)
 
@@ -1314,6 +1833,96 @@ class PatientHistory3Window(BaseWindow):
         elif not self.edit_mode and self.data:
             self.restore_form_data()
 
+    def validate_required_fields(self):
+        """Validate all required fields before proceeding to next window"""
+        from datetime import date
+        
+        # Check if any required field is empty
+        empty_fields = []
+        
+        # Check Date of First Diagnosed having Kidney Disease
+        try:
+            diagnosed_date = self.entry_diagnosed.get_date()
+            if not diagnosed_date:
+                empty_fields.append("Date of First Diagnosed having Kidney Disease")
+        except:
+            empty_fields.append("Date of First Diagnosed having Kidney Disease")
+        
+        # Check Date of First Dialysis
+        try:
+            dialysis_date = self.entry_dialysis.get_date()
+            if not dialysis_date:
+                empty_fields.append("Date of First Dialysis")
+        except:
+            empty_fields.append("Date of First Dialysis")
+        
+        # Check Mode (radio button should have default value, but let's be safe)
+        if not self.mode_var.get():
+            empty_fields.append("Mode")
+        
+        # Check Type of Access
+        if not self.entry_access.get() or self.entry_access.get() == "":
+            empty_fields.append("Type of Access")
+        
+        # Check Date of First Chronic Hemodialysis
+        try:
+            chronic_date = self.entry_chronic.get_date()
+            if not chronic_date:
+                empty_fields.append("Date of First Chronic Hemodialysis")
+        except:
+            empty_fields.append("Date of First Chronic Hemodialysis")
+        
+        # Check Clinical Impression
+        if not self.entry_clinical.get().strip():
+            empty_fields.append("Clinical Impression")
+        
+        # If there are empty fields, return the error type
+        if empty_fields:
+            return False, "required"
+        
+        # Check Clinical Impression length (should be meaningful)
+        invalid_fields = []
+        clinical_text = self.entry_clinical.get().strip()
+        if clinical_text and len(clinical_text) < 5:
+            invalid_fields.append("Clinical Impression (too brief)")
+        
+        # If there are invalid entries, return the error type
+        if invalid_fields:
+            return False, "invalid"
+        
+        return True, "valid"
+
+    def show_validation_error(self, error_type):
+        """Show validation error message based on error type"""
+        if error_type == "required":
+            message = "Please fill all required fields."
+        elif error_type == "invalid":
+            message = "Please provide a detailed clinical impression."
+        else:
+            message = "Please check your input."
+            
+        # Create error dialog
+        error_dialog = ctk.CTkToplevel(self)
+        error_dialog.title("Validation Error")
+        error_dialog.geometry("400x150")
+        error_dialog.transient(self)
+        error_dialog.grab_set()
+        
+        # Center the dialog
+        error_dialog.update_idletasks()
+        x = (error_dialog.winfo_screenwidth() // 2) - (400 // 2)
+        y = (error_dialog.winfo_screenheight() // 2) - (150 // 2)
+        error_dialog.geometry(f"400x150+{x}+{y}")
+        
+        # Error message
+        error_label = ctk.CTkLabel(error_dialog, text=message, 
+                                 font=("Merriweather Sans", 14), text_color="red")
+        error_label.pack(pady=30)
+        
+        # OK button
+        ok_button = ctk.CTkButton(error_dialog, text="OK", command=error_dialog.destroy,
+                                fg_color="#1A374D", hover_color="#00C88D")
+        ok_button.pack(pady=10)
     
     def restore_form_data(self):
         try:
@@ -1393,6 +2002,13 @@ class PatientHistory3Window(BaseWindow):
                 print(f"Error populating fields: {e}")
     
     def open_next(self, data=None):
+        # Validate required fields before proceeding
+        is_valid, error_type = self.validate_required_fields()
+        
+        if not is_valid:
+            self.show_validation_error(error_type)
+            return  # Don't proceed if validation fails
+        
         try:
             self.data["date_diagnosed"] = self.entry_diagnosed.get_date().strftime("%Y-%m-%d")
             self.data["date_dialysis"] = self.entry_dialysis.get_date().strftime("%Y-%m-%d")
@@ -1424,9 +2040,13 @@ class MedicationWindow(BaseWindow):
         label_font = ("Merriweather Sans Bold", 15)
         entry_font = ("Merriweather Sans", 13)
         button_font = ("Merriweather Bold", 20)
+        required_font = ("Merriweather Sans bold", 10)
 
         title_text = "Edit Medications" if self.edit_mode else "Medication"
         ctk.CTkLabel(self, text=title_text, font=("Merriweather bold", 25), text_color="black", bg_color="white").place(x=90, y=100)
+
+        # Add optional note
+        ctk.CTkLabel(self, text="Note: At least one medication is recommended", font=("Merriweather Sans", 12), text_color="#666666", bg_color="white").place(x=90, y=135)
 
         # Create scrollable frame for medications
         self.scroll_frame = ctk.CTkScrollableFrame(
@@ -1470,6 +2090,112 @@ class MedicationWindow(BaseWindow):
             height=40
         )
         self.update_add_button_position()
+
+    def validate_medications(self):
+        """Validate medication entries"""
+        # Get all medications
+        medications = self.get_medication_values()
+        
+        # Check if at least one medication is provided (recommended but not required)
+        if not medications:
+            return False, "recommended"
+        
+        # Check for valid medication names (letters, numbers, spaces, and common medical symbols)
+        invalid_medications = []
+        
+        for i, med in enumerate(medications):
+            # Allow letters, numbers, spaces, hyphens, parentheses, and common medical abbreviations
+            if not all(c.isalnum() or c.isspace() or c in "-()./," for c in med):
+                invalid_medications.append(f"Medication {i+1}")
+            elif len(med.strip()) < 2:  # Too short
+                invalid_medications.append(f"Medication {i+1} (too short)")
+        
+        if invalid_medications:
+            return False, "invalid"
+        
+        return True, "valid"
+
+    def show_validation_error(self, error_type):
+        """Show validation error message based on error type"""
+        if error_type == "recommended":
+            message = "It is recommended to add at least one medication.\nDo you want to continue without medications?"
+            
+            # Create confirmation dialog
+            confirm_dialog = ctk.CTkToplevel(self)
+            confirm_dialog.title("No Medications")
+            confirm_dialog.geometry("400x180")
+            confirm_dialog.transient(self)
+            confirm_dialog.grab_set()
+            
+            # Center the dialog
+            confirm_dialog.update_idletasks()
+            x = (confirm_dialog.winfo_screenwidth() // 2) - (400 // 2)
+            y = (confirm_dialog.winfo_screenheight() // 2) - (180 // 2)
+            confirm_dialog.geometry(f"400x180+{x}+{y}")
+            
+            # Message
+            message_label = ctk.CTkLabel(confirm_dialog, text=message, 
+                                       font=("Merriweather Sans", 14), text_color="#FF8C00")
+            message_label.pack(pady=20)
+            
+            # Button frame
+            button_frame = ctk.CTkFrame(confirm_dialog, fg_color="transparent")
+            button_frame.pack(pady=10)
+            
+            self.user_choice = None
+            
+            def continue_anyway():
+                self.user_choice = True
+                confirm_dialog.destroy()
+            
+            def go_back():
+                self.user_choice = False
+                confirm_dialog.destroy()
+            
+            # Buttons
+            continue_btn = ctk.CTkButton(button_frame, text="Continue Anyway", 
+                                       command=continue_anyway,
+                                       fg_color="#FF8C00", hover_color="#FF7F50")
+            continue_btn.pack(side="left", padx=10)
+            
+            go_back_btn = ctk.CTkButton(button_frame, text="Go Back", 
+                                      command=go_back,
+                                      fg_color="#1A374D", hover_color="#00C88D")
+            go_back_btn.pack(side="left", padx=10)
+            
+            # Wait for user choice
+            confirm_dialog.wait_window()
+            return self.user_choice
+            
+        elif error_type == "invalid":
+            message = "Please enter valid medication names."
+            
+            # Create error dialog
+            error_dialog = ctk.CTkToplevel(self)
+            error_dialog.title("Invalid Medications")
+            error_dialog.geometry("350x150")
+            error_dialog.transient(self)
+            error_dialog.grab_set()
+            
+            # Center the dialog
+            error_dialog.update_idletasks()
+            x = (error_dialog.winfo_screenwidth() // 2) - (350 // 2)
+            y = (error_dialog.winfo_screenheight() // 2) - (150 // 2)
+            error_dialog.geometry(f"350x150+{x}+{y}")
+            
+            # Error message
+            error_label = ctk.CTkLabel(error_dialog, text=message, 
+                                     font=("Merriweather Sans", 14), text_color="red")
+            error_label.pack(pady=30)
+            
+            # OK button
+            ok_button = ctk.CTkButton(error_dialog, text="OK", command=error_dialog.destroy,
+                                    fg_color="#1A374D", hover_color="#00C88D")
+            ok_button.pack(pady=10)
+            
+            return False
+        
+        return True
 
     def add_medication_slot(self, slot_number, value=""):
         row = (slot_number - 1) // self.max_columns
@@ -1650,6 +2376,18 @@ class MedicationWindow(BaseWindow):
         if not self.edit_mode or not self.patient_id:
             print("Not in edit mode or no patient ID")
             return
+        
+        # Validate medications before updating
+        is_valid, error_type = self.validate_medications()
+        
+        if not is_valid:
+            if error_type == "recommended":
+                user_wants_to_continue = self.show_validation_error(error_type)
+                if not user_wants_to_continue:
+                    return  # Don't proceed if user wants to go back
+            else:
+                self.show_validation_error(error_type)
+                return  # Don't proceed if there are invalid medications
         
         username = login_shared_states.get('logged_username', None)
 
@@ -1858,6 +2596,19 @@ class MedicationWindow(BaseWindow):
         if self.edit_mode:
             print("In edit mode - use Update button instead")
             return
+        
+        # Validate medications before submitting
+        is_valid, error_type = self.validate_medications()
+        
+        if not is_valid:
+            if error_type == "recommended":
+                user_wants_to_continue = self.show_validation_error(error_type)
+                if not user_wants_to_continue:
+                    return  # Don't proceed if user wants to go back
+            else:
+                self.show_validation_error(error_type)
+                return  # Don't proceed if there are invalid medications
+        
         try:
             connect = db()
             cursor = connect.cursor()
