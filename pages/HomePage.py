@@ -26,6 +26,7 @@ from dotenv import load_dotenv
 import math
 import calendar
 from pages.pdf_report_generator import PDFReportGenerator
+import tkinter.messagebox as msgbox
 
 load_dotenv() 
 
@@ -5550,6 +5551,124 @@ class SupplyPage(ctk.CTkFrame):
                 cursor.close()
             if 'connect' in locals():
                 connect.close()
+
+    """def show_stock_level_alert(self, status_text, item_name, current_stock):
+        Show appropriate stock level alerts based on status
+        if status_text == "Out of Stock":
+            msgbox.showerror("OUT OF STOCK", 
+                        f"🚨 CRITICAL ALERT 🚨\n\n"
+                        f"Item: {item_name}\n"
+                        f"Status: OUT OF STOCK\n"
+                        f"Current Stock: {current_stock}\n\n"
+                        f"⚠️ IMMEDIATE RESTOCKING REQUIRED! ⚠️")
+        elif status_text == "Critical Stock Level":
+            msgbox.showwarning("CRITICAL STOCK", 
+                            f"⚠️ CRITICAL WARNING ⚠️\n\n"
+                            f"Item: {item_name}\n"
+                            f"Status: CRITICAL STOCK LEVEL\n"
+                            f"Current Stock: {current_stock}\n\n"
+                            f"Urgent restocking needed!")
+        elif status_text == "Low Stock Level":
+            msgbox.showwarning("LOW STOCK", 
+                            f"⚠️ WARNING ⚠️\n\n"
+                            f"Item: {item_name}\n"
+                            f"Status: LOW STOCK LEVEL\n"
+                            f"Current Stock: {current_stock}\n\n"
+                            f"Please consider restocking soon.")"""
+
+    def check_expiry_alerts(self, current_expiry, previous_expiry, item_name, new_expiry=None):
+        """Check for expiry alerts and show appropriate message boxes"""
+        
+        # Check all possible expiry fields
+        expiry_dates_to_check = []
+        
+        if current_expiry != "N/A" and current_expiry is not None and current_expiry != '':
+            expiry_dates_to_check.append(("Current Expiry", current_expiry))
+        
+        if previous_expiry != "N/A" and previous_expiry is not None and previous_expiry != '':
+            expiry_dates_to_check.append(("Previous Expiry", previous_expiry))
+        
+        if new_expiry != "N/A" and new_expiry is not None and new_expiry != '':
+            expiry_dates_to_check.append(("New Expiry", new_expiry))
+        
+        print(f"DEBUG: Checking expiry for {item_name}")
+        print(f"DEBUG: Current expiry: {current_expiry}")
+        print(f"DEBUG: Previous expiry: {previous_expiry}")
+        print(f"DEBUG: New expiry: {new_expiry}")
+        print(f"DEBUG: Dates to check: {expiry_dates_to_check}")
+        
+        for expiry_type, expiry_date in expiry_dates_to_check:
+            try:
+                from datetime import datetime, date, timedelta
+                
+                # Convert to date object for comparison
+                parsed_date = None
+                
+                if isinstance(expiry_date, date):
+                    # Already a date object from database
+                    parsed_date = expiry_date
+                elif isinstance(expiry_date, datetime):
+                    # Convert datetime to date
+                    parsed_date = expiry_date.date()
+                elif isinstance(expiry_date, str):
+                    # Try different date formats
+                    try:
+                        parsed_date = datetime.strptime(expiry_date, "%Y-%m-%d").date()
+                    except:
+                        try:
+                            parsed_date = datetime.strptime(expiry_date, "%m/%d/%Y").date()
+                        except:
+                            try:
+                                parsed_date = datetime.strptime(expiry_date, "%d/%m/%Y").date()
+                            except:
+                                continue
+                
+                if parsed_date:
+                    today = date.today()  # Use date.today() instead of datetime.now()
+                    days_until_expiry = (parsed_date - today).days
+                    
+                    print(f"DEBUG: {expiry_type} - Days until expiry: {days_until_expiry}")
+                    
+                    # Show appropriate alerts
+                    if days_until_expiry < 0:
+                        msgbox.showerror("EXPIRED ITEM", 
+                                    f"🚨 CRITICAL ALERT 🚨\n\n"
+                                    f"Item: {item_name}\n"
+                                    f"Status: EXPIRED\n"
+                                    f"Expired: {abs(days_until_expiry)} days ago\n"
+                                    f"Expiry Date: {expiry_date}\n\n"
+                                    f"⚠️ THIS ITEM SHOULD NOT BE USED! ⚠️")
+                        return  # Stop checking other dates
+                        
+                    elif days_until_expiry == 0:
+                        msgbox.showerror("EXPIRES TODAY", 
+                                    f"🚨 URGENT ALERT 🚨\n\n"
+                                    f"Item: {item_name}\n"
+                                    f"Status: EXPIRES TODAY\n"
+                                    f"Expiry Date: {expiry_date}\n\n"
+                                    f"⚠️ USE IMMEDIATELY OR DISCARD! ⚠️")
+                        return  # Stop checking other dates
+                        
+                    elif days_until_expiry <= 7:
+                        msgbox.showwarning("EXPIRING SOON", 
+                                        f"⚠️ WARNING ⚠️\n\n"
+                                        f"Item: {item_name}\n"
+                                        f"Status: Expiring in {days_until_expiry} days\n"
+                                        f"Expiry Date: {expiry_date}\n\n"
+                                        f"Please plan for replacement!")
+                        return  # Stop checking other dates
+                        
+                    elif days_until_expiry <= 30:
+                        msgbox.showwarning("EXPIRY NOTICE", 
+                                        f"📅 NOTICE\n\n"
+                                        f"Item: {item_name}\n"
+                                        f"Expires in: {days_until_expiry} days\n"
+                                        f"Expiry Date: {expiry_date}")
+                        return  # Stop checking other dates
+                    
+            except Exception as e:
+                print(f"Error checking {expiry_type} date: {e}")
+                continue
     
     # EXISTING METHODS (unchanged)
     def perform_sort(self, sort_option):
@@ -6028,6 +6147,15 @@ class SupplyPage(ctk.CTkFrame):
         self.Status_Output.configure(text=status_text, text_color=status_color)
         self.Remaining_Output.configure(text_color=remaining_color)
         self.StorageMeter.configure(progress_color=progress_color)
+
+        new_restock_expiry = supply_data[13] if len(supply_data) > 13 and supply_data[13] is not None and supply_data[13] != '' else "N/A"
+
+        # Check for expiry alerts and show message boxes
+        self.check_expiry_alerts(current_restock_expiry, previous_restock_expiry, supply_data[1], new_restock_expiry)
+
+        # Show stock level alert if needed (add this after setting all colors)
+        # if status_text in ["Out of Stock", "Critical Stock Level", "Low Stock Level"]:
+            #self.show_stock_level_alert(status_text, supply_data[1], current_stock_val)
 
         # Populate restock logs for the selected item
         item_id = supply_data[0]
