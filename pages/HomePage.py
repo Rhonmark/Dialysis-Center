@@ -2813,14 +2813,6 @@ class PatientSearchResultsFrame(ctk.CTkFrame):
         self.place_forget()
         self.visible = False
 
-import customtkinter as ctk
-from tkinter import ttk, messagebox, filedialog
-from PIL import Image, ImageTk
-import datetime
-import threading
-import os
-import shutil
-
 class PatientPage(ctk.CTkFrame):
     def __init__(self, parent, shared_state):
         super().__init__(parent, fg_color="#E8FBFC")
@@ -5022,12 +5014,18 @@ class SupplyPage(ctk.CTkFrame):
             text_color="#FFFFFF",
             fg_color="#1A374D",
             bg_color="#FFFFFF",
-            command=self.open_add_window,
             width=180,  
             height=40,
             corner_radius=20    
         )
         self.add_button.pack(side="left", padx=10)
+
+        self.role_manager.setup_admin_only_button(
+            button=self.add_button,
+            parent_widget=self,
+            command_callback=self.add_supply_clicked,
+            tooltip_text="Only Admin can add new supplies"
+        )
 
         # Sort dropdown
         self.sort_dropdown = ctk.CTkOptionMenu(
@@ -5205,9 +5203,15 @@ class SupplyPage(ctk.CTkFrame):
             height=40,
             fg_color="#1A374D",
             hover_color="#00C88D",
-            command=self.open_edit_window 
         )
         self.output_edit_button.place(x=260, y=30)
+
+        self.role_manager.setup_admin_only_button(
+            button=self.output_edit_button,
+            parent_widget=self,
+            command_callback=self.edit_supply_clicked,
+            tooltip_text="Only Admin can edit supply details"
+        )
 
         self.upload_button = ctk.CTkButton(self.Main_Supply_Frame, text="Upload Photo", font=button_font,
             corner_radius=20,
@@ -5643,6 +5647,18 @@ class SupplyPage(ctk.CTkFrame):
             edit_window.grab_set()  
         except Exception as e:
             print(f"❌ Error opening Edit Stock window: {e}")
+
+    def add_supply_clicked(self):
+        """Handle Add Supply button click - now this will only be called if user is Admin"""
+        print("✅ Add Supply button clicked by Admin!")
+        try:
+            add_window = SupplyWindow(self)
+            add_window.grab_set()
+            add_window.focus_force()
+            self.wait_window(add_window)
+            self.refresh_table()
+        except Exception as e:
+            print(f"❌ Error opening Add Supply window: {e}")
 
     # SEARCH FUNCTIONALITY METHODS
     def setup_search_functionality(self):
@@ -6267,6 +6283,7 @@ class SupplyPage(ctk.CTkFrame):
         self.button_frame.place(x=20, y=50, anchor="nw")
         self.navbar.pack(fill="x", side="top")
         self.populate_table(self.fetch_supply_data())
+
     def open_add_window(self):
         add_window = SupplyWindow(self)
         add_window.grab_set()
@@ -6290,6 +6307,28 @@ class SupplyPage(ctk.CTkFrame):
         
         if hasattr(self, 'selected_supply_id') and self.selected_supply_id:
             self.refresh_detailed_view()
+
+    def edit_supply_clicked(self):
+        """Handle Edit Supply button click - now this will only be called if user is Admin"""
+        print("✅ Edit Supply button clicked by Admin!")
+        try:
+            if not self.selected_supply_data:
+                print("No Supply Data to edit")
+                return
+
+            edit_window = SupplyWindow(self, edit_data=self.selected_supply_data)
+            edit_window.grab_set()
+            edit_window.focus_force()
+            self.wait_window(edit_window)
+            
+            # Refresh both table and detailed view
+            self.refresh_table()
+            
+            if hasattr(self, 'selected_supply_id') and self.selected_supply_id:
+                self.refresh_detailed_view()
+                
+        except Exception as e:
+            print(f"❌ Error opening Edit Supply window: {e}")
 
     def refresh_detailed_view(self):
         """Refresh the detailed view with updated data from database"""
