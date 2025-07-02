@@ -916,33 +916,33 @@ class EditStockWindow(SupplyBaseWindow):
                 not expiry_date):
                 continue
             
-        # Basic validation
-        if item_name == "Click to choose":
-            print(f"ERROR: Please select an item for row {i+1}.")
-            return
-        
-        if not quantity_str or quantity_str == "Enter Quantity":
-            print(f"ERROR: Please enter quantity for row {i+1}.")
-            return
-        
-        try:
-            quantity = int(quantity_str)
-            if quantity <= 0:
-                print(f"ERROR: Quantity must be greater than 0 for row {i+1}.")
+            # Basic validation
+            if item_name == "Click to choose":
+                print(f"ERROR: Please select an item for row {i+1}.")
                 return
-        except ValueError:
-            print(f"ERROR: Please enter a valid number for quantity in row {i+1}.")
-            return
-        
-        if not expiry_date:
-            print(f"ERROR: Please select an expiry date for row {i+1}.")
-            return
             
-        stock_changes.append({
-            'item_name': item_name,
-            'quantity': quantity,
-            'expiry_date': expiry_date
-        })
+            if not quantity_str or quantity_str == "Enter Quantity":
+                print(f"ERROR: Please enter quantity for row {i+1}.")
+                return
+            
+            try:
+                quantity = int(quantity_str)
+                if quantity <= 0:
+                    print(f"ERROR: Quantity must be greater than 0 for row {i+1}.")
+                    return
+            except ValueError:
+                print(f"ERROR: Please enter a valid number for quantity in row {i+1}.")
+                return
+            
+            if not expiry_date:
+                print(f"ERROR: Please select an expiry date for row {i+1}.")
+                return
+                
+            stock_changes.append({
+                'item_name': item_name,
+                'quantity': quantity,
+                'expiry_date': expiry_date
+            })
         
         if not stock_changes:
             print("ERROR: Please fill at least one row with complete information.")
