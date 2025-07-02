@@ -2818,8 +2818,6 @@ class PatientPage(ctk.CTkFrame):
         super().__init__(parent, fg_color="#E8FBFC")
         self.shared_state = shared_state
         self.patient_id = None 
-        self.patient_photo = None  # Store the current patient photo
-        self.default_photo_path = "assets/default_patient.png"  # Default photo path
 
         # Initialize search results frame
         self.search_results_frame = PatientSearchResultsFrame(self)
@@ -3038,86 +3036,49 @@ class PatientPage(ctk.CTkFrame):
         # Setup search functionality
         self.setup_search_functionality()
 
-        # Detailed info frame
+    # Detailed info frame
         self.detailed_info_frame = ctk.CTkFrame(self, fg_color="#E8FBFC")
 
         title_font=("Merriweather Bold",25)
         label_font=("Merriweather Light",15)
         output_font=("Merriweather Sans Bold",18)
 
-        # Create photos directory if it doesn't exist
-        self.photos_dir = "patient_photos"
-        if not os.path.exists(self.photos_dir):
-            os.makedirs(self.photos_dir)
-
-        #Photo Frame - Enhanced with rounded corners and better styling
+        #Photo Frame
         self.photo_frame = ctk.CTkFrame(
             self.detailed_info_frame,
             width=400,
             height=400,
             fg_color="white",
-            corner_radius=25,
-            border_width=3,
-            border_color="#68EDC6"
+            corner_radius=20
         )
-        self.photo_frame.place(x=200, y=200)
-        self.photo_frame.pack_propagate(False)
+        
+        self.photo_frame.place(x=200,y=200)
 
-        # Top frame for photo display with rounded corners
-        self.photo_display_frame = ctk.CTkFrame(
+        self.top_frame = ctk.CTkFrame(
             self.photo_frame,
-            width=384,
-            height=240,
-            fg_color="#f8f9fa",
-            corner_radius=22
+            width=400,
+            height=250,
+            fg_color="#68EDC6",
+            corner_radius=0
         )
-        self.photo_display_frame.place(x=8, y=8)
-        self.photo_display_frame.pack_propagate(False)
+        self.top_frame.place(x=0, y=0)
 
-        # Patient photo label (will hold the actual image)
-        self.patient_photo_label = ctk.CTkLabel(
-            self.photo_display_frame,
-            text="No Photo",
-            font=("Merriweather", 16),
-            text_color="#999999",
-            width=364,
-            height=220
-        )
-        self.patient_photo_label.place(x=10, y=10)
-
-        # Patient ID section at bottom of photo frame
         self.patient_id_label = ctk.CTkLabel(
             self.photo_frame,
             text="Patient ID",
             font=("Merriweather", 14),
-            text_color="#666666"
+            text_color="black"
         )
         self.patient_id_label.place(relx=0.5, rely=0.70, anchor="center")
 
-        self.patient_id_value = ctk.CTkLabel(
-            self.photo_frame,
+        self.patient_id_value = ctk.CTkLabel(self.photo_frame,
             text="",
-            font=("Merriweather Bold", 18),
-            text_color="#1A374D"
+            font=("Merriweather", 14),
+            text_color="black"
         )
         self.patient_id_value.place(relx=0.5, rely=0.80, anchor="center")
 
-        # Upload Photo Button (positioned below photo frame)
-        self.upload_photo_btn = ctk.CTkButton(
-            self.photo_frame,
-            text="📷 Upload Photo",
-            font=("Merriweather Bold", 14),
-            text_color="#FFFFFF",
-            corner_radius=20,
-            width=200,
-            height=35,
-            fg_color="#68EDC6",
-            hover_color="#5BC4A7",
-            command=self.upload_patient_photo
-        )
-        self.upload_photo_btn.place(relx=0.5, rely=0.93, anchor="center")
-
-        #PATIENT INFORMATION
+        #PATIENT INFROMATION
         info_frame = ctk.CTkFrame(
             self.detailed_info_frame,
             width=950,
@@ -3331,32 +3292,30 @@ class PatientPage(ctk.CTkFrame):
         self.senior_id_labelv = ctk.CTkLabel(philhealth_info_panel,text="None",font=output_font,height=18)
         self.senior_id_labelv.place(relx=.8,rely=.7)
 
-        self.back_button = ctk.CTkButton(
-            self.detailed_info_frame, 
-            text="Back", 
-            font=button_font,
-            text_color="#FFFFFF",
+        self.back_button = ctk.CTkButton(self.detailed_info_frame, text="Back", font=button_font,text_color="#FFFFFF",
             corner_radius=20,
             width=200,
             height=40,
             fg_color="#01516D",
             hover_color="#013B50", 
-            command=self.show_table_view
-        )
+            command=self.show_table_view)
         self.back_button.place(x=10, y=10)
 
-        self.edit_button_detailed = ctk.CTkButton(
-            self.detailed_info_frame, 
-            text="Edit Details", 
-            font=button_font,
-            text_color="#FFFFFF",
+        self.upload_button = ctk.CTkButton(self.detailed_info_frame, text="Upload Photo", font=button_font,text_color="#FFFFFF",
+            corner_radius=20,
+            width=200,
+            height=40,
+            fg_color="#00C88D",
+            hover_color="#013B50")
+        self.upload_button.place(x=700, y=10)
+
+        self.edit_button_detailed = ctk.CTkButton(self.detailed_info_frame, text="Edit Details", font=button_font,text_color="#FFFFFF",
             corner_radius=20,
             width=200,
             height=40,
             fg_color="#01516D",
             command=self.open_edit_window,
-            hover_color="#013B50"
-        )
+            hover_color="#013B50")
         self.edit_button_detailed.place(x=1050, y=10)
 
         self.button_frame.place(x=20, y=50, anchor="nw")  
@@ -3364,197 +3323,6 @@ class PatientPage(ctk.CTkFrame):
         self.table_frame.place(x=20, y=150, relwidth=0.95, relheight=0.8)
 
         self.populate_table(self.fetch_patient_data())
-
-    def upload_patient_photo(self):
-        """Handle photo upload for the current patient"""
-        try:
-            # Get current patient ID
-            patient_id = self.patient_id_value.cget("text")
-            if not patient_id:
-                messagebox.showwarning("No Patient Selected", "Please select a patient first.")
-                return
-
-            # Open file dialog to select image
-            file_types = [
-                ('Image files', '*.png *.jpg *.jpeg *.gif *.bmp *.tiff'),
-                ('PNG files', '*.png'),
-                ('JPEG files', '*.jpg *.jpeg'),
-                ('All files', '*.*')
-            ]
-            
-            file_path = filedialog.askopenfilename(
-                title="Select Patient Photo",
-                filetypes=file_types
-            )
-            
-            if not file_path:
-                return  # User cancelled the dialog
-            
-            # Validate file size (limit to 5MB)
-            file_size = os.path.getsize(file_path) / (1024 * 1024)  # Size in MB
-            if file_size > 5:
-                messagebox.showerror("File Too Large", "Please select an image smaller than 5MB.")
-                return
-            
-            # Generate filename for the patient photo
-            file_extension = os.path.splitext(file_path)[1].lower()
-            if file_extension not in ['.png', '.jpg', '.jpeg', '.gif', '.bmp']:
-                messagebox.showerror("Invalid File Type", "Please select a valid image file.")
-                return
-            
-            # Create filename: patient_ID.extension
-            new_filename = f"patient_{patient_id}{file_extension}"
-            destination_path = os.path.join(self.photos_dir, new_filename)
-            
-            # Copy the file to patient_photos directory
-            shutil.copy2(file_path, destination_path)
-            
-            # Update the photo display
-            self.load_patient_photo(destination_path)
-            
-            # Save photo path to database (you'll need to implement this based on your database structure)
-            self.save_photo_to_database(patient_id, destination_path)
-            
-            messagebox.showinfo("Success", "Patient photo uploaded successfully!")
-            
-        except Exception as e:
-            print(f"Error uploading photo: {e}")
-            messagebox.showerror("Upload Error", f"Failed to upload photo: {str(e)}")
-
-    def load_patient_photo(self, photo_path=None):
-        """Load and display patient photo with better size control"""
-        try:
-            if photo_path and os.path.exists(photo_path):
-                # Load the image
-                image = Image.open(photo_path)
-                
-                # Define strict display boundaries with padding
-                max_width = 344  # Reduced to ensure no overflow
-                max_height = 200  # Reduced to ensure no overflow
-                
-                # Get original dimensions
-                orig_width, orig_height = image.size
-                
-                # Calculate scaling factor to fit within bounds
-                scale_w = max_width / orig_width
-                scale_h = max_height / orig_height
-                scale = min(scale_w, scale_h) 
-                
-                # Calculate new dimensions
-                new_width = int(orig_width * scale)
-                new_height = int(orig_height * scale)
-                
-                # Ensure minimum reasonable size
-                if new_width < 50 or new_height < 50:
-                    new_width = min(max_width, 150)
-                    new_height = min(max_height, 150)
-                
-                # Resize image with high quality
-                image = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
-                
-                # Create CTkImage
-                photo = ctk.CTkImage(light_image=image, size=(new_width, new_height))
-                
-                # Update the label with strict sizing
-                self.patient_photo_label.configure(
-                    image=photo,
-                    text="",
-                    width=new_width,
-                    height=new_height
-                )
-                
-                # Center the image in the display frame with safe positioning
-                x_offset = max(10, (364 - new_width) // 2)
-                y_offset = max(10, (220 - new_height) // 2)
-                
-                # Ensure the image doesn't go outside bounds
-                if x_offset + new_width > 354:
-                    x_offset = 354 - new_width
-                if y_offset + new_height > 210:
-                    y_offset = 210 - new_height
-                    
-                self.patient_photo_label.place(x=x_offset, y=y_offset)
-                
-                # Store reference to prevent garbage collection
-                self.patient_photo = photo
-                
-                print(f"✅ Photo loaded: {new_width}x{new_height} at position ({x_offset}, {y_offset})")
-                
-            else:
-                # Show default "No Photo" text
-                self.patient_photo_label.configure(
-                    image=None,
-                    text="No Photo",
-                    font=("Merriweather", 16),
-                    text_color="#999999",
-                    width=364,
-                    height=220
-                )
-                self.patient_photo_label.place(x=10, y=10)
-                self.patient_photo = None
-                
-        except Exception as e:
-            print(f"Error loading photo: {e}")
-            # Show error state
-            self.patient_photo_label.configure(
-                image=None,
-                text="Error Loading Photo",
-                font=("Merriweather", 12),
-                text_color="#ff0000",
-                width=364,
-                height=220
-            )
-            self.patient_photo_label.place(x=10, y=10)
-
-    def save_photo_to_database(self, patient_id, photo_path):
-        """Save photo path to database - implement based on your database structure"""
-        try:
-            # You'll need to implement this based on your database structure
-            # Example:
-            # connect = db()
-            # cursor = connect.cursor()
-            # cursor.execute("UPDATE patient_list SET photo_path = %s WHERE patient_id = %s", (photo_path, patient_id))
-            # connect.commit()
-            # cursor.close()
-            # connect.close()
-            
-            print(f"Photo path saved to database: {photo_path} for patient {patient_id}")
-            
-        except Exception as e:
-            print(f"Error saving photo path to database: {e}")
-
-    def load_patient_photo_from_database(self, patient_id):
-        """Load patient photo from database - implement based on your database structure"""
-        try:
-            # You'll need to implement this based on your database structure
-            # Example:
-            # connect = db()
-            # cursor = connect.cursor()
-            # cursor.execute("SELECT photo_path FROM patient_list WHERE patient_id = %s", (patient_id,))
-            # result = cursor.fetchone()
-            # cursor.close()
-            # connect.close()
-            # 
-            # if result and result[0]:
-            #     photo_path = result[0]
-            #     if os.path.exists(photo_path):
-            #         self.load_patient_photo(photo_path)
-            #         return
-            
-            # For now, check if photo exists in the photos directory
-            possible_extensions = ['.png', '.jpg', '.jpeg', '.gif', '.bmp']
-            for ext in possible_extensions:
-                photo_path = os.path.join(self.photos_dir, f"patient_{patient_id}{ext}")
-                if os.path.exists(photo_path):
-                    self.load_patient_photo(photo_path)
-                    return
-            
-            # No photo found, show default
-            self.load_patient_photo()
-            
-        except Exception as e:
-            print(f"Error loading photo from database: {e}")
-            self.load_patient_photo()
 
     def edit_usage_clicked(self):
         """Handle Edit usage button click"""
@@ -3589,8 +3357,8 @@ class PatientPage(ctk.CTkFrame):
         """Disable buttons in the detailed view"""
         if hasattr(self, 'back_button'):
             self.back_button.configure(state="disabled")
-        if hasattr(self, 'upload_photo_btn'):
-            self.upload_photo_btn.configure(state="disabled")  
+        if hasattr(self, 'upload_button'):
+            self.upload_button.configure(state="disabled")  
         if hasattr(self, 'edit_button_detailed'):
             self.edit_button_detailed.configure(state="disabled")
         if hasattr(self, 'edit_usage_button'):
@@ -3600,8 +3368,8 @@ class PatientPage(ctk.CTkFrame):
         """Enable buttons in the detailed view"""
         if hasattr(self, 'back_button'):
             self.back_button.configure(state="normal")
-        if hasattr(self, 'upload_photo_btn'):
-            self.upload_photo_btn.configure(state="normal")
+        if hasattr(self, 'upload_button'):
+            self.upload_button.configure(state="normal")
         if hasattr(self, 'edit_button_detailed'):
             self.edit_button_detailed.configure(state="normal")
         if hasattr(self, 'edit_usage_button'):
@@ -4002,8 +3770,6 @@ class PatientPage(ctk.CTkFrame):
         self.patient_id_value.configure(text=patient_id)
         self.display_patient_id(patient_id)
         
-        # Load patient photo
-        self.load_patient_photo_from_database(patient_id)
         
         try:
             get_patient_info_data = DataRetrieval.patient_info_data(patient_id)
